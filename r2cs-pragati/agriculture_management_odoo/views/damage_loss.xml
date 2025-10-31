@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<odoo>
+    <record id="view_damage_loss_tree" model="ir.ui.view">
+        <field name="name">damage.loss.tree</field>
+        <field name="model">damage.loss</field>
+        <field name="arch" type="xml">
+            <tree>
+                <field name="name" optional="show"/>
+                <field name="user_id" optional="show"/>
+                <field name="crop_id" optional="show"/>
+                <field name="location_dest_id" optional="hide"/>
+                <field name="damage_loss_type" optional="show"/>
+                <field name="damage_loss_date" optional="show"/>
+            </tree>
+        </field>
+    </record>
+
+    <record id="view_damage_loss_form" model="ir.ui.view">
+        <field name="name">damage.loss.form</field>
+        <field name="model">damage.loss</field>
+        <field name="arch" type="xml">
+            <form>
+                <header>
+                    <button id="button_crop_damage_cancel" name="cancel_crop_damage"
+                            string="Cancel crop" class="btn-primary"
+                            type="object"/>
+                </header>
+                <sheet>
+                    <group>
+                        <group>
+                            <field name="name"/>
+                            <field name="user_id"/>
+                            <field name="crop_id"/>
+                            <field name="location_dest_id"/>
+                            <field name="damage_loss_type"/>
+                            <field name="damage_loss_date"/>
+                        </group>
+                        <group>
+                            <field name="damage_loss_image" widget="image"/>
+                        </group>
+                    </group>
+                    <field name="note" placeholder="Damage/Loss Description"/>
+                </sheet>
+                <div class="oe_chatter">
+                    <field name="message_follower_ids"/>
+                    <field name="activity_ids"/>
+                    <field name="message_ids"/>
+                </div>
+            </form>
+        </field>
+    </record>
+</odoo>

@@ -1,0 +1,80 @@
+<odoo>
+    <template id="report_invoice_adding_mrp_column" inherit_id="account.report_invoice_document">
+
+
+ <xpath expr="//div[@id='informations']" position="inside">
+            <t t-if="o.stock_name">
+                <div class="col-auto col-3 mw-100 mb-2" name="custom_section">
+                    <strong>MRN Bill Reference:</strong>
+                        <p class="m-0" t-field="o.stock_name"/>
+                </div>
+            </t>
+ </xpath>
+
+        <!-- Change Vendor/Customer based on move_type -->
+        <xpath expr="//div[@name='address_not_same_as_shipping']//address[@t-field='o.partner_id']" position="before">
+            <t t-if="o.move_type == 'in_invoice'">
+                <strong>Vendor:</strong> <!-- Ensure 'move_type' is valid -->
+            </t>
+            <t t-elif="o.move_type == 'out_invoice'">
+                <strong>Customer:</strong> <!-- Ensure 'move_type' is valid -->
+            </t>
+        </xpath>
+
+        <xpath expr="//table/thead/tr/th[@name='th_priceunit']" position="replace">
+            <th name="th_priceunit"
+                t-attf-class="text-end {{ 'd-none d-md-table-cell' if report_type == 'html' else '' }}">
+                <span>PRICE</span>
+            </th>
+
+
+        </xpath>
+
+        <xpath expr="//div[@name='address_same_as_shipping']//address[@t-field='o.partner_id']" position="before">
+            <t t-if="o.move_type == 'in_invoice'">
+                <strong>Vendor:</strong> <!-- Ensure 'move_type' is valid -->
+            </t>
+            <t t-elif="o.move_type == 'out_invoice'">
+                <strong>Customer:</strong> <!-- Ensure 'move_type' is valid -->
+            </t>
+        </xpath>
+
+        <xpath expr="//div[@name='no_shipping']//address[@t-field='o.partner_id']" position="before">
+            <t t-if="o.move_type == 'in_invoice'">
+                <strong>Vendor:</strong> <!-- Ensure 'move_type' is valid -->
+            </t>
+            <t t-elif="o.move_type == 'out_invoice'">
+                <strong>Customer:</strong> <!-- Ensure 'move_type' is valid -->
+            </t>
+        </xpath>
+
+
+        <!-- Set MRP to zero for all products -->
+        <xpath expr="//table/tbody/t/tr/t/td[@class='text-end']" position="after">
+            <td name="td_mrp_price" class="text-start">
+                <t t-if="o.move_type == 'in_invoice'">
+                    <t t-esc="'0.0'"/>  <!-- Set MRP to 0.0 for in_invoice -->
+                </t>
+                <t t-else="">
+                    <t t-esc="line.mrp_price"/>  <!-- Display actual MRP value for out_invoice -->
+                </t>
+            </td>
+        </xpath>
+
+        <!-- Add MRP column header -->
+        <xpath expr="//table/thead/tr/th[@name='th_quantity']" position="after">
+            <th name="th_mrp_price" class="text-start"><span>MRP</span></th>
+        </xpath>
+
+        <!-- Add Branch Address -->
+        <xpath expr="//div[@class='row']" position="before">
+            <div class="row">
+                <div class="col-6" style="margin-top:-120px;">
+                    <h4>Branch Address:</h4>
+                    <span t-field="o.pos_order_ids.config_id.receipt_header"/> <!-- Ensure 'pos_order_ids' is defined -->
+                </div>
+            </div>
+        </xpath>
+
+    </template>
+</odoo>

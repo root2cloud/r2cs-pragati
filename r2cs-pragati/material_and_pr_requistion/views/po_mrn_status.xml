@@ -1,0 +1,52 @@
+<odoo>
+    <record id="view_for_purchase_request_menu_form_inherit" model="ir.ui.view">
+        <field name="name">purchase.request.form.inherit</field>
+        <field name="model">purchase.request</field>
+        <field name="inherit_id" ref="material_and_pr_requistion.view_for_purchase_request_menu_form"/>
+        <field name="arch" type="xml">
+
+            <!-- PO Details Section -->
+            <xpath expr="//field[@name='shipping_address_id']" position='after'>
+                <!--                    <field name="po_status" readonly="1"/>-->
+                <field name="po_numbers"/>
+                <field name="po_dates"/>
+                <field name="po_states"/>
+            </xpath>
+
+            <!-- MRN Details Section -->
+            <xpath expr="//field[@name='pr_confirmation']" position='after'>
+                <!--                    <field name="mrn_status" readonly="1"/>-->
+                <field name="mrn_numbers"/>
+                <field name="mrn_dates"/>
+                <field name="mrn_states"/>
+                <field name="department_id" string="Department"/>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="purchase_request_tree_view_inherit" model="ir.ui.view">
+        <field name="name">purchase.request.tree.inherit</field>
+        <field name="model">purchase.request</field>
+        <field name="inherit_id" ref="material_and_pr_requistion.purchase_request_tree_view"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='material_status']" position='after'>
+<!--                                <field name="po_status" string="PO Status"  optional="hide"/>-->
+                <field name="po_numbers" string="PO Numbers"/>
+                <field name="po_dates" string="PO Dates"/>
+                <field name="po_states" string="PO States"/>
+                <field name="po_status" string="PO Status"/>
+
+                <!--                <field name="mrn_status" string="MRN Status"  optional="hide"/>-->
+                <field name="mrn_numbers" string="MRN Numbers"/>
+                <field name="mrn_dates" string="MRN Dates"/>
+                <field name="mrn_states" string="MRN States"/>
+                <field name="delay_days" invisible="1"/>
+
+            </xpath>
+<!--            <xpath expr="//field[@name='po_dates']" position="after">-->
+<!--                <field name="pr_to_po_generated_days"/>-->
+<!--            </xpath>-->
+        </field>
+    </record>
+
+</odoo>

@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+
+    <div t-name="pragati_coupon_scanner.MainMenu" class="o_stock_barcode_main_menu_container o_home_menu_background"
+         owl="1">
+        <div t-if="state.showGiftCardData == false" class="o_stock_barcode_main_menu position-relative bg-view">
+            <a href="#" class="o_stock_barcode_menu d-block float-start" t-on-click="() => this.home.toggle(true)">
+                <i class="fa fa-chevron-left"/>
+            </a>
+            <h1 class="mb-4">QR Code Scanning</h1>
+
+            <div class="o_stock_barcode_container position-relative d-inline-block mt-4 mb-5">
+                <div t-if='mobileScanner' class="o_stock_mobile_barcode_container">
+                    <button class="btn btn-primary o_stock_mobile_barcode" t-on-click="openMobileScanner">
+                        <i class="fa fa-camera fa-2x o_mobile_barcode_camera"/>
+                        Tap to scan
+                    </button>
+                    <img src="/pragati_coupon_scanner/static/src/img/qrcode.png" alt="QRcode"
+                         class="img-fluid mb-1 mt-1"/>
+                </div>
+                <img t-else="" src="/pragati_coupon_scanner/static/src/img/qrcode.png" alt="QRcode"
+                     class="img-fluid mb-1 mt-1"/>
+                <span class="o_stock_barcode_laser"/>
+            </div>
+
+            <ul class="text-start mb-sm-5 ps-4">
+                <li>Scan an <b>Coupon Code</b> to check the status of Reward Program.</li>
+            </ul>
+            <hr class="mb-4 d-none d-sm-block"/>
+        </div>
+        <div t-if="state.showGiftCardData" class="o_stock_barcode_main_menu position-relative bg-view">
+            <a href="#" class="o_stock_barcode_menu d-block float-start" t-on-click="() => this.home.toggle(true)">
+                <i class="fa fa-chevron-left"/>
+            </a>
+            <h1 class="mb-4">Coupon Status</h1>
+            <h2 class="mb-4">
+                <t t-foreach="state.giftCardData['description']" t-as="desc" t-key="desc">
+                    <span t-esc="desc"/><br/>
+                </t>
+            </h2>
+            <div class="text-start">
+                <ul class="text-start mb-sm-5 ps-4">
+                <li><b>Code : </b>
+                    <t t-esc="state.giftCardData['code_for_reward']"/></li>
+                    <li><b>Customer : </b>
+                        <t t-esc="state.giftCardData['partner_name']"/></li>
+                    <li><b>Validity : </b>
+                        <t t-esc="state.giftCardData['code_expiry']"/></li>
+                    <li><b>Code Status: </b>
+                        <t t-esc="state.giftCardData['points']"/></li>
+                    <li><b>Coupon Value : </b>
+                        <t t-esc="state.giftCardData['coupon_value']"/></li>
+            </ul>
+            </div>
+            <hr class="mb-4 d-none d-sm-block"/>
+        </div>
+    </div>
+
+</templates>

@@ -1,0 +1,94 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <record id="loyalty_card_inherit_view" model="ir.ui.view">
+        <field name="model">loyalty.card</field>
+        <field name="inherit_id" ref="loyalty.loyalty_card_view_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='code']" position="before">
+                <field name="seq_name"/>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="loyalty_program_view_form_inherit_view" model="ir.ui.view">
+        <field name="model">loyalty.program</field>
+        <field name="inherit_id" ref="loyalty.loyalty_program_view_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='date_to']" position="before">
+                <field name="coupon_value"/>
+            </xpath>
+        </field>
+    </record>
+
+    <template id="loyalty_report" inherit_id="loyalty.loyalty_report">
+        <xpath expr="//div[@class='card']//div[@class='card-body']//div[@class='page']" position="replace">
+            <!-- <div><t t-esc="o.seq_name"/></div> -->
+            <div class="row text-center">
+                <div class="o_offer col-lg-12">
+                    <h4 t-if="o._get_mail_partner().name">
+                        Congratulations
+                        <t t-esc="o._get_mail_partner().name"/>,
+                    </h4>
+
+<!--                    <t t-set="text">on your next order</t>-->
+                    <h4>Here is your reward from <t t-esc="o.program_id.company_id.name"/>.</h4>
+                    <h1 class="fw-bold" style="font-size: 34px" t-esc="o.program_id.name"/>
+                    <t t-foreach="range(len(o.program_id.reward_ids))" t-as="reward_idx">
+                        <t t-set="reward" t-value="o.program_id.reward_ids[reward_idx]"/>
+                        <t t-if="not o.program_id.coupon_value">
+                        <strong><t t-esc="reward.description"/></strong>
+                        <br/>
+                        <t t-if="reward_idx &lt; (len(o.program_id.reward_ids) - 1)">
+                            <span class="text-center">OR</span>
+                            <br/>
+                        </t>
+                        </t>
+                        <t t-if="o.program_id.coupon_value">
+                            <span class="text-center fw-bold"> Coupon Value is: <t t-esc="o.program_id.coupon_value"/></span>
+                        </t>
+
+                    </t>
+                    <t t-if="not o.program_id.coupon_value">
+
+                    <h1 class="fw-bold" style="font-size: 34px" t-esc="text"/>
+                    </t>
+                    <br/>
+                    <h4 t-if="o.expiration_date">
+                        Use this promo code before
+                        <span t-field="o.expiration_date" t-options='{"format": "d-MM-YYYY"}'/>
+                    </h4>
+                    <h2 class="mt-4">
+                        <strong class="bg-light" t-esc="o.code"></strong>
+                    </h2>
+                    <t t-set="rule" t-value="o.program_id.rule_ids[:1]"/>
+                    <h4 t-if="rule.minimum_qty > 1">
+                        <span>Minimum purchase of</span>
+                        <strong t-esc="rule.minimum_qty"/> <span>products</span>
+                    </h4>
+                    <h4 t-if="rule.minimum_amount">
+                        <span>Valid for purchase above</span>
+                        <strong t-esc="rule.minimum_amount" t-options="{'widget': 'monetary', 'display_currency': rule.currency_id}"/>
+                    </h4>
+                    <br/>
+                    <img t-if="o.qr_code" t-att-src="image_data_uri(o.qr_code)" style="margin-top:15px;margin-right:40px;" width="150" height="150"/>
+
+                    <br/><br/>
+                    <h4>Thank you,</h4>
+                    <br/>
+                    <div class="mt32">
+                        <div class="text-center">
+                            <img alt="Logo" t-att-src="'/logo?company=%d' % (o.program_id.company_id)" t-att-alt="'%s' % (o.program_id.company_id.name)" style="border:0px solid transparent; height: 50; width: 200px;" height="50"/>
+                        </div>
+                    </div>
+                    <div>
+                        <div class="text-center d-inline-block">
+                            <span t-field="o.program_id.company_id.partner_id"
+                                t-options='{"widget": "contact", "fields": ["address", "email"], "no_marker": True}'/>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </xpath>
+    </template>
+</odoo>

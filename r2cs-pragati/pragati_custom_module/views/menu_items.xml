@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<odoo>
+    <menuitem id="menu_delivery_terms"
+            name="Delivery Terms"
+            action="action_delivery_terms"
+            parent="purchase.menu_purchase_config"
+            sequence= "1"/>
+
+    <!-- Rename of the Customer Payments in menu -->
+    <record model="ir.ui.menu" id="account.menu_action_account_payments_receivable">
+        <field name="name">Bank Receipt</field>
+    </record>
+
+    <menuitem id="account.menu_action_account_payments_receivable" active="False"/>
+
+    <record model="ir.actions.act_window" id="account.action_account_payments">
+        <field name="name">Bank Receipt</field>
+    </record>
+
+
+</odoo>

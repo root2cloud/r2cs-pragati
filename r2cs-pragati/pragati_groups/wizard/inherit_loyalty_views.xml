@@ -1,0 +1,23 @@
+<odoo>
+    <record id="loyalty_generate_wizard_inherit_form" model="ir.ui.view">
+        <field name="name">loyalty.generate.wizard.inherit.form</field>
+        <field name="model">loyalty.generate.wizard</field>
+        <field name="inherit_id" ref="loyalty.loyalty_generate_wizard_view_form"/>
+        <field name="arch" type="xml">
+            <field name = "coupon_qty" position = "replace">
+                <field name = "coupon_qty" attrs="{'required': [('mode', '=', 'anonymous')]}"/>
+            </field>
+            <field name="mode" position="after">
+                <!-- Add the Salesperson field -->
+                <field name="salesperson_id" class="oe_inline"/>
+            </field>
+            <xpath expr="//form/sheet/group/group/field[@name='salesperson_id']" position="after">
+                <field name="price_unit"/>
+            </xpath>
+            <xpath expr="//footer//button[@name='generate_coupons']" position="replace">
+                <button name="generate_coupons_request" type="object" class="btn-primary" >Request For Coupon</button>
+            </xpath>
+
+        </field>
+    </record>
+</odoo>

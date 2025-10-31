@@ -1,0 +1,147 @@
+<odoo>
+    <template id="adding_menure_template" name="Adding Menure Template">
+        <t t-call="website.layout">
+            <t t-set="title">Adding Menure</t>
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a href="/graph layout"><i class="fa fa-home"/></a></li>
+                    <li class="breadcrumb-item"><a href="/graph">Net Houses</a></li>
+                    <li  class="breadcrumb-item"><a  t-att-href="'/graph/' + greenhouse">Zones</a></li>
+                    <li  class="breadcrumb-item"><a  t-att-href="'/graph/' + greenhouse +'/'+menure_zone ">Add Menure</a></li>
+
+                    
+
+
+                </ol>
+            </nav>
+
+            <div class="adding-menure-container">
+                <form role="form" action="/submit_menure" method="post">
+                    <input type="hidden" name="csrf_token" t-att-value="request.csrf_token()"/>
+                    <div class="form-group">
+                        <div class="just-form">
+                            <div class="full-form" >
+                                <!-- <div class="left-side-form"> -->
+                                
+                                <div class="fields-style">
+                                    <div class="label-style">
+
+                                        <label for="location_dest_id">Net House ID:</label>
+                                    </div>
+                                    <div class="input-style">
+
+                                        <input type="text" id="location_dest_id" name="location_dest_id" t-att-value="greenhouse_record" required="required" readonly="readonly"/>
+                                    </div>
+                                </div>
+                                <div class="fields-style">
+                                    <div class="label-style">
+
+                                        <label for="menure_zone">Zone IDS:</label>
+                                    </div>
+                                    <div class="input-style">
+                                        <input type="text" id="menure_zone" name="menure_zone" t-att-value="menure_zone" required="required" readonly="readonly"/>
+                                    </div>
+                                </div>
+                                <div class="fields-style">
+                                    <div class="label-style">
+
+                                        <label for="location_id">Source Location:</label>
+                                    </div>
+                                    <div class="input-style">
+                                        <select id="location_id" name="location_id" style="height:35px; width: 220px;background-color:#e1e7f0;" required="required" t-att-data-greenhouse="greenhouse">
+                                            <option value="">Select location</option>
+                                            <t t-foreach="source_locations " t-as="location">
+                                                <option t-att-value="location.id" ><t t-esc="location.location_id.name"/>/<t t-esc="location.name"/></option>
+                                            </t>
+                                        </select>
+
+                                        
+                                    </div>
+
+                                </div>
+                                <div class="fields-style">
+                                    <div class="label-style">
+
+                                        <label for="crop_id">Crop Name:</label>
+                                    </div>
+                                    <div class="input-style">
+                                        <select id="crop_id" name="crop_id" style=" height:35px;
+                                            width:220px; background-color:#e1e7f0;" required="required">
+                                            <option value="">Select Crop</option>
+                                            <t t-foreach="matched_crop_records" t-as="crop">
+                                                <option t-att-value="crop.id" ><t t-esc="crop.product_id.name"/>(<t t-esc="crop.ref"/>)(<t t-esc="crop.state"/>)</option>
+                                            </t>
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="fields-style">
+                                    <div class="label-style">
+
+                                        <label for="menure_bed">Bed IDS:</label>
+                                    </div>
+                                    <div class="input-style">
+                                        <input type="text" id="menure_bed" name="menure_bed" required="required" readonly="readonly"/>
+                                    </div>
+                                </div>
+                                <div class="fields-style">
+                                    <div class="label-style">
+
+                                        <label for="product_id_menure">Menure Name:</label>
+                                    </div>
+                                    <div class="input-style">
+                                        <select name="product_id_menure" style="height:35px;
+                                                width:220px;background-color:#e1e7f0;" required="required">
+                                            <option value="">Select Menure</option>
+                                            <t t-foreach="matched_menure_records" t-as="menure">
+                                                <option t-att-value="menure.id" ><t t-esc="menure.name"/></option>
+                                            </t>
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="fields-style">
+                                    <div class="label-style">
+                                        <label for="stock_change_menure"
+                                            >Quantity(Kg's):</label>
+                                    </div>
+                                    <div class="input-style">
+                                        <input type="text" id="stock_change_menure" name="stock_change_menure" required="required"/>
+                                    </div>
+                                </div>
+
+                            
+                                <!-- </div> -->
+                                <!-- <div class="right-side-form">
+
+                                </div> -->
+                            </div>
+                            <div>
+                                <button class="submit-menure-btn" type="submit">SUBMIT</button>
+                            </div>
+
+                        </div>
+                    </div>
+
+                    
+                </form>
+            </div>
+        </t>
+    </template>
+    <template id="successful_menure_record_template" name="success Menure page">
+        <t t-call="website.layout">
+            <t t-set="title">successful</t>
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a href="/graph layout"><i class="fa fa-home"/></a></li>
+                    <li class="breadcrumb-item"><a href="/graph">Net Houses</a></li>
+                    
+
+
+                </ol>
+            </nav>
+            <div class="successful-msg">
+                <h1>Menure Record Is Successfully Created!</h1>
+            </div>
+        </t>
+    </template>
+
+</odoo>

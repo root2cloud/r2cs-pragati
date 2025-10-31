@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates id="template" xml:space="preserve">
+
+    <t t-name="PrescriptionOrderList" owl="1">
+        <div class="orders">
+            <div class="header-row" t-att-class="{ oe_hidden: env.isMobile }">
+                <div class="col name">Order</div>
+                <div class="col date">Date</div>
+                <div class="col customer">Patient</div>
+                <div class="col prescriptionsman">Prescribing Doctor</div>
+                <div class="col total">Total</div>
+                <div class="col state">State</div>
+                <div class="col posordercount">POS Orders</div>
+            </div>
+            <div class="order-list">
+                <t t-foreach="props.orders" t-as="order" t-key="order.id">
+                    <PrescriptionOrderRow order="order" highlightedOrder="highlightedOrder" />
+                </t>
+            </div>
+        </div>
+    </t>
+
+</templates>

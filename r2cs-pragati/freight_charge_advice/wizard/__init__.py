@@ -1,0 +1,1 @@
+from . import open_payment_freight_register

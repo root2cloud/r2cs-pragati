@@ -1,0 +1,310 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+
+    <record id="view_acs_patient_evaluation_form" model="ir.ui.view">
+        <field name="name">Patient Evaluation</field>
+        <field name="model">acs.patient.evaluation</field>
+        <field name="arch" type="xml">
+            <form>
+                <header>
+                    <button name="action_done" states="draft" groups="acs_hms.group_hms_jr_doctor,acs_hms.group_hms_nurse" type="object" string="Done" class="oe_highlight"/>
+                    <button name="action_cancel" string="Cancel" states="draft" type="object"/>
+                    <button name="action_draft" string="Draft" states="cancel" type="object"/>
+                    <field name="state" widget="statusbar" statusbar_visible="draft,done"/>
+                </header>
+                <sheet>
+                    <field name="image_128" widget="image" class="oe_avatar" options="{'preview_image': 'image_128'}"/>
+                    <div class="oe_title">
+                        <h1>
+                            <field name="name" default_focus="1" placeholder="Name"/>
+                        </h1>
+                    </div>
+                    <group>
+                        <group>
+                            <field name="patient_id"/>
+                            <field name="age" readonly="1"/>
+                            <field name="company_id" groups="base.group_multi_company" options="{'no_create': True}"/>
+                        </group>
+                        <group>
+                            <field name="physician_id"/>
+                            <field name="date"/>
+                            <field name="appointment_id" domain="[('patient_id','=', patient_id)]" context="{'default_patient_id': patient_id, 'default_physician_id': physician_id}"/>
+                        </group>
+                    </group>
+                    <notebook>
+                        <page name="details" string="Details" groups="acs_hms.group_hms_nurse">
+                            <group>
+                                <group>
+                                    <label for="weight"/>
+                                    <div class="o_row">
+                                        <field name="weight"/>
+                                        <field name="acs_weight_name"/>
+                                    </div>
+                                    <label for="height"/>
+                                    <div class="o_row">
+                                        <field name="height"/>
+                                        <field name="acs_height_name"/>
+                                    </div>
+                                    <label for="temp"/>
+                                    <div class="o_row">
+                                        <field name="temp"/>
+                                        <field name="acs_temp_name"/>
+                                    </div>
+                                    <label for="puls"/>
+                                    <div>
+                                        <field name="puls"/>
+                                    </div>
+
+                                </group>
+
+                                <group>
+                                    <field name="rr"/>
+                                    <label string="Systolic/Diastolic BP" for="systolic_bp"/>
+                                    <div name="systolic_bp">
+                                        <div class="oe_inline" style="display: inline;" >
+                                            <field name="systolic_bp" class="oe_inline"/>/<field name="diastolic_bp" class="oe_inline"/>
+                                        </div>
+                                    </div>
+                                    <label for="spo2"/>
+                                    <div class="o_row">
+                                        <field name="spo2"/>
+                                        <field name="acs_spo2_name"/>
+                                    </div>
+                                    <div>
+                                        <field name="slep"/>
+                                    </div>
+                                    <div>
+                                        <field name="bow"/>
+                                    </div>
+                                </group>
+                                <group>
+                                     <label for="apt"/>
+                                    <div>
+                                        <field name="apt"/>
+                                    </div>
+                                </group>
+                                <group>
+                                    <label for="uri"/>
+                                    <div>
+                                        <field name="uri"/>
+                                    </div>
+                                </group>
+                                <group>
+                                    <field name="bmi"/>
+                                </group>
+                                <group>
+                                    <field name="bmi_state"/>
+                                </group>
+                            </group>
+                            <div class="oe_inline" style="display: flex; flex-direction:row;" >
+                                <label string="ANY NEW COMPLIANTS:" for="anc"/>
+                                <div name="anc" class="oe_inline">
+                                    <span style="margin-left: 70px; margin-right: 2px;">Yes</span>
+                                    <field name="yes_box1" class="oe_inline"/>
+                                    <span style="margin-left: 10px; margin-right: 2px;">No</span>
+                                    <field name="no_box1" class="oe_inline"/>
+                                </div>
+
+                            </div>
+                            <field name="anc" attrs="{'invisible': [('yes_box1', '=', False)]}"/>
+                            <div class="oe_inline" style="display: flex; flex-direction:row;" >
+                                <label string="ANY CHANGES IN MEDICATION:" for="anc"/>
+                                <div name="anc" class="oe_inline">
+                                    <span style="margin-left: 26px; margin-right: 2px;">Yes</span>
+                                    <field name="yes_box2" class="oe_inline"/>
+                                    <span style="margin-left: 10px; margin-right: 2px;">No</span>
+                                    <field name="no_box2" class="oe_inline"/>
+                                </div>
+                            </div>
+                            <field name="anm" attrs="{'invisible': [('yes_box2', '=', False)]}"/>
+                            <div class="oe_inline" style="display: flex; flex-direction:row;" >
+                                <label string="ANY IMPROVEMENT" for="anc"/>
+                                <div name="anc" class="oe_inline">
+                                    <span style="margin-left: 93px; margin-right: 2px;">Yes</span>
+                                    <field name="yes_box3" class="oe_inline"/>
+                                    <span style="margin-left: 10px; margin-right: 2px;">No</span>
+                                    <field name="no_box3" class="oe_inline"/>
+                                </div>
+                            </div>
+                            <field name="ai" attrs="{'invisible': [('yes_box3', '=', False)]}"/>
+                            <!-- <separator string="Pain Level"/> -->
+                            <group>
+                                <group>
+
+                                    
+                                    <label for="pain_level"/>
+                                    <div class="o_row">
+                                        <field name="pain_level"/>
+                                        <span><button name="%(acs_hms.action_acs_pain_level)d" type="action" icon="fa-question-circle" title="Pain Level"/></span>
+                                    </div>
+                                    <field name="pain" colspan="2" nolabel="1"/>
+                                </group>
+                            </group>
+
+
+                            
+                            <!-- **************************************h*************************************** -->
+                                    <!-- <label for="bloodp"/>
+                                    <div>
+                                        <field name="bloodp"/>
+                                    </div> -->
+                                    
+                                    <!-- <label for="pr"/>
+                                    <div class="o_row">
+                                        <field name="pr"/>
+                                    </div> -->
+                                    <!-- *********************************h****************** -->
+                                    <!-- <label for="rbs"/>
+                                    <div class="o_row">
+                                        <field name="rbs"/>
+                                        <field name="acs_rbs_name"/>
+                                    </div> -->
+                                
+                            <!-- <separator string="Systemic Examination"/>
+                            <group>
+                                <group>
+                                    <label for="csv"/>
+                                    <div class="o_row">
+                                        <field name="csv"/>
+                                    </div>
+                                    <label for="rs"/>
+                                    <div class="o_row">
+                                        <field name="rs"/>
+                                    </div>
+                                    <label for="ms"/>
+                                    <div class="o_row">
+                                        <field name="ms"/>
+                                    </div>
+                                </group>
+                                <group>
+                                    <label for="ns"/>
+                                    <div class="o_row">
+                                        <field name="ns"/>
+                                    </div>
+                                    <label for="gi"/>
+                                    <div class="o_row">
+                                        <field name="gi"/>
+                                    </div>
+                                    <label for="others"/>
+                                    <div class="o_row">
+                                        <field name="others"/>
+                                    </div>
+                                </group>
+                            </group> -->
+                            <!-- *****************************h***************************** -->
+                            <!-- <separator string="ANY NEW COMPLIANTS:"/>
+                            <field name="anc"/>
+                            <separator string="ANY CHANGES IN MEDICATION:"/>
+                            <field name="anm"/>
+                            <separator string="ANY IMPROVEMENT"/>
+                            <field name="ai"/> -->
+                         <!-- *****************************h***************************** -->
+                        </page>
+                    </notebook>
+                </sheet>
+                <div class="oe_chatter">
+                    <field name="message_follower_ids" widget="mail_followers"/>
+                    <field name="activity_ids" widget="mail_activity"/>
+                    <field name="message_ids" widget="mail_thread"/>
+                </div>
+            </form>
+        </field>
+    </record>
+
+    <record model="ir.ui.view" id="view_acs_patient_evaluation_search">
+        <field name="name">evaluation.list</field>
+        <field name="model">acs.patient.evaluation</field>
+        <field name="arch" type="xml">
+            <search string="Patient Evaluation">
+                <field name="name"/>
+                <field name="patient_id"/>
+                <field name="date"/>
+                <group expand="0" string="Group By...">
+                     <filter string="Patient" name="patient_groupby" domain="[]" context="{'group_by':'patient_id'}"/>
+                    <filter string="Date" name="date_groupby" domain="[]" context="{'group_by':'date'}" />
+                    <filter string="State" name="state_groupby" domain="[]" context="{'group_by':'state'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <record model="ir.ui.view" id="view_acs_patient_evaluation_tree">
+        <field name="name">treatment.list</field>
+        <field name="model">acs.patient.evaluation</field>
+        <field name="arch" type="xml">
+            <tree string="Patient Evaluation">
+                <field name="name"/>
+                <field name="patient_id"/>
+                <field name="date"/>
+                <field name="state"/>
+                <field name="company_id" groups="base.group_multi_company"/>
+            </tree>
+        </field>
+    </record>
+
+
+    <record id="view_acs_patient_evaluation_calendar" model="ir.ui.view">
+        <field name="name">acs.patient.evaluation.calendar</field>
+        <field name="model">acs.patient.evaluation</field>
+        <field name="type">calendar</field>
+        <field name="arch" type="xml">
+            <calendar string="Patient Evaluations" color="patient_id" date_start="date">
+                <field name="physician_id"/>
+                <field name="patient_id"/>
+                <field name="state"/>
+            </calendar>
+        </field>
+    </record>
+
+    <record id="view_acs_patient_evaluation_pivot" model="ir.ui.view">
+        <field name="name">acs.patient.evaluation.pivot</field>
+        <field name="model">acs.patient.evaluation</field>
+        <field name="arch" type="xml">
+            <pivot string="Patient Evaluations">
+                <field name="date" type="row"/>
+                <field name="physician_id" type="row"/>
+            </pivot>
+        </field>
+    </record>
+
+    <record id="action_acs_patient_evaluation" model="ir.actions.act_window">
+        <field name="name">Patient Evaluation</field>
+        <field name="type">ir.actions.act_window</field>
+        <field name="res_model">acs.patient.evaluation</field>
+        <field name="view_mode">tree,form,calendar,pivot</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                No Record Found
+            </p>
+            <p>
+                Click to add a Patient Evaluation.
+            </p>
+        </field>
+    </record>
+
+    <!-- POPUP -->
+    <record id="view_acs_patient_evaluation_popup_form" model="ir.ui.view">
+        <field name="name">acs.patient.evaluation.form</field>
+        <field name="model">acs.patient.evaluation</field>
+        <field name="inherit_id" ref="acs_hms.view_acs_patient_evaluation_form"/>
+        <field name="mode">primary</field>
+        <field name="priority">1</field>
+        <field name="arch" type="xml">
+            <sheet position="after">
+                <footer>
+                    <button name="create_evaluation" type="object" string="Create" class="oe_highlight"/>
+                    <button string="Cancel" class="oe_link" special="cancel" />
+                </footer>
+            </sheet>
+        </field>
+    </record>
+
+    <record id="action_acs_patient_evaluation_popup" model="ir.actions.act_window">
+        <field name="name">Evaluation</field>
+        <field name="res_model">acs.patient.evaluation</field>
+        <field name="view_id" ref="view_acs_patient_evaluation_popup_form"/>
+        <field name="view_mode">form</field>
+        <field name="target">new</field>
+    </record>
+
+</odoo>

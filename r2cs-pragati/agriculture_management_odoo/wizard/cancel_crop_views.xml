@@ -1,0 +1,31 @@
+<odoo>
+    <record id="cancel_crop_view_form" model="ir.ui.view">
+        <field name="name">cancel.crop.form</field>
+        <field name="model">cancel.crop.wizard</field>
+        <field name="arch" type="xml">
+            <form>
+                <sheet>
+                    <group>
+                        <group>
+                            <field name="name"/>
+                            <field name="crop_id"/>
+                            <field name="location_dest_id"/>
+                            <field name="damage_loss_type"/> 
+                            <field name="damage_loss_date"/>
+                            <field name="farmer_emp"/>
+                        </group>
+                        <group>
+                            <field name="damage_loss_image" widget="image"/>
+                        </group>
+                    </group>
+                    <field name="note" placeholder="Reason for Crop cancellation"/>
+                </sheet>
+                <footer>
+                    <button string="Confirm" name="action_confirm_damage" type="object" class="oe_highlight" data-hotkey="q"/>
+                    <button string="Cancel" class="btn btn-default" special="cancel" data-hotkey="z"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+
+</odoo>

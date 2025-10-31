@@ -1,0 +1,18 @@
+<odoo>
+    <template id="report_invoice_document_inherit_message" inherit_id="account.report_invoice_document">
+        <!-- Place content at very start of invoice body -->
+        <xpath expr="//div[hasclass('page')]" position="inside">
+            <div class="row mb16" style="border-bottom:1px solid #ccc; padding-bottom:8px;">
+                <div class="col-6">
+                    <img t-att-src="'/pragati_custom_module/static/src/img/company_logo.png'" style="max-height:80px;"/>
+                </div>
+                <div class="col-6 text-right" style="font-size:12px;">
+                    <strong>PRAGATI BIOPHARMA PRIVATE LIMITED</strong><br/>
+                    4-86/172, Salar Jung Rd, Salar Jung Colony, Toli Chowki,<br/>
+                    Hyderabad, Telangana 500008<br/>
+                    <b>GSTIN :</b> 36AADCP4003C1Z2
+                </div>
+            </div>
+        </xpath>
+    </template>
+</odoo>

@@ -1,0 +1,91 @@
+<odoo>
+    <template id="payment_advise_report">
+        <t t-call="web.html_container">
+            <t t-foreach="docs" t-as="doc">
+                <t t-call="web.external_layout"> <br/> <br/> <br/> <br/> <br/> <br/> <br/> <br/>
+                    <div class="page">
+                        <div style="border: 2px solid black; width:100%; height:80%;
+                                     margin:0px; padding:0px">
+                            
+                            <h1 style="margin: 0px; text-align:center"><t t-esc="doc.category_id.name"/></h1>
+                            <div style="border: 2px solid transperent;height:50px">
+                                <div style="float:left;width:40%">
+                                    <p style="padding: 10px"> Payment no: <span t-field="doc.name"/></p>
+                                </div>
+
+                                <div style="float: left ;width:54%">
+                                    <p style= "float:right;padding: 10px">Date: <t t-esc="doc.date"/></p>
+                                </div>
+                            </div>
+                        </div>
+                
+                        <table class="table table-ar" style="border: 2px solid black;">
+                            <thead>
+                                <tr>
+                                    <td>S.No</td>
+                                    <td>Vendor Name</td>
+                                    <td>Balance</td>
+                                    <td>Recommended Amount</td>
+                                    <td>Approved Amount</td>
+                                    <td>Remarks</td>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <t t-set="counter" t-value="1"/>
+                                <t t-foreach="doc.product_line_ids" t-as="record">
+                                    <tr>
+                                        <td><t t-esc="counter"/></td>
+                                        <td><t t-if="record.vendor_id.name"/><t t-esc="record.vendor_id.name"/></td>
+                                        <td><t t-if="record.balance_amount"/><t t-esc="record.balance_amount"/></td>                                     
+                                        <td><t t-if="record.rec_amount"/><t t-esc="record.rec_amount"/></td>
+                                        <td><t t-if="record.approve_amount"/><t t-esc="record.approve_amount"/></td>
+                                        <td><t t-if="record.remarks"/><t t-esc="record.remarks"/></td>
+                                    </tr>
+                                    <t t-set="counter" t-value="counter + 1"/>
+                                </t>
+                                <tr>
+                                    <td colspan="6"></td>
+                                </tr>
+                                <tr>
+                                    <td colspan="2">Total</td>
+                                    <td><t t-esc="sum(record.balance_amount for record in docs.product_line_ids)"/></td>
+                                    <td><t t-esc="sum(record.rec_amount for record in docs.product_line_ids)"/></td>
+                                    <td colspan="2"><t t-esc="sum(record.approve_amount for record in docs.product_line_ids)"/></td>
+                                </tr>
+                            </tbody>
+                        </table>
+
+                        <div style="border: 2px solid black; padding: 25px; margin-top: 20px; height: 150px;">
+                            <label>Narration:</label>
+                            <p><t t-esc="doc.reason"/></p> <br/><br/>
+
+                            <div style="width: 30%; float: left; margin-bottom: 20px;">
+                                <p style="text-align: left;">Created by: <t t-esc="doc.request_owner_id.name"/></p> <br/><br/>
+                            </div>
+                            <div style="width: 30%; float: left; margin-bottom: 20px;">
+                                <p style="text-align: center;">Checked by: <t t-esc="doc.approver_1"/></p> <br/><br/>
+                            </div>
+                            <div style="width: 40%; float: left; margin-bottom: 20px;">
+                                <p style="text-align: right;">Approved by: <t t-esc="doc.approver_2"/></p>
+                            </div>
+                        </div>
+                    </div>
+                </t>
+            </t>
+        </t>
+    </template>
+
+
+
+    <record id="payment_advise" model="ir.actions.report">
+        <field name="name">Payment Advise</field>
+        <field name="model">approval.request</field>
+        <field name="report_type">qweb-pdf</field>
+        <field name="report_name">pragati_custom_module.payment_advise_report</field>
+        <field name="report_file">pragati_custom_module.payment_advise_report</field>
+        <field name="binding_type">report</field>
+        <field name="binding_model_id" ref="model_approval_request"/>
+    </record>
+</odoo>
+
+

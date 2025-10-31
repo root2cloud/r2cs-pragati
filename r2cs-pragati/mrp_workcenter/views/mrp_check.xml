@@ -1,0 +1,32 @@
+<odoo>
+    <!-- Form View -->
+    <record id="view_form_mrp_check" model="ir.ui.view">
+        <field name="name">mrp.check.form</field>
+        <field name="model">mrp.check</field>
+        <field name="arch" type="xml">
+            <form>
+                <sheet>
+                    <group>
+                        <field name="name"/>
+                        <field name="quality_state"/>
+<!--                        <field name="test_type"/>-->
+                        <field name="workorder_id"/>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <!-- Tree View -->
+    <record id="view_tree_mrp_check" model="ir.ui.view">
+        <field name="name">mrp.check.tree</field>
+        <field name="model">mrp.check</field>
+        <field name="arch" type="xml">
+            <tree editable="bottom">
+                <field name="name"/>
+<!--                <field name="test_type"/>-->
+                <field name="quality_state"/>
+            </tree>
+        </field>
+    </record>
+</odoo>

@@ -1,0 +1,239 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<odoo>
+
+    <template id="purchase_order_report_inherited" inherit_id="purchase.report_purchaseorder">
+        <xpath expr="//t[@t-call='purchase.report_purchaseorder_document']" position="replace">
+            <t t-call="pragati_custom_module.purchase_order_inherited_report" t-lang="o.partner_id.lang"/>
+        </xpath>
+    </template>
+
+    <template id="purchase_order_inherited_report">
+        <t t-call="web.html_container">
+            <t t-foreach="docs" t-as="doc">
+                <t t-call="web.external_layout"> <br/> 
+                    
+                    <style type="text/css">
+                        .table-ar {
+                            width: 100%;
+                        }
+                        .table-ar th,
+                        .table-ar td {
+                            word-wrap: break-word;
+                        }
+                        .main-div{
+                            border: 2px solid black;
+                            border-right: 0px;
+                            min-height: 350px;
+                        }
+                        .left-div {
+                            padding: 25px;
+                            width: 600px;
+                            float: left;
+                            min-height:350px;
+                        }
+
+                        .right-div {
+                            float: right;
+                            width: 350px;
+                            height:350px;
+                        }
+                        
+
+                    </style>
+                    <div class="page">
+                        <div style="border: 2px solid black;width: 980px; height:500px;margin:0px; padding:0px;">
+                            
+                            <h1 style="margin: 0px; text-align:center">Purchase Order</h1>
+                            <div style="border: 2px solid transperent;width:980px;height:450px;">
+                                <div style="float: left; width: 400px;">
+                                    <p style="padding: 10px"><b>PO No:</b> <span t-field="doc.name"/></p>
+                                    <p style="padding: 10px"><b>PR Link:</b>
+                                        <t t-foreach="doc.pr_request_ids" t-as="approve">
+                                            <t t-if="approve.name"/><t t-esc="approve.name"/><t t-unless="approve==doc.pr_request_ids[-1]">, </t>
+                                        </t> 
+                                    </p>
+                                </div>
+
+                                <div style="float: right; width: 400px;">
+                                    <p style="padding: 10px; text-align: right"><b>PO Date:</b><span t-field="doc.date_order" style="padding-right: 10px;"/></p>
+                                    <!-- <p style="padding: 10px; text-align: right"><b>PR Date:</b><span t-field="doc.pr_request_id.order_date" style="padding-right: 10px;"/></p> -->
+                                    <p style="padding: 10px"><b>PR Date:</b>
+                                        <t t-foreach="doc.pr_request_ids" t-as="approve">
+                                            <t t-if="approve.order_date"/><t t-esc="approve.order_date"/><t t-unless="approve==doc.pr_request_ids[-1]">, </t>
+                                        </t> 
+                                    </p>
+                                </div>
+                                <div>
+                                    <table class="table table-ar" style="border-top: 2px solid black; width:980px; height:330px;">
+                                        <tr>
+                                            <td style="width:500px;">
+                                                <div>
+                                                    <p><b>To:</b><br/><t t-esc="doc.partner_id.display_name"/></p><br/><br/>
+                                                    <p><b>GSTIN NO:</b><t t-esc="doc.partner_id.vat"/></p>
+                                                    <p>
+                                                        <b>Vendor Address:</b><br/>
+                                                            <t t-esc="doc.partner_id.street"/><t t-esc="', '"/><t t-esc="doc.partner_id.street2"/>
+                                                            <t t-esc="', '"/><t t-esc="doc.partner_id.city"/>
+                                                            <t t-esc="', '"/><t t-esc="doc.partner_id.state_id.name"/><t t-esc="', '"/>
+                                                            <t t-esc="doc.partner_id.zip"/><t t-esc="', '"/>
+                                                            <t t-esc="doc.partner_id.country_id.name"/>
+                                                    </p>
+
+                                                </div>
+                                            </td>
+                                            <td style="border-left: 2px solid black;">
+                                                <div>
+                                                    <p><u><b>Billing Address:</b></u><br/></p><p style="margin-bottom:0px;"><b><t  t-esc="doc.company_id.name"/></b></p>
+                                                    <p style="margin-top:0px;">
+                                                        <t t-esc="doc.company_id.street"/><t t-esc="', '"/><t t-esc="doc.company_id.street2"/><t t-esc="', '"/>
+                                                        <t t-esc="doc.company_id.city"/><t t-esc="', '"/><t t-esc="doc.company_id.state_id.name"/>
+                                                        <t t-esc="', '"/><t t-esc="doc.company_id.zip"/><t t-esc="', '"/><t t-esc="doc.company_id.country_id.name"/>
+                                                    </p><br/>
+
+                                                    <p><u><b>Shipping Address:</b></u></p>
+                                                    <p style="margin-bottom:0px;">     
+                                                        <b><t t-esc="doc.company_id.name"/></b></p>
+                                                    <p style="margin-top:0px;">
+                                                        <t t-esc="doc.company_id.street"/><t t-esc="', '"/><t t-esc="doc.company_id.street2"/><t t-esc="', '"/>
+                                                        <t t-esc="doc.company_id.city"/><t t-esc="', '"/><t t-esc="doc.company_id.state_id.name"/>
+                                                        <t t-esc="', '"/><t t-esc="doc.company_id.zip"/><t t-esc="', '"/><t t-esc="doc.company_id.country_id.name"/>
+                                                    </p>       
+                                                    
+                                                    
+                                                </div>
+                                            </td>
+                                        </tr>
+
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                        <!-- Here fields are arranged -->
+                        <table class="table table-ar" style="border: 2px solid black; width: 980px;">
+                            <thead>
+                                <tr>
+                                    <td><b>S.No</b></td>
+                                    <td><b>Product</b></td>
+                                    <td><b>Description</b></td>
+                                    <td><b>HSN Code</b></td>                         
+                                    <td><b>Qty</b></td>
+                                    <td><b>UOM</b></td>
+                                    <td><b>Unit Price</b></td>
+                                    <td><b>Discount Type</b></td>
+                                    <td><b>Discount</b></td>
+                                    <td><b>Subtotal</b></td>
+                                    <td><b>Taxes</b></td>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <t t-set="counter" t-value="1"/>
+                                <t t-foreach="doc.order_line" t-as="record">
+                                    <tr>
+                                        <td><t t-esc="counter"/></td>
+                                        <td><t t-if="record.product_id.name"/><t t-esc="record.product_id.name"/></td>
+                                        <td><t t-if="record.name"/><t t-esc="record.name"/></td> 
+                                        <td><t t-if="record.product_id.l10n_in_hsn_code"/><t t-esc="record.product_id.l10n_in_hsn_code"/></td>                                                                       
+                                        <td><t t-if="record.product_qty"/><t t-esc="record.product_qty"/></td>
+                                        <td><t t-if="record.product_uom.name"/><t t-esc="record.product_uom.name"/></td>
+                                        <td><t t-if="record.price_unit"/><t t-esc="record.price_unit"/></td>
+                                        <td><t t-if="doc.global_discount_type"/><t t-esc="doc.global_discount_type"/></td>
+                                        <td><t t-if="record.discount"/><t t-esc="record.discount"/></td>
+                                        <td><t t-if="record.line_sub_total"/><t t-esc="record.line_sub_total"/></td>
+                                        <td>
+                                            <p>
+                                                <t t-foreach="record.taxes_id" t-as="tax">
+                                                    <t t-if="tax.name"/><t t-esc="tax.name"/><t t-unless="tax==record.taxes_id[-1]">, </t>
+                                                </t>
+                                            </p>
+                                        </td>
+                                    </tr>
+                                    <t t-set="counter" t-value="counter + 1"/>
+                                </t>
+                            </tbody>
+                        </table>
+                        <!-- writing the Payment terms -->
+                        <div class="main-div">
+                            <div class="left-div">
+                                <h5><u>Terms and Conditions</u></h5>
+                                <p><b>Payment Terms:</b> <span t-field="o.payment_term_id.name"/></p>
+                                <p><b>Delivery Terms:</b><span t-field="doc.delivery_terms_id.delivery_terms"/></p>
+                                <p><b>Expected Arrival Date:</b><span t-field="doc.date_planned"/></p>
+                                <p><b>Transport:</b><span t-field="doc.transport"/></p>
+                                <p><b><u>PO Narration:</u></b><span t-field="doc.narration"/></p>
+                                <p><b><u>Warranty:</u></b><span t-field="doc.warranty"/></p>
+                                <p><b>Amount in words:</b><span t-field="doc.amount_in_words"/></p>
+                            </div>
+                            <div class="right-div">
+                                <table style="float: right; border: 2px solid black; width: auto; height: 100%;">
+                                    <tr>
+                                        <td style="text-align: left; padding-left: 5px; padding-top: 10px;">
+                                            <p><b>Untaxed Amount:</b></p>
+                                        </td>
+                                        <td style="text-align: right; padding-right: 5px; padding-top: 10px;">
+                                            <p><t t-esc="doc.amount_untaxed"/></p>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td style="text-align: left; padding-left: 5px; padding-top: 10px;">
+                                            <p><b>CGST Amount:</b></p>
+                                        </td>
+                                        <td style="text-align: right; padding-right: 5px; padding-top: 10px;">
+                                            <p><t t-esc="doc.cgst_tax"/></p>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td style="text-align: left; padding-left: 5px; padding-top: 10px;">
+                                            <p><b>SGST Amount:</b></p>
+                                        </td>
+                                        <td style="text-align: right; padding-right: 5px; padding-top: 10px;">
+                                            <p><t t-esc="doc.sgst_tax"/></p>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td style="text-align: left; padding-left: 5px; padding-top: 10px;">
+                                            <p><b>IGST Amount:</b></p>
+                                        </td>
+                                        <td style="text-align: right; padding-right: 5px; padding-top: 10px;">
+                                            <p><t t-esc="doc.igst_tax"/></p>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td style="text-align: left; padding-left: 5px; padding-top: 10px;">
+                                            <p><b>Discount Amount:</b></p>
+                                        </td>
+                                        <td style="text-align: right; padding-right: 5px; padding-top: 10px;">
+                                            <p><t t-esc="doc.total_discount"/></p>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td style="text-align: left; padding-left: 5px; padding-top: 10px;">
+                                            <p><b>Total Amount:</b></p>
+                                        </td>
+                                        <td style="text-align: right; padding-right: 5px; padding-top: 10px;">
+                                            <p><t t-esc="doc.amount_total"/></p>
+                                        </td>
+                                    </tr>
+                                </table>
+                            </div>
+                        </div>
+                        <!-- Box for the authorized persons -->
+                        <table class="table table-ar" style="border: 2px solid black; height: 50px; width: 980px;">
+                            <thead>
+                                <tr>  
+                                    <td ><b>Created by:</b><t t-esc="doc.request_owner_id.name"/></td> 
+                                    <td ><b>Approver 1: </b><t t-esc="doc.approver_1"/></td>
+
+                                    <td ><b>Approver 2: </b><t t-esc="doc.approver_2"/></td>                        
+                                    <td ><b>Approver 3: </b> <t t-esc="doc.approver_3"/></td>
+                                     
+                                </tr>
+                            </thead>
+                            
+                        </table>
+                    </div>
+                </t>
+            </t>
+        </t>
+    </template>
+
+</odoo>

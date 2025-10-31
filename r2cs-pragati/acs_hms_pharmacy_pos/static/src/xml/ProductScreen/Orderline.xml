@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates id="template" xml:space="preserve">
+
+    <t t-name="Orderline" t-inherit="point_of_sale.Orderline" t-inherit-mode="extension" owl="1">
+        <xpath expr="//ul[hasclass('info-list')]" position="inside">
+            <t t-if="props.line.get_prescription_order()">
+                <li class="info orderline-prescription-order">
+                    <i class="fa fa-basket" role="img" aria-label="SO" title="SO"/>
+                    <t t-esc="props.line.get_prescription_order().name" />
+                </li>
+                <li class="info acs-kit-data">
+                    <t t-set="pol_data" t-value="props.line.get_prescription_order()"/>
+                    <t t-if="pol_data['is_kit_product']">
+                        (Part of KIT: <span t-esc="pol_data['kit_product_name']"/> x <span class="mr8" t-esc="pol_data['kit_product_qty']"/>)
+                    </t>
+                </li>
+            </t>
+        </xpath>
+    </t>
+
+</templates>

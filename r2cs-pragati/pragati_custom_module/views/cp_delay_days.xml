@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <data>
+
+        <record id="inherit_service_order_tree_view" model="ir.ui.view">
+            <field name="name">service.order.tree.inherit.complete_date</field>
+            <field name="model">service.order</field>
+            <field name="inherit_id" ref="service.service_order_tree_view"/> <!-- 👈 Replace with real external ID -->
+            <field name="arch" type="xml">
+                <xpath expr="//field[@name='transport']" position="after">
+                    <field name="complete_date"/>
+                    <field name="complete_delay_days"/>
+                </xpath>
+<!--                <xpath expr="//field[@name='state']" position="after">-->
+<!--                    <field name="complete_delay_days"/>-->
+<!--                </xpath>-->
+                <xpath expr="//field[@name='payment_terms_id']" position="after">
+                    <field name="service_completion_numbers"/>
+                    <field name="completion_statuses" readonly="1" invisible="1"/>
+                </xpath>
+            </field>
+        </record>
+        <record id="view_service_order_form_inherit" model="ir.ui.view">
+            <field name="name">service.order.form.inherit</field>
+            <field name="model">service.order</field>
+            <field name="inherit_id" ref="service.view_for_service_order_menu_form"/> <!-- corrected -->
+            <field name="arch" type="xml">
+                <xpath expr="//field[@name='expect_arrival']" position="after">
+                    <field name="service_completion_numbers" readonly="1"/>
+                    <field name="completion_statuses" readonly="1"/>
+                </xpath>
+            </field>
+        </record>
+
+
+    </data>
+</odoo>
+

@@ -1,0 +1,157 @@
+<odoo>
+    <template id="advance_payment_receipt_report">
+        <t t-call="web.html_container">
+            <t t-foreach="docs" t-as="o">
+                <t t-call="web.external_layout"> <br/> <br/> <br/> <br/> <br/>
+                    
+                    <style>
+                        
+                        .bordered-box {
+                            border: 2px solid #000;
+                            padding: 20px;
+                            margin: 20px;
+                            height: 100%; 
+                            
+                        }
+                        .centered-heading {
+                            text-align: center;
+                            margin-bottom: 20px;
+                        }
+                        .table-top{
+                            margin-top:40px;
+                        }
+                        .table-ar th, .table-ar td {
+                            border: 1px solid black;
+                            padding: 8px; 
+                        }
+                        .spans{
+                            margin-left:50px;
+                        }
+                      
+                    </style>
+                    <div >
+                        <div style="display:flex;flex-direction:column;">
+                            <strong>BRANCH ADDRESS: </strong><br/>
+                            Resort Sparsh,Proddutur Village, Chilukuru Balaji Temple Road, Shankarpally Mandal,
+                        
+                            Ranga Reddy District, Hyderabad,Telengana,501203<strong>|</strong>
+                            <strong>Ph:</strong> +91 9091001004, +91 9091001005, +91 9154157838<br/>
+                          
+                            <strong>Email:</strong>info@pragatisparsh.com<strong>|</strong><strong>Website:</strong>www.pragatisparsh.com,<br/>
+                            <strong>GST:</strong>36AADCP4003C1Z2<br/>
+                        </div>
+                    </div>
+                        
+                    
+                    <div class="page bordered-box">
+                        <h3 class="centered-heading"><strong>ADVANCE PAYMENT RECEIPT</strong></h3>
+                        <div class="mb-25 mt-3">
+                            <div class="row" style="margin-top:30px;">
+                                <div  t-if="o.payment_method_id">
+                                    <strong>Receipt Number: </strong><span class="spans" t-field="o.name"/>
+                                </div>
+                            </div>
+                             <div class="row" style="margin-top:30px;">
+                               
+                                <div  t-if="o.date">
+                                    <strong>Payment Date: </strong><span class="spans"   style="margin-left:70px;"  t-field="o.date"/>
+                                </div>
+                            </div>
+                             <div class="row" style="margin-top:30px;">
+                                 <div  t-if="o.partner_id">
+                                     <strong>Guest Name:</strong> <span class="spans"   style="margin-left:80px;"  t-field="o.partner_id.name"/>
+                                </div>
+                            </div>
+                             <div class="row" style="margin-top:30px;">
+                                 <div  t-if="o.partner_id">
+                                     <strong>Guest Mobile No:</strong> <span class="spans"   style="margin-left:50px;"  t-field="o.partner_id.mobile"/>
+                                </div>
+                            </div>
+                             <div class="row" style="margin-top:30px;">
+                                 <div  t-if="o.partner_id">
+                                     <strong>Guest Address:</strong> 
+                                     <span class="spans" style="margin-left:70px;">
+                                        <t t-esc="o.partner_id.street or ''"/>
+                                        <t t-if="o.partner_id.street2">, <t t-esc="o.partner_id.street2"/></t>
+                                        <t t-if="o.partner_id.city">, <t t-esc="o.partner_id.city"/></t>
+                                        <t t-if="o.partner_id.state_id">, <t t-esc="o.partner_id.state_id.name"/></t>
+                                        <t t-if="o.partner_id.zip">, <t t-esc="o.partner_id.zip"/></t>
+                                        <t t-if="o.partner_id.country_id">, <t t-esc="o.partner_id.country_id.name"/></t>
+                                    </span>
+                                </div>
+                            </div>
+                            <div class="row" style="margin-top:30px;">
+                                <div  t-if="o.partner_id">
+                                     <strong>Doctor:</strong> 
+                                     <span class="spans" style="margin-left:120px;">
+                                        
+                                        <t t-esc="o.partner_id.primary_physician_id.name"/>
+                                        
+                                    </span>
+                                </div>
+                            </div>
+                            
+                            <div class="row" style="margin-top:30px;">
+                                 <div  t-if="o.partner_id">
+                                     <strong>Paid Amount:</strong> <span class="spans"   style="margin-left:80px;"  t-field="o.amount"/>
+                                </div>
+                            </div>
+                            <div class="row" style="margin-top:30px;">
+                                <div t-if="o.partner_id">
+                                    <strong>Paid Amount in Words:</strong>
+                                    <span class="spans" style="margin-left:15px;" t-esc="o.amount_in_words"/>
+                                </div>
+                            </div>
+                                                        
+
+                          
+                             <div class="row" style="margin-top:30px;">
+                                <div  t-if="o.partner_id">
+                                     <strong>Payment Mode:</strong> <span class="spans"  style="margin-left:80px;" t-field="o.payment_mode_id"/>
+                                </div>
+                                
+                            </div>
+                            <div class="row" style="margin-top:30px;">
+                                 <div  t-if="o.partner_id">
+                                     <strong>Memo:</strong> <span class="spans"  style="margin-left:130px;"  t-field="o.ref"/>
+                                </div>
+                            </div>
+                    
+
+                            
+                            <!-- <div class="bottom-section">
+                                
+                                <div class="row mt-3">
+                                    <div class="col-4" >
+                                         <strong>Received By:</strong> 
+                                    </div>
+                                   
+                                    <div class="col-4" >
+                                        <strong>Authorized By: </strong>
+                                    </div>
+                                </div>
+                            </div> -->
+                        </div>
+
+                    </div>
+                </t>
+            </t>
+        </t>
+
+    </template>
+
+
+    <record id="advance_payment_report" model="ir.actions.report">
+        <field name="name">Advance Payment Receipt</field>
+        <field name="model">account.payment</field>
+        <field name="report_type">qweb-pdf</field>
+        <field name="report_name">pragati_custom_module.advance_payment_receipt_report</field>
+        <field name="report_file">pragati_custom_module.advance_payment_receipt_report</field>
+        <field name="binding_type">report</field>
+        <field name="binding_model_id" ref="account.model_account_payment"/> <!-- Corrected reference -->
+    </record>
+
+
+</odoo>
+
+

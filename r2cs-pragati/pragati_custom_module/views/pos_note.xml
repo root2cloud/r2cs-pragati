@@ -1,0 +1,28 @@
+<odoo>
+    <record id="view_pos_order_form_inherit_page_note" model="ir.ui.view">
+        <field name="name">pos.order.form.inherit.page.note</field>
+        <field name="model">pos.order</field>
+        <field name="inherit_id" ref="point_of_sale.view_pos_pos_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//notebook" position="inside">
+                <page string="Note">
+                    <group>
+                        <field name="page_note" placeholder="Write your notes or instructions here..."/>
+                    </group>
+                </page>
+            </xpath>
+        </field>
+    </record>
+
+
+    <record id="view_pos_order_tree_inherit_page_note" model="ir.ui.view">
+        <field name="name">pos.order.tree.inherit.page.note</field>
+        <field name="model">pos.order</field>
+        <field name="inherit_id" ref="point_of_sale.view_pos_order_tree"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='state']" position="after">
+                <field name="page_note" widget="text"/>
+            </xpath>
+        </field>
+    </record>
+</odoo>

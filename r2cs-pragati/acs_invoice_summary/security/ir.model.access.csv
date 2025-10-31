@@ -1,0 +1,5 @@
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+access_acs_invoice_summary,access_acs_invoice_summary,model_acs_invoice_summary,base.group_user,1,1,1,1
+access_acs_invoice_summary_line,access_acs_invoice_summary_line,model_acs_invoice_summary_line,base.group_user,1,1,1,1
+
+access_payment_mode_sample,access_payment_mode_sample,model_payment_mode_sample,,1,1,1,1

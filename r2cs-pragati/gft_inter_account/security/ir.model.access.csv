@@ -1,0 +1,7 @@
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+access_internal_transaction,Internal Transaction,model_internal_transaction,,1,1,1,1
+access_bank_account_manual_line,Bank Account Manual Line,model_bank_account_manual_line,,1,1,1,1
+access_ledger_payment,Bank ledger payment,model_ledger_payment,,1,1,1,1
+access_bank_account_manual_line_in_bwa,Bank Account Manual Line In Bwa,model_bank_account_manual_line_in_bwa,,1,1,1,1
+access_ledger_payment_bill_wise_adjustments,Bank ledger payment Bill Wise Adjustments,model_ledger_payment_bill_wise_adjustments,,1,1,1,1
+

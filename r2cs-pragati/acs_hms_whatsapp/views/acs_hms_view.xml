@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+
+    <record id="view_hms_appointment_form" model="ir.ui.view">
+        <field name="name">hms.appointment.form</field>
+        <field name="model">hms.appointment</field>
+        <field name="priority">15</field>
+        <field name="inherit_id" ref="acs_hms.view_hms_appointment_form"/>
+        <field name="arch" type="xml">
+            <div name="button_box" position="inside">
+                <button name="%(acs_whatsapp.action_acs_send_whatsapp_message)d" icon="fa-whatsapp" string="Whatsapp" class="oe_stat_button" type='action'/>
+                <button name="whatsapp_chat_history" icon="fa-whatsapp" string="Chat History" class="oe_stat_button" type='object'/>
+            </div>
+        </field>
+    </record>
+
+    <record id="view_patient_form" model="ir.ui.view">
+        <field name="name">hms.patient.form</field>
+        <field name="model">hms.patient</field>
+        <field name="inherit_id" ref="acs_hms.view_patient_form"/>
+        <field name="arch" type="xml">
+            <field name="mobile" position="after">
+                <label for="acs_otp_whatsapp" string='' groups="acs_whatsapp.group_whatsapp_otp"/>
+                <div name="verified_mobile">
+                    <div name='verified_mobile_whatsapp' groups="acs_whatsapp.group_whatsapp_otp" class="oe_inline" style="display: inline;">
+                        <button name="%(acs_whatsapp.action_acs_send_whatsapp_message)d" icon="fa-whatsapp" string="Whatsapp" class="oe_link" type='action'/>
+                        <button name="whatsapp_chat_history" icon="fa-whatsapp" string="Chat History" class="oe_link" type='object'/>
+                    </div>
+                </div>
+                <label for="acs_otp_whatsapp" attrs="{'invisible': [('verified_mobile_whatsapp','=',True)]}" groups="acs_whatsapp.group_whatsapp_otp"/>
+                <div name="whatsapp_otp">
+                    <div name='acs_otp_whatsapp' groups="acs_whatsapp.group_whatsapp_otp" class="oe_inline" style="display: inline;">
+                        <field name="acs_otp_whatsapp" attrs="{'invisible': [('verified_mobile_whatsapp','=',True)]}" class="oe_inline"/>
+                        <button name="action_send_otp_whatsapp" string="Send OTP" type="object" class="oe_inline fa fa-arrow-up oe_link" attrs="{'invisible': [('verified_mobile_whatsapp','=',True)]}"/>
+                        <button name="action_verify_otp_whatsapp" string="Verify OTP" type="object" class="oe_inline fa fa-mobile oe_link" attrs="{'invisible': [('verified_mobile_whatsapp','=',True)]}"/>
+                    </div>
+                </div>
+                <field name="verified_mobile_whatsapp" readonly="1" groups="acs_whatsapp.group_whatsapp_otp" attrs="{'invisible': [('verified_mobile_whatsapp','=',False)]}"/>
+                <!-- <label string="Mobile" for="mobile" groups="acs_whatsapp.group_whatsapp_otp"/> -->
+                
+            </field>
+
+        </field>
+    </record>
+
+</odoo>

@@ -1,0 +1,16 @@
+{
+    'name':'Pragati_groups',
+    'summary':"""inherit loyalty wizard""",
+    'license': 'LGPL-3',
+    'depends':['base','loyalty','sale','stock'],
+    'data':['views/views.xml',
+    'data/ir_sequence_data.xml',
+    'views/sale_inherit_views.xml',
+    'views/generate_coupon_request.xml',
+    'views/loyalty_report_template.xml',
+    'wizard/inherit_loyalty_views.xml',
+    'reports/inherit_loyalty_report_template.xml',
+    'reports/loyalty_sale_report.xml',
+    'security/ir.model.access.csv',
+    ],
+}

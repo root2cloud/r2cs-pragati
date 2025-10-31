@@ -1,0 +1,74 @@
+<odoo>
+    <record id="view_product_template_form_page" model="ir.ui.view">
+        <field name="name">product.template.from</field>
+        <field name="model">product.template</field>
+        <field name="inherit_id" ref="product.product_template_only_form_view"/>
+        <field name="arch" type="xml">
+            <xpath expr="//page[@name='general_information']" position="after">
+                <page name="crop_planning_page" string="Crop Planning Details"  attrs="{'invisible': [('attrs_field', '!=', True)]}">
+                    <form>
+                        <header>
+                            <button name="get_interval_details" string="Get Intervals" type="object" id="button_interval" class="oe_highlight"/>
+                        </header>
+                        <sheet>
+                            <group>
+                                <group>
+                                    <label for="crop_end_duration"/>
+                                    <div class="o_row">
+                                        <field name="crop_end_duration" class="oe_inline"/>
+                                        <span>Day's</span>
+                                    </div>
+                                    <label for="standard_bed_length"/>
+                                    <div class="o_row">
+                                        <field name="standard_bed_length" class="oe_inline"/>
+                                        <span>Ft's</span>
+                                    </div>
+                                    <field name="set_interval"/> 
+                                </group>
+                                <group>
+                                    <label for="no_of_seeds"/>
+                                    <div class="o_row">
+                                        <field name="no_of_seeds" class="oe_inline"/>
+                                        <span><field name="uom_name"/></span>
+                                    </div>
+                                    <label for="first_harvest_day"/>
+                                    <div class="o_row">
+                                        <field name="first_harvest_day" class="oe_inline"/>
+                                        <span>Day's</span>
+                                    </div>
+                                </group>
+                            </group>
+                            <notebook>
+                                <page name="planning_page" string="Planning Details">
+                                    <field name="planning_line_ids">
+                                        <tree editable='top'>
+                                            <field name="product_id" optional="hide"/>
+                                            <field name="interval_period"/>
+                                            <field name="expected_output"/>
+                                            <field name="uom_name"/>
+                                        </tree>
+                                    </field>
+                                </page>
+                            </notebook>
+                            <group>
+                                <group>
+                                </group>
+                                <group>
+                                    <label for="total_expect_quantity"/>
+                                    <div class="o_row">
+                                        <field name="total_expect_quantity" class="oe_inline"/>
+                                        <span>Kg's</span>
+                                    </div>
+                                </group>
+                            </group>
+                        </sheet>
+                    </form>
+                </page>
+            </xpath>
+            <xpath expr="//page[@name='general_information']" position="inside">
+                <field name="attrs_field" invisible="1"/>
+            </xpath>
+
+        </field>
+    </record>
+</odoo>

@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <template id="website_sale_product_price_inherited" inherit_id="website_sale.product_price">
+        <xpath expr="//h3[hasclass('css_editable_mode_hidden')]" position="inside">
+            <span t-if="product.uom_id">
+                / <span t-field="product.product_uom_name"/>
+            </span>
+            <div style="color:green;">
+                <span t-if="product.unit_cost and product.unit_name_value">
+                    <br/>
+                    <h5>(<span t-field="product.unit_cost" t-options="{'widget': 'monetary', 'display_currency': website.currency_id}"/>/
+                    <span t-field="product.unit_name_value"/>)</h5>
+                </span>
+            </div>
+        </xpath>
+
+    </template>
+
+</odoo>

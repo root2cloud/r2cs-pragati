@@ -1,0 +1,202 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data noupdate="0">
+
+
+        <record id="approval_category_data_material_indent" model="approval.category">
+            <field name="name">Material Indent</field>
+            <field name="image" type="base64" file="approvals/static/src/img/plane-departure-solid.svg"/>
+            <field name="sequence">100</field>
+            <field name="has_date">optional</field>
+            <field name="has_period">no</field>
+            <field name="has_product">no</field>
+            <field name="has_quantity">no</field>
+            <field name="has_amount">no</field>
+            <field name="has_reference">no</field>
+            <field name="has_partner">no</field>
+            <field name="has_payment_method">no</field>
+            <field name="has_location">no</field>
+            <field name="requirer_document">optional</field>
+            <field name="approval_minimum">1</field>
+            <field name="manager_approval">approver</field>
+            <field name="automated_sequence">True</field>
+            <field name="sequence_code">MIAPP/23-24/</field>
+            <field name="approver_sequence">True</field>
+
+        </record>
+        <record id="approval_category_data_purchase_requesst" model="approval.category">
+            <field name="name">Purchase Request</field>
+            <field name="image" type="base64" file="approvals/static/src/img/hand-holding-solid.svg"/>
+            <field name="sequence">110</field>
+            <field name="has_date">no</field>
+            <field name="has_period">no</field>
+            <field name="has_product">no</field>
+            <field name="has_quantity">no</field>
+            <field name="has_amount">no</field>
+            <field name="has_reference">no</field>
+            <field name="has_partner">no</field>
+            <field name="has_payment_method">no</field>
+            <field name="has_location">no</field>
+            <field name="requirer_document">optional</field>
+            <field name="approval_minimum">1</field>
+            <field name="automated_sequence">True</field>
+            <field name="sequence_code">PRAPP/23-24/</field>
+            <field name="approver_sequence">True</field>
+        </record>
+        <record id="approval_category_data_purchase_order" model="approval.category">
+            <field name="name">Purchase Order</field>
+            <field name="image" type="base64" file="approvals/static/src/img/hand-holding-solid.svg"/>
+            <field name="sequence">120</field>
+            <field name="has_date">no</field>
+            <field name="has_period">no</field>
+            <field name="has_product">no</field>
+            <field name="has_quantity">no</field>
+            <field name="has_amount">no</field>
+            <field name="has_reference">no</field>
+            <field name="has_partner">no</field>
+            <field name="has_payment_method">no</field>
+            <field name="has_location">no</field>
+            <field name="requirer_document">optional</field>
+            <field name="approval_minimum">1</field>
+            <field name="automated_sequence">True</field>
+            <field name="sequence_code">POAPP/23-24/</field>
+            <field name="approver_sequence">True</field>
+        </record>
+        <record id="approval_category_data_bills_approvals_sep" model="approval.category">
+            <field name="name">Bills Approval</field>
+            <field name="image" type="base64" file="approvals/static/src/img/hand-holding-solid.svg"/>
+            <field name="sequence">130</field>
+            <field name="has_date">no</field>
+            <field name="has_period">no</field>
+            <field name="has_product">no</field>
+            <field name="has_quantity">no</field>
+            <field name="has_amount">no</field>
+            <field name="has_reference">no</field>
+            <field name="has_partner">no</field>
+            <field name="has_payment_method">no</field>
+            <field name="has_location">no</field>
+            <field name="requirer_document">optional</field>
+            <field name="approval_minimum">1</field>
+            <field name="automated_sequence">True</field>
+            <field name="sequence_code">BFAPP/23-24/</field>
+            <field name="approver_sequence">True</field>
+        </record>
+        <record id="approval_category_data_payment_advice_sep" model="approval.category">
+            <field name="name">Payment Advice</field>
+            <field name="image" type="base64" file="approvals/static/src/img/hand-holding-solid.svg"/>
+            <field name="sequence">140</field>
+            <field name="has_date">no</field>
+            <field name="has_period">no</field>
+            <field name="has_product">no</field>
+            <field name="has_quantity">no</field>
+            <field name="has_amount">no</field>
+            <field name="has_reference">no</field>
+            <field name="has_partner">no</field>
+            <field name="has_payment_method">no</field>
+            <field name="has_location">no</field>
+            <field name="requirer_document">optional</field>
+            <field name="approval_minimum">1</field>
+            <field name="automated_sequence">True</field>
+            <field name="sequence_code">PADAPP/23-24/</field>
+            <field name="approver_sequence">True</field>
+        </record>
+        <record id="approval_category_data_mrn_order_sep" model="approval.category">
+            <field name="name">MRN Order</field>
+            <field name="image" type="base64" file="approvals/static/src/img/hand-holding-solid.svg"/>
+            <field name="sequence">150</field>
+            <field name="has_date">no</field>
+            <field name="has_period">no</field>
+            <field name="has_product">no</field>
+            <field name="has_quantity">no</field>
+            <field name="has_amount">no</field>
+            <field name="has_reference">no</field>
+            <field name="has_partner">no</field>
+            <field name="has_payment_method">no</field>
+            <field name="has_location">no</field>
+            <field name="requirer_document">optional</field>
+            <field name="approval_minimum">1</field>
+            <field name="automated_sequence">True</field>
+            <field name="sequence_code">MRNAPP/23-24/</field>
+            <field name="approver_sequence">True</field>
+        </record>
+        <record id="approval_category_data_Account_Move_sep" model="approval.category">
+            <field name="name">Account Move</field>
+            <field name="image" type="base64" file="approvals/static/src/img/hand-holding-solid.svg"/>
+            <field name="sequence">160</field>
+            <field name="has_date">no</field>
+            <field name="has_period">no</field>
+            <field name="has_product">no</field>
+            <field name="has_quantity">no</field>
+            <field name="has_amount">no</field>
+            <field name="has_reference">no</field>
+            <field name="has_partner">no</field>
+            <field name="has_payment_method">no</field>
+            <field name="has_location">no</field>
+            <field name="requirer_document">optional</field>
+            <field name="approval_minimum">1</field>
+            <field name="automated_sequence">True</field>
+            <field name="sequence_code">AMAPP/23-24/</field>
+            <field name="approver_sequence">True</field>
+        </record>
+        <record id="approval_category_data_service_order_sep" model="approval.category">
+            <field name="name">Service Order</field>
+            <field name="image" type="base64" file="approvals/static/src/img/hand-holding-solid.svg"/>
+            <field name="sequence">170</field>
+            <field name="has_date">no</field>
+            <field name="has_period">no</field>
+            <field name="has_product">no</field>
+            <field name="has_quantity">no</field>
+            <field name="has_amount">no</field>
+            <field name="has_reference">no</field>
+            <field name="has_partner">no</field>
+            <field name="has_payment_method">no</field>
+            <field name="has_location">no</field>
+            <field name="requirer_document">optional</field>
+            <field name="approval_minimum">1</field>
+            <field name="automated_sequence">True</field>
+            <field name="sequence_code">SOAPP/23-24/</field>
+            <field name="approver_sequence">True</field>
+        </record>
+        <record id="approval_category_data_service_completion_sep" model="approval.category">
+            <field name="name">Service Completion</field>
+            <field name="image" type="base64" file="approvals/static/src/img/hand-holding-solid.svg"/>
+            <field name="sequence">180</field>
+            <field name="has_date">no</field>
+            <field name="has_period">no</field>
+            <field name="has_product">no</field>
+            <field name="has_quantity">no</field>
+            <field name="has_amount">no</field>
+            <field name="has_reference">no</field>
+            <field name="has_partner">no</field>
+            <field name="has_payment_method">no</field>
+            <field name="has_location">no</field>
+            <field name="requirer_document">optional</field>
+            <field name="approval_minimum">1</field>
+            <field name="automated_sequence">True</field>
+            <field name="sequence_code">AMAPP/23-24/</field>
+            <field name="approver_sequence">True</field>
+        </record>
+    </data>
+    <data>
+        <record id="approval_category_data_bank_receipt" model="approval.category">
+            <field name="name">Bank Receipt</field>
+            <field name="image" type="base64" file="approvals/static/src/img/plane-departure-solid.svg"/>
+            <field name="sequence">100</field>
+            <field name="has_date">optional</field>
+            <field name="has_period">no</field>
+            <field name="has_product">no</field>
+            <field name="has_quantity">no</field>
+            <field name="has_amount">no</field>
+            <field name="has_reference">no</field>
+            <field name="has_partner">no</field>
+            <field name="has_payment_method">no</field>
+            <field name="has_location">no</field>
+            <field name="requirer_document">optional</field>
+            <field name="approval_minimum">1</field>
+            <field name="manager_approval">approver</field>
+            <field name="automated_sequence">True</field>
+            <field name="sequence_code">BRAPP/24-25/</field>
+            <field name="approver_sequence">True</field>
+        </record>
+    </data>
+</odoo>

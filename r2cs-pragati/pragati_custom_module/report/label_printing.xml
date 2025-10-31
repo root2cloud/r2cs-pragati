@@ -1,0 +1,84 @@
+<odoo>
+    <template id="label_printing_report">
+        <t t-call="web.html_container">
+            <t t-foreach="docs" t-as="doc"> 
+                <style>
+                    .page {
+                        width: fit-content;
+                        height: fit-content;
+                        max-width: 100%;
+                        max-height: 100%;
+                        margin: 0;
+                        padding: 0;
+                    }
+                    .main-div {
+                        display: flex;
+                        align-items: center;
+                        justify-content: center;
+                    }
+                    .left-div {
+                        flex: 1;
+                        padding-left: 30px; /* Added padding */
+                        margin-top: 0; /* Removed margin top */
+                    }
+                    .qr-code-container {
+                        margin-top: 0px;
+                        padding-bottom: 0px;
+                    }
+                    .order-id {
+                        font-size: 70px;
+                        margin-bottom: 10px; /* Added margin to separate from other content */
+                        margin-top: 0; /* Removed margin top */
+                        padding-top: 0; /* Removed padding top */
+                    }
+                    .customer-info {
+                        font-size: 40px;
+                        margin-top: 0px;
+                        margin-bottom: 0px;
+                        padding-top: 0px;
+                        padding-bottom: 0px;
+                    }
+                    .address-info {
+                        font-size: 40px;
+                        margin-top: 0px;
+                        padding-top: 0px;
+                    }
+                    body, html {
+                    margin: 0;
+                    padding: 0;
+                    }
+                </style>              
+                <div class="page">
+                    <div class="main-div">
+                        <div class="left-div">
+                            <div class="order-id"><b>Order Id:</b><span t-field="doc.origin"/></div>
+                            <div class="customer-info"><b>Customer: </b><t t-esc="doc.partner_id.name"/></div>
+                            <div class="address-info"><b>Address:</b>
+                                <t t-esc="doc.partner_id.street"/><t t-esc="doc.partner_id.street2"/><t t-esc="doc.partner_id.zip"/><t t-esc="', '"/><t t-esc="doc.partner_id.country_id.name"/>
+                            </div>
+                        </div>
+                        <div class="qr-code-container" style="page-break-inside: avoid;">
+                            <img t-if="doc.qr_code_label" t-att-src="image_data_uri(doc.qr_code_label)" width="600px" height="600px"/>
+                        </div>
+                    </div>
+                </div>
+            </t>
+        </t>
+    </template>
+
+
+
+
+
+    <record id="service_order" model="ir.actions.report">
+        <field name="name">Label Printing</field>
+        <field name="model">stock.picking</field>
+        <field name="report_type">qweb-pdf</field>
+        <field name="report_name">pragati_custom_module.label_printing_report</field>
+        <field name="report_file">pragati_custom_module.label_printing_report</field>
+        <field name="binding_type">report</field>
+        <field name="binding_model_id" ref="model_stock_picking"/>
+    </record>
+</odoo>
+
+

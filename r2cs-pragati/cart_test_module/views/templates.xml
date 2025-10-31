@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<odoo>
+    <data>
+        <template id="website_delivery_slot" inherit_id="website_sale.cart_lines">
+            <xpath expr="//table/thead/tr/th[@class='text-center td-price']" position="after">
+                <th class="text-center td-total-amount">Total Price</th>
+            </xpath>
+            <xpath expr="//table[@id='cart_products']/tbody/t/tr/td[@class='text-center td-price']" position="after">
+                <td class="text-center td-total-amount" id="total_amount_{{ line.id }}">
+                    <span t-esc="line.price_subtotal" t-options='{"widget": "monetary", "display_currency": website_sale_order.currency_id}'/>
+                </td>
+            </xpath>
+        </template>
+    </data>
+</odoo>

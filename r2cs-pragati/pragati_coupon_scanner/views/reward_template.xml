@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+        <template id="gift_card_template">
+            <div style="font-family: Arial, sans-serif; text-align: center; border: 2px solid #ccc; padding: 20px;background-color: #f2f2f2;">
+                <t t-if="is_valid">
+                    <div style="font-size: 24px; font-weight: bold;">
+                        Congratulations
+                        <span t-esc="partner_name"/>
+                        !
+                    </div>
+
+                    <div style="font-size: 20px; margin-top: 10px;">
+                        Here is your reward from
+                        <span t-esc="company_name"/>
+                        on your next order
+                    </div>
+
+                    <div style="font-size: 22px; margin-top: 10px;font-weight: bold;">
+                        <span t-esc="description"/>
+                    </div>
+
+                    <div style="font-size: 22px;font-weight: bold; margin-top: 10px; background-color: #E1E1E1; padding: 10px;border-radius: 10px;">
+                        <t t-esc="code_for_reward"/>
+                        <br/>
+                        <div t-if="code_expiry" style="font-size: 15px; color:#676464;font-weight: normal;">
+                            Use this promo code before
+                            <span t-esc="code_expiry" t-options='{"widget": "date"}'/>
+                        </div>
+                    </div>
+                    <div style="font-size: 17px; margin-top: 10px;">
+                        Balance Status:
+                        <span style="font-weight: bold;">
+                            <span t-esc="balance"/>
+                        </span>
+                    </div>
+                </t>
+                <t t-if="not is_valid">
+                    <div style="font-size: 22px;font-weight: bold; margin-top: 10px; background-color: #E1E1E1; padding: 10px;border-radius: 10px;">
+                        Reward is not valid
+                    </div>
+                </t>
+
+                <div style="font-size: 18px; margin-top: 10px;">
+                    Thank you
+                </div>
+
+                <div style="margin-top: 20px;" t-if="company_logo">
+                    <img t-att-src="'%s' % company_logo" t-att-alt="'%s' % company_name"
+                         style="height:auto; width:150px; margin: 6px;"/>
+                </div>
+
+                <div style="font-size: 16px; margin-top: 20px; background-color: #676464; padding: 10px; color: #ffffff; border-radius: 5px;">
+                    <span t-esc="company_details"/>
+                </div>
+
+                <div style="font-size: 16px; margin-top: 10px;">
+                    <span t-esc="company_email"/>
+                </div>
+            </div>
+        </template>
+    </data>
+</odoo>

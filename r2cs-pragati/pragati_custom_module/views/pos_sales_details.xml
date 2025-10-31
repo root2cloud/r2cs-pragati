@@ -1,0 +1,16 @@
+<odoo>
+    <record id="view_pos_details_wizard_xlsx" model="ir.ui.view">
+        <field name="name">pos.details.wizard.inherit.xlsx</field>
+        <field name="model">pos.details.wizard</field>
+        <field name="inherit_id" ref="point_of_sale.view_pos_details_wizard"/>
+        <field name="arch" type="xml">
+            <xpath expr="//footer" position="inside">
+                <button name="action_export_xlsx"
+                        string="Export XLSX"
+                        type="object"
+                        class="btn-primary"
+                        icon="fa-file-excel-o"/>
+            </xpath>
+        </field>
+    </record>
+</odoo>

@@ -1,0 +1,8 @@
+<odoo noupdate="1">
+    <data>
+        <record id="sessionout_time" model="ir.config_parameter">
+            <field name="key">session_timeout_time</field>
+            <field name="value">15</field>
+        </record>
+    </data>
+</odoo>

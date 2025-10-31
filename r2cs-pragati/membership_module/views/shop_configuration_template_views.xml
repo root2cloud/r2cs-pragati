@@ -1,0 +1,17 @@
+<odoo>
+    <template id="confirmation_inherit" inherit_id="website_sale.confirmation">
+        <xpath expr="//div[@class='card mt-3']" position="after">
+            <!-- Slot View button outside the card div -->
+            <div class="text-start mt-3">
+                <t t-if="order.order_line and order.order_line[0].product_id.plan_id">
+                    <a t-att-href="'/planning/' + str(order.order_line[0].product_id.plan_id.id)">
+                    <button class="btn btn-primary">Slot View</button>
+                    </a>
+                </t>
+            </div>
+        </xpath>
+   </template>
+
+
+
+</odoo>

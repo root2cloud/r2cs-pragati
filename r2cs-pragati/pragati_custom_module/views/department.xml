@@ -1,0 +1,36 @@
+<odoo>
+    <record id="view_users_form_inherit" model="ir.ui.view">
+        <field name="name">hr.department.inherit.form</field>
+        <field name="model">hr.department</field>
+        <field name="inherit_id" ref="hr.view_department_form"/>
+        <field name="arch" type="xml">
+
+            <xpath expr="//notebook" position="inside">
+                <page string="Approvers">
+                    <group>
+                        <field name="approver1" string="Approver Level 1"/>
+                        <field name="approver2" string="Approver Level 2"/>
+                        <field name="approver3" string="Approver Level 3"/>
+                    </group>
+                </page>
+            </xpath>
+
+        </field>
+    </record>
+</odoo>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

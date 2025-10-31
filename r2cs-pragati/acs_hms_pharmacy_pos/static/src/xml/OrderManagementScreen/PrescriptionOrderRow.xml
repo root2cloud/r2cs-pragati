@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates id="template" xml:space="preserve">
+
+    <t t-name="PrescriptionOrderRow" owl="1">
+        <div class="order-row"
+        t-att-class="{ highlight: highlighted }"
+        t-on-click="() => this.trigger('click-prescription-order', props.order)">
+            <div class="col name">
+                <div t-if="env.isMobile">Order</div>
+                <div><t t-esc="name"/></div>
+            </div>
+            <div class="col date">
+                <div t-if="env.isMobile">Date</div>
+                <div><t t-esc="date"/></div>
+            </div>
+            <div class="col partner">
+                <div t-if="env.isMobile">Patient</div>
+                <div><t t-esc="partner"/></div>
+            </div>
+            <div class="col prescriptionsman">
+                <div t-if="env.isMobile">Prescribing Doctor</div>
+                <div><t t-esc="prescriptionsman"/></div>
+            </div>
+            <div class="col total">
+                <div t-if="env.isMobile">Total</div>
+                <div><t t-esc="total"/></div>
+            </div>
+            <div class="col state">
+                <div t-if="env.isMobile">State</div>
+                <div><t t-esc="state"/></div>
+            </div>
+            <div class="col posordercount">
+                <div t-if="env.isMobile">POS Orders</div>
+                <div><t t-esc="pos_order_count"/></div>
+            </div>
+            
+        </div>
+    </t>
+
+</templates>

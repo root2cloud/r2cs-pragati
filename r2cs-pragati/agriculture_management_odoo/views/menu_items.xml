@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<odoo>
+    <!-- Root Menu-->
+
+    <menuitem id="menu_agriculture_management_root"
+              name="Agriculture Management"
+              web_icon="agriculture_management_odoo,static/description/icon.png"
+              sequence="20"/>
+
+    <menuitem id="menu_crop_root"
+              name="Crops"
+              parent="menu_agriculture_management_root"
+              sequence="20"/>
+
+    <menuitem id="menu_crop_plan_root"
+              name="Crop Planning"
+              action="action_crop_planning"
+              parent="menu_agriculture_management_root"
+              sequence="20"/>
+
+
+    <menuitem id="menu_calamities"
+              name="Damage and Loss"
+              parent="menu_agriculture_management_root"
+              action="action_damage_loss"
+              sequence="30"/>
+
+    <menuitem id="menu_menure_request"
+              name="Menure Apply"
+              parent="menu_agriculture_management_root"
+              action="action_menure_request"
+              sequence="40"/>
+
+    <menuitem id="menu_disease_and_pest_root"
+              name="Disease and Pesticides"
+              parent="menu_agriculture_management_root"
+              sequence="50"/>
+
+
+    <!--    menu under Crops-->
+    <menuitem id="menu_crop_request"
+              name="Crop Request"
+              parent="menu_crop_root"
+              action="action_crop_details"
+              sequence="20"/>
+              
+    <menuitem id="menu_yeild_details"
+              name="Harvest Details"
+              parent="menu_crop_root"
+              action="action_yeild_harvest_details"
+              sequence="30"/>
+
+
+    <!--menu under Disease and Pesticides-->
+
+    <menuitem id="menu_pest_request"
+              name="Pesticide Apply"
+              parent="menu_disease_and_pest_root"
+              action="action_pest_request"
+              sequence="20"/>
+    <menuitem id="menu_disease_details"
+              name="Disease Details"
+              parent="menu_disease_and_pest_root"
+              action="action_disease_details"
+              sequence="40"/>
+
+      <!-- menu under the inventory configuration -->
+    <menuitem id="menu_for_location_type"
+            name="Location types" action="action_location_type" parent="stock.menu_stock_config_settings"
+            sequence= "1"/>
+</odoo>

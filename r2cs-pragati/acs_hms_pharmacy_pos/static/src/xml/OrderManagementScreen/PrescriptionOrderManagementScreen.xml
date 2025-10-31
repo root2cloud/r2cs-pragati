@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates id="template" xml:space="preserve"> 
+
+    <t t-name="PrescriptionOrderManagementScreen" owl="1">
+        <div class="order-management-screen screen" t-att-class="{ oe_hidden: !props.isShown }">
+                <div class="rightpane">
+                    <div class="flex-container">
+                        <PrescriptionOrderManagementControlPanel />
+                        <PrescriptionOrderList orders="orders" initHighlightedOrder="orderManagementContext.selectedOrder" />
+                    </div>
+                </div>
+        </div>
+    </t>
+
+</templates>

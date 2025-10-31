@@ -1,0 +1,153 @@
+<odoo>
+    <template id="adding_daily_harvest_template" name="Adding Harvest Template">
+        <t t-call="website.layout">
+            <t t-set="title">Harvest</t>
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a href="/graph layout"><i class="fa fa-home"/></a></li>
+                    <li class="breadcrumb-item"><a href="/graph">Net Houses</a></li>
+                    <li  class="breadcrumb-item"><a  t-att-href="'/graph/' + greenhouse">Zones</a></li>
+                    <li  class="breadcrumb-item"><a  t-att-href="'/graph/' + greenhouse +'/'+ harvest_zone  ">Add Daily Harvest</a></li>
+
+
+                </ol>
+            </nav>
+
+            <div class="adding-menure-container">
+                <form role="form" action="/submit_harvest" method="post">
+                    <input type="hidden" name="csrf_token" t-att-value="request.csrf_token()"/>
+                    <div class="form-group">
+                        <div class="just-form">
+                            <div class="full-form">
+                                <div class="left-side-form">
+                                
+                                    <div class="fields-style">
+                                        <div class="label-style">
+
+                                            <label for="location_dest_id">Warehouse ID:</label>
+                                        </div>
+                                        <div class="input-style">
+                                            <select id="location_dest_id" name="location_dest_id" style="height:35px; width: 220px;background-color:#e1e7f0;" required="required" >
+                                                <option value="">Select Warehouse     </option>
+                                                <t t-foreach="warehouse_ids" t-as="wh">
+                                                    <option t-att-value="wh.id" ><t t-esc="wh.location_id.name"/>/<t t-esc="wh.name"/></option>
+                                                </t>
+                                            </select>
+
+                                        </div>
+                                    </div>
+                                    <div class="fields-style">
+                                        <div class="label-style">
+
+                                            <label for="location_id">Net House ID:</label>
+                                        </div>
+                                        <div class="input-style">
+                                            <input type="text" id="location_id" name="location_id" t-att-value="greenhouse_rec" readonly="readonly"/>
+                                            
+                                        </div>
+                                    </div>
+                                    <div class="fields-style">
+                                        <div class="label-style">
+
+                                            <label for="product_id">Crop Name:</label>
+                                        </div>
+                                        <div class="input-style">
+                                            <select id="product_id" name="product_id" style="height:35px; width: 220px;background-color:#e1e7f0;" required="required" t-att-data-greenhouse="greenhouse">
+                                                <option value="">Select Crop</option>
+                                                <t t-foreach="wh_related_crops" t-as="wh_crop">
+                                                    <option t-att-value="wh_crop.product_id.id" ><t t-esc="wh_crop.product_id.name"/>
+                                                    (<t t-esc="wh_crop.state"/>)</option>
+                                                </t>
+                                            </select>
+
+                                            
+                                        </div>
+
+                                    </div>
+                                 
+                                   
+                                    <div class="fields-style">
+                                        <div class="label-style">
+
+                                            <label for="crop_id">Crop ID:</label>
+                                        </div>
+                                        <div class="input-style">
+                                            
+                                             <select id="crop_id" name="crop_id" style="height:35px; width: 220px;background-color:#e1e7f0;" required="required" t-att-data-greenhouse="greenhouse">
+                                                <option value="">Select Crop</option>
+                                              
+                                            </select>
+
+                                        </div>
+
+                                    </div>
+                                    
+                                </div>
+                                
+                                <div class="right-side-form">
+                                    <div class="fields-style">
+                                        <div class="label-style">
+
+                                            <label for="harvest_zone">Zone Name:</label>
+                                        </div>
+                                        <div class="input-style">
+                                            <input type="text" id="harvest_zone" name="harvest_zone" t-att-value="harvest_zone" required="required" readonly="readonly"/>
+
+                                           
+                                        </div>
+                                    </div>
+
+                                    <div class="fields-style">
+                                        <div class="label-style">
+
+                                            <label for="harvest_bed">Bed IDS:</label>
+                                        </div>
+                                        <div class="input-style">
+                                            <input type="text" id="harvest_bed" name="harvest_bed" required="required" readonly="readonly"/>
+                                            
+                                        </div>
+                                        
+                                    </div>
+
+                                    
+                                    <div class="fields-style">
+                                        <div class="label-style">
+                                            <label for="quantity">Quantity(Kg's):</label>
+                                        </div>
+                                        <div class="input-style">
+                                            <input type="text" id="quantity" name="quantity" required="required"/>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div>
+                                <button class="submit-menure-btn" type="submit">SUBMIT</button>
+                            </div>
+
+
+                        </div>
+                    </div>  
+
+                </form>
+            </div>
+        </t>
+    </template>
+    <template id="successful_daily_harvest_record_template" name="Success Harvest page">
+        <t t-call="website.layout">
+            <t t-set="title">successful</t>
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a href="/graph layout"><i class="fa fa-home"/></a></li>
+                    <li class="breadcrumb-item"><a href="/graph">Net Houses</a></li>
+                    
+
+
+                </ol>
+            </nav>
+            <div class="successful-msg">
+                <h1>Harvest Record Is Successfully Created!</h1>
+            </div>
+        </t>
+    </template>
+
+</odoo>

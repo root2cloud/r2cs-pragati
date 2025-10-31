@@ -1,0 +1,128 @@
+# Translation of Odoo Server.
+# This file contains the translation of the following modules:
+# 	* sh_pos_multi_warehouse
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: Odoo Server 15.1alpha1\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2021-09-25 07:32+0000\n"
+"PO-Revision-Date: 2021-09-25 07:32+0000\n"
+"Last-Translator: \n"
+"Language-Team: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: \n"
+"Plural-Forms: \n"
+
+#. module: sh_pos_multi_warehouse
+#. openerp-web
+#: code:addons/sh_pos_multi_warehouse/static/src/xml/popup.xml:0
+#, python-format
+msgid "AVAILABLE"
+msgstr "DISPONIBLE"
+
+#. module: sh_pos_multi_warehouse
+#. openerp-web
+#: code:addons/sh_pos_multi_warehouse/static/src/xml/popup.xml:0
+#, python-format
+msgid "Add to Cart"
+msgstr "Ajouter au chariot"
+
+#. module: sh_pos_multi_warehouse
+#: model:ir.model.fields.selection,name:sh_pos_multi_warehouse.selection__pos_config__sh_stock_type__available_quantity
+msgid "Available Quantity"
+msgstr "quantité disponible"
+
+#. module: sh_pos_multi_warehouse
+#: model:ir.model.fields.selection,name:sh_pos_multi_warehouse.selection__pos_config__sh_stock_type__available_quantity_unreserved
+msgid "Available Quantity Unreserved"
+msgstr "Quantité disponible sans réserve"
+
+#. module: sh_pos_multi_warehouse
+#. openerp-web
+#: code:addons/sh_pos_multi_warehouse/static/src/xml/popup.xml:0
+#, python-format
+msgid "Cancel"
+msgstr "Annuler"
+
+#. module: sh_pos_multi_warehouse
+#: model:ir.model.fields,field_description:sh_pos_multi_warehouse.field_pos_config__sh_warehouse_tags
+msgid "Choose Related Warehouse"
+msgstr "Choisissez un entrepôt apparenté"
+
+#. module: sh_pos_multi_warehouse
+#: model:ir.model.fields,field_description:sh_pos_multi_warehouse.field_pos_config__sh_negative_selling
+msgid "Enable Negative Selling"
+msgstr "Activer la vente négative"
+
+#. module: sh_pos_multi_warehouse
+#: model:ir.model.fields,field_description:sh_pos_multi_warehouse.field_pos_order_line__location_id
+msgid "Location"
+msgstr "Emplacement"
+
+#. module: sh_pos_multi_warehouse
+#: model_terms:ir.ui.view,arch_db:sh_pos_multi_warehouse.sh_pos_res_config_settings_take_away
+msgid "Multi Warehouse Configuration"
+msgstr "Configuration multi-entrepôt"
+
+#. module: sh_pos_multi_warehouse
+#: model:ir.model.fields,field_description:sh_pos_multi_warehouse.field_stock_warehouse__picking_type_id
+msgid "Operation Type"
+msgstr "Type d'opération"
+
+#. module: sh_pos_multi_warehouse
+#: model:ir.model,name:sh_pos_multi_warehouse.model_pos_config
+msgid "Point of Sale Configuration"
+msgstr "Configuration du point de vente"
+
+#. module: sh_pos_multi_warehouse
+#: model:ir.model,name:sh_pos_multi_warehouse.model_pos_order_line
+msgid "Point of Sale Order Lines"
+msgstr "Lignes de commande de point de vente"
+
+#. module: sh_pos_multi_warehouse
+#: model:ir.model,name:sh_pos_multi_warehouse.model_pos_session
+msgid "Point of Sale Session"
+msgstr "Séance de point de vente"
+
+#. module: sh_pos_multi_warehouse
+#. openerp-web
+#: code:addons/sh_pos_multi_warehouse/static/src/xml/popup.xml:0
+#, python-format
+msgid "QTY"
+msgstr "Quantité"
+
+#. module: sh_pos_multi_warehouse
+#: model:ir.model.fields,field_description:sh_pos_multi_warehouse.field_pos_config__sh_picking_sate
+msgid "Ready State"
+msgstr "État prêt"
+
+#. module: sh_pos_multi_warehouse
+#: model:ir.model.fields,field_description:sh_pos_multi_warehouse.field_pos_config__sh_stock_type
+msgid "Stock Type"
+msgstr "Type de stock"
+
+#. module: sh_pos_multi_warehouse
+#. openerp-web
+#: code:addons/sh_pos_multi_warehouse/static/src/xml/popup.xml:0
+#, python-format
+msgid "TOTAL"
+msgstr "LE TOTAL"
+
+#. module: sh_pos_multi_warehouse
+#: model:ir.model,name:sh_pos_multi_warehouse.model_stock_picking
+msgid "Transfer"
+msgstr "Transfert"
+
+#. module: sh_pos_multi_warehouse
+#. openerp-web
+#: code:addons/sh_pos_multi_warehouse/static/src/xml/popup.xml:0
+#, python-format
+msgid "WAREHOUSE"
+msgstr "DÉPOT"
+
+#. module: sh_pos_multi_warehouse
+#: model:ir.model,name:sh_pos_multi_warehouse.model_stock_warehouse
+msgid "Warehouse"
+msgstr "Dépot"
