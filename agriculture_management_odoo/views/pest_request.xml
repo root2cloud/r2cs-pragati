@@ -1,0 +1,91 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<odoo>
+    <record id="view_pest_request_tree" model="ir.ui.view">
+        <field name="name">pest.request.tree</field>
+        <field name="model">pest.request</field>
+        <field name="arch" type="xml">
+            <tree>
+                <field name="reference" optional="show"/>
+                <field name="farmer_emp" optional="show"/>
+                <field name="crop_id" optional="show"/>
+                <field name="product_id_pest" optional="show"/>
+                <field name="disease" optional="show"/>
+                <field name="location_id" optional="hide"/>
+                <field name="request_date" optional="show"/>
+                <field name="stock_change_pest" optional="hide"/>
+                <field name="picking_type_id" optional="hide"/>
+                <field name="location_dest_id" optional="hide"/>
+            </tree>
+        </field>
+    </record>
+
+    <record id="view_pest_request_form" model="ir.ui.view">
+        <field name="name">pest.request.form</field>
+        <field name="model">pest.request</field>
+        <field name="arch" type="xml">
+            <form>
+                <header>
+                    <button id="button_draft" name="action_draft" string="Draft"
+                            type="object" class="oe_highlight" states='submit'/>
+                    <button id="button_pest" name="approve_pest" string="Submit"
+                            type="object" class="oe_highlight" states='draft'/>
+                    <field name="state" widget="statusbar"
+                           statusbar_visible="draft,submit"/>
+                </header>
+                <sheet>
+                    <h1>
+                        <field name="reference"/>
+                    </h1>
+                    <label for="location_dest_id"/>
+                    <h2><field name="location_dest_id" placeholder="Select a NetHouse"/></h2>
+                    <label for="crop_id"/>
+                    <h2><field name="crop_id" placeholder="Select a crop"/></h2>
+                    <group>
+                        <group>
+                            <field name="location_id"/>
+                            <field name="zone_ids" widget="many2many_tags"/>
+                            <field name="beds_ids" widget="many2many_tags"/>
+                            <field name="pest_zone" invisible="1"/>
+                            <field name="pest_bed" invisible="1"/>
+                            <field name="stock_picking_id"/>
+                        </group>
+                        <group>
+                            <field name="request_date"/>
+                            <field name="farmer_emp"/>
+                            <field name="product_id_pest"/>
+                            <field name="disease"/>
+                            <label for="stock_change_pest"/>
+                            <div class="o_row">
+                                <field name="stock_change_pest" class="oe_inline"/>
+                                <span><field name="uom_name"/></span>
+                            </div>
+                            <field name="picking_type_id"/>
+                        </group>
+                    </group>
+                    <field name="note" placeholder="Pesticide Description"/>
+                </sheet>
+                <div class="oe_chatter">
+                    <field name="message_follower_ids"/>
+                    <field name="activity_ids"/>
+                    <field name="message_ids"/>
+                </div>
+            </form>
+        </field>
+    </record>
+    <record id="view_pest_request_pivot" model="ir.ui.view">
+        <field name="name">pest.request.pivot</field>
+        <field name="model">pest.request</field>
+        <field name="arch" type="xml">
+            <pivot>
+            </pivot>
+        </field>
+    </record>
+    <record id="view_pest_request_search" model="ir.ui.view">
+        <field name="name">pest.request.search</field>
+        <field name="model">pest.request</field>
+        <field name="arch" type="xml">
+            <search>
+            </search>
+        </field>
+    </record>
+</odoo>

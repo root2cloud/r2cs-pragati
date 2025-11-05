@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <!-- Form View -->
+    <record id="view_form_tds_report" model="ir.ui.view">
+        <field name="name">view.form.tds.report</field>
+        <field name="model">tds.report</field>
+        <field name="arch" type="xml">
+            <form string="TDS Report">
+                <header>
+                    <button name="generate_report" string="Generate Report" type="object"/>
+                </header>
+                <sheet>
+
+                    <group>
+                        <group>
+                            <field name="name"/>
+                            <field name="start_date"/>
+                            <field name="end_date"/>
+                        </group>
+                    </group>
+                    <notebook>
+                        <page>
+                            <field name="line_ids" readonly="1">
+                                <tree>
+                                    <field name="date"/>
+                                    <field name="name"/>
+                                    <field name="invoice_number"/>
+                                    <field name="vendor_id"/>
+                                    <field name="voucher_amount"/>
+                                    <field name="tds_percentage"/>
+                                    <field name="tds_amount"/>
+                                    <field name="net_tds"/>
+                                    <field name="interest"/>
+                                    <field name="narration"/>
+                                    <field name="pan_status"/>
+                                    <field name="pan_no"/>
+                                    <field name="account_name"/>
+                                    <field name="tds_type"/>
+                                    <field name="tds_type_alias"/>
+                                    <field name="section_code"/>
+                                    <field name="transaction"/>
+                                    <field name="transaction_date"/>
+                                    <field name="certificate_no"/>
+                                    <field name="tag_name"/>
+                                    <field name="remarks"/>
+                                </tree>
+                            </field>
+                        </page>
+                    </notebook>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <!-- Tree View -->
+    <record id="view_tree_tds_report" model="ir.ui.view">
+        <field name="name">view.tree.tds.report</field>
+        <field name="model">tds.report</field>
+        <field name="arch" type="xml">
+            <tree string="TDS Report">
+                <field name="name"/>
+            </tree>
+        </field>
+    </record>
+
+
+    <record id="action_tds_report" model="ir.actions.act_window">
+        <field name="name">TDS Report</field>
+        <field name="res_model">tds.report</field>
+        <field name="view_mode">tree,form</field>
+    </record>
+
+    <!-- Menu Item -->
+    <menuitem id="menu_tds_report" name="TDS Report" action="action_account_tds_report_all_supp"/>
+</odoo>

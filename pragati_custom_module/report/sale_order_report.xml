@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<odoo>
+    <template id="report_saleorder_document_inherit" inherit_id="sale.report_saleorder_document">
+        <xpath expr="//div[@t-field='doc.partner_id']" position="after">
+            <div t-if="doc.partner_id.phone">
+                <strong>Phone No:</strong>
+                <span t-field="doc.partner_id.phone"/>
+            </div>
+        </xpath>
+    </template>
+</odoo>

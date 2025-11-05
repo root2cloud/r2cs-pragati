@@ -1,0 +1,14 @@
+<odoo>
+    <record id="view_ledger_payment_bill_wise_adjustments_form_inherit" model="ir.ui.view">
+        <field name="name">ledger.payment.bill.wise.adjustments.form.inherit</field>
+        <field name="model">ledger.payment.bill.wise.adjustments</field>
+        <field name="inherit_id" ref="gft_inter_account.ledger_payment_bill_wise_dajustments_form"/>
+        <field name="arch" type="xml">
+            <field name="transaction_id" position="after">
+                <field name="department_id"/>
+                <field name="approval_level_1"/>
+                <field name="state" readonly="1"/>
+            </field>
+        </field>
+    </record>
+</odoo>

@@ -1,0 +1,32 @@
+<odoo> 
+    <template id="report_invoice_with_payments_mrn_date" inherit_id="account.report_invoice_document">
+        <xpath expr="//div[@id='informations']" position="inside">
+<!--            <t t-if="o.stock_name">-->
+<!--                <div class="col-auto col-3 mw-100 mb-2" name="custom_section"> -->
+<!--                    <strong>MRN Number:</strong>-->
+<!--                        <p class="m-0" t-field="o.stock_name"/> -->
+<!--                </div>-->
+<!--            </t>-->
+            <t t-if="o.schedule_date">
+                <div class="col-auto col-3 mw-100 mb-2" name="MRN date">
+                    <strong>MRN Date:</strong>
+                        <p class="m-0" t-field="o.schedule_date"/>
+                </div>
+            </t>
+        </xpath>
+    </template>
+    <template id="l10n_in_report_invoice_document_custom_inherit" inherit_id="l10n_in.l10n_in_report_invoice_document_inherit">
+        <xpath expr="//table[@name='invoice_line_table']/thead/tr/th[1]" position="replace">
+            
+            <t t-if="o.company_id.account_fiscal_country_id.code == 'IN'">
+                
+                <th>PRODUCT</th>
+                
+               <!--  <t t-else="">
+                    <th>HSN/SAC</th>
+                </t> -->
+            </t>
+        </xpath>
+
+    </template>
+</odoo>

@@ -1,0 +1,203 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<odoo>
+
+	<template id="report_hospitalization_diet_chart_document">
+        <t t-call="web.external_layout">
+            <div class="page acs_report">
+
+                <div class="mt32 mb32 text-center">
+                    <h2>
+                        <strong>Diet Chart</strong>
+                    </h2>
+                </div>
+                <table class="table table-ar" style="border: 2px solid black; border-collapse: collapse;">
+                    <tbody>
+                        <tr style="border: 1px solid black;">
+                            <td style="width:20%;">
+                                <strong>Patient Name:</strong>
+                            </td>
+                            <td style="width:30%;">
+                                <span t-field="doc.patient_id.name"/>
+                            </td>
+                            <td style="width:20%;">
+                                <strong>Hospitalization No:</strong>
+                            </td>
+                            <td style="width: 30%;">
+                                <span t-field="doc.name"/>
+                            </td>
+                        </tr>
+                        <tr style="border: 1px solid black;">
+                            <td>
+                                <strong>Age/Gender:</strong>
+                            </td>
+                            <td>
+                                <span t-field="doc.patient_id.age"/>/<span t-field="doc.patient_id.gender"/>
+                            </td>
+                            <td>
+                                <strong>Ward/Room:</strong>
+                            </td>
+                            <td>
+                                <span t-field="doc.ward_id.name"/> - <span t-field="doc.bed_id.name"/>
+                            </td>
+                        </tr>
+                        <tr style="border: 1px solid black;">
+                            <td>
+                                <strong>Admission Date:</strong>
+                            </td>
+                            <td>
+                                <span t-field="doc.hospitalization_date"/>
+                            </td>
+                            <td>
+                                <strong>Discharge Date:</strong>
+                            </td>
+                            <td>
+                                <span t-field="doc.discharge_date"/>
+                            </td>
+                        </tr>
+                        <tr style="border: 1px solid black;">
+                            <td>
+                                <strong>Primary Physician:</strong>
+                            </td>
+                            <td>
+                                <span t-esc="', '.join(map(lambda x: x.name, doc.physician_id))"/>
+                            </td>
+                            <td>
+                                <strong>Discharge Type:</strong>
+                            </td>
+                            <td>
+                                <span t-field="doc.discharge_type"/>
+                            </td>
+                            
+                        </tr>
+                        <tr style="border: 1px solid black;">
+                            <td>
+                                <strong>Patient Address:</strong>
+                            </td>
+                            <td colspan="3">
+                                <span t-esc="', '.join(map(lambda x: x if x!=False else '', [doc.patient_id.street, doc.patient_id.street2, doc.patient_id.city, doc.patient_id.state_id.name, doc.patient_id.zip, doc.patient_id.country_id.name]))"/>
+                            </td>                            
+                        </tr>
+                        <tr style="border: 1px solid black;" t-if="doc.diseases_ids">
+                            <td>
+                                <strong>Diseases:</strong>
+                            </td>
+                            <td colspan="3">
+                                <span t-esc="', '.join(map(lambda x: x.name, doc.diseases_ids))"/>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+                <h1 style="font-size:22px; font-weight:bold;">Evaluation Chart:</h1>
+
+                <table class="table table-ar" style="border: 2px solid black; border-collapse: collapse;">
+                    <thead>
+                        <tr style="border: 1px solid black;">
+                            <th style="border: 1px solid black; text-align: center;">
+                                <strong>Weight check In</strong>
+                            </th>
+                            <th style="border: 1px solid black; text-align: center;">
+                                <strong>Weight check Out</strong>
+                            </th>
+                            <th style="border: 1px solid black; text-align: center;">
+                                <strong>Height</strong>
+                            </th>
+                             <th style="border: 1px solid black; text-align: center;">
+                                <strong>IBW</strong>
+                            </th>
+                             <th style="border: 1px solid black; text-align: center;">
+                                <strong>BMI</strong>
+                            </th>
+                             <th style="border: 1px solid black; text-align: center;">
+                                <strong>HBA1C</strong>
+                            </th>
+                             <th style="border: 1px solid black; text-align: center;">
+                                <strong>FBS</strong>
+                            </th>
+                             <th style="border: 1px solid black; text-align: center;">
+                                <strong>BP</strong>
+                            </th>
+                             
+                        </tr>
+                    </thead>
+
+
+                    <tbody>
+                        <tr style="border: 1px solid black;">
+                            <td style="border: 1px solid black; text-align: center;">
+                                <span t-field="doc.patient_weight_check_in"/>
+                            </td>
+                            <td style="border: 1px solid black; text-align: center;">
+                                <span t-field="doc.patient_weight_check_out"/>
+                            </td>
+                            <td style="border: 1px solid black; text-align: center;">
+                                <span t-field="doc.patient_height"/>
+                            </td>
+                            <td style="border: 1px solid black; text-align: center;">
+                                <span t-field="doc.ideal_body_weight"/>
+                            </td>
+                            <td style="border: 1px solid black; text-align: center;">
+                                <span t-field="doc.body_massage_index"/>
+                            </td>
+                            <td style="border: 1px solid black; text-align: center;">
+                                <span t-field="doc.hemoglobin_a1c"/>
+                            </td>
+                            <td style="border: 1px solid black; text-align: center;">
+                                <span t-field="doc.fasting_blood_sugar"/>
+                            </td>
+                            <td style="border: 1px solid black; text-align: center;">
+                                <span t-field="doc.blood_pressure"/>
+                            </td>
+                            
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </t>
+    </template>
+                
+      
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+	<template id="report_hospitalization_diet_chart">
+        <t t-call="web.html_container">
+            <t t-foreach="docs" t-as="doc">
+                <t t-call="acs_hms_hospitalization.report_hospitalization_diet_chart_document" t-lang="doc.patient_id.partner_id.lang"/>
+            </t>
+        </t>
+    </template>
+
+	<record id="action_report_hospitalization_diet_chart" model="ir.actions.report">
+        <field name="name">Diet Chart</field>
+        <field name="model">acs.hospitalization</field>
+        <field name="report_type">qweb-pdf</field>
+        <field name="report_name">acs_hms_hospitalization.report_hospitalization_diet_chart</field>
+        <field name="report_file">acs_hms_hospitalization.report_hospitalization_diet_chart</field>
+        <field name="print_report_name">(object.name or 'Hospitalization').replace('/','_') + '_Discharge' + ' diet chart'</field>
+        <field name="binding_model_id" ref="model_acs_hospitalization"/>
+        <field name="groups_id" eval="[(4, ref('acs_hms_hospitalization.group_acs_hms_hospitalization_executive'))]"/>
+        <field name="binding_type">report</field>
+    </record>
+</odoo>

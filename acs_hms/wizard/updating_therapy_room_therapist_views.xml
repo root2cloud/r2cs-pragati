@@ -1,0 +1,29 @@
+<odoo>
+    <record id="view_therapist_room_wizard_form" model="ir.ui.view">
+        <field name="name">acs.therapist.room.wizard</field>
+        <field name="model">acs.therapist.room.wizard</field>
+        <field name="arch" type="xml">
+            <form string="Select Therapist and Therapy Room">
+                <group>
+                    <field name="product_id"/>
+                    <field name="date"/>
+                    <field name="date_stop"/>
+                    <field name="therapist_id" />
+                    <field name="therapy_room_id"/>
+                </group>
+                <footer>
+                    <button type="object" name="action_apply" string="Apply" class="oe_highlight"/>
+                    <button type="cancel" string="Cancel"  special="cancel"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_therapist_room_wizard_form" model="ir.actions.act_window">
+        <field name="name">Available Therapist Rooms</field>
+        <field name="type">ir.actions.act_window</field>
+        <field name="res_model">acs.therapist.room.wizard</field>
+        <field name="view_mode">form</field>
+        <field name="target">new</field>
+    </record>
+</odoo>

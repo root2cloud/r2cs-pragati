@@ -1,0 +1,174 @@
+<odoo>
+    <!-- ...............Action for order menu.............. -->
+    <record id="action_for_payment_advice" model="ir.actions.act_window">
+        <field name="name">Payment Advice</field>
+        <field name="type">ir.actions.act_window</field>
+        <field name="res_model">payment.advice</field>
+        <field name="view_mode">tree,form,search,graph,pivot,activity</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                no records
+            </p>
+        </field>
+    </record>
+
+
+    <!-- ...............order menu form view.............. -->
+    <record id="view_for_payment_advice_menu_form" model="ir.ui.view">
+        <field name="name">payment.advice.form</field>
+        <field name="model">payment.advice</field>
+        <field name="arch" type="xml">
+            <form string="Request For Payments">
+
+
+                <header>
+                    <button name="action_for_payment_advice_submit" class="btn btn-primary" type="object"
+                            string="Submit" states="draft"/>
+                    <button name="action_advice" string="Approve" type="object" class="btn-primary" icon="fa-check"
+                            attrs="{'invisible': [('show_approve_button', '=', False)]}"/>
+                    <button name="action_reject" string="Reject" type="object" class="btn-primary" icon="fa-check"
+                            attrs="{'invisible': [('show_reject_button', '=', False)]}"/>
+                    <button name="order_cancel" class="btn btn-primary" type="object" string="Cancel" states="approve"/>
+                    <button name="order_draft" class="btn btn-secondary" type="object" string="Draft" states="cancel"/>
+
+
+                    <!-- <button name="create_payment_advice_pay" class="btn btn-secondary" type="object" string="Create Payment" states='approve' invisible='1'/> -->
+                    <field name='state' widget="statusbar" statusbar_visible="draft,approve,payment,cancel"/>
+                    <button name="action_register_payment" type="object" string="Register Payment" class="oe_highlight"
+                            states="approve"/>
+                </header>
+                <sheet>
+
+
+                    <div name="button_box" class="oe_button_box">
+                        <button name="button_open_payments" type="object"
+                                class="oe_stat_button" icon="fa-bars"
+                        >
+                            <div class="o_form_field o_stat_info">
+                                <span class="o_stat_text">
+                                    <field name='payments_count'/>
+                                    Payments
+                                </span>
+                            </div>
+                        </button>
+                    </div>
+                    <!-- <widget name="web_ribbon" title="Partial" attrs="{'invisible': ['|', ('payments_value', '>', 0), ('payments_value', '&lt;', 'approve_amount')]}"/> -->
+                    <h1>
+                        <field name="name"/>
+                    </h1>
+                    <group>
+                        <group>
+                            <field name="partner_id" widget="many2one_tags"/>
+                            <field name="balance_amount" invisible="1"/>
+                            <field name="partner_balance_amount"/>
+                            <field name="rec_amount"/>
+                            <field name="approve_amount"/>
+                            <field name="vendor_refernce"/>
+                            <field name="currency_id" widget="many2one_tags"/>
+                            <field name="narration"/>
+                            <field name="amount_in_words"/>
+                            <field name="show_approve_button" invisible="1"/>
+                            <field name="show_reject_button" invisible="1"/>
+                        </group>
+                        <group>
+                            <field name="order_date"/>
+                            <!-- <field name="payment_approval_id" widget="many2one_tags"/> -->
+                            <field name="payment_approval_status" widget="radio" options="{'horizontal':true}"
+                                   states='draft'/>
+                            <field name="request_owner_id" widget="many2one_tags" readonly="1"/>
+
+                            <!-- code for preview  -->
+                            <label for="original_bills"/>
+                            <div class="o_row">
+                                <field name="original_bills" string="Attachment" filename="original_bills_filename"/>
+                                <span>
+                                    <button name="open_pdf_viewer" string="View" type="object" class="oe_highlight"/>
+                                </span>
+                            </div>
+                            <field name="original_bills_filename" invisible="1"/>
+
+                            <field name="company_id"/>
+                            <field name="shipping_address_id" widget="many2one_tags"/>
+                            <field name="payment_id" invisible="1"/>
+                            <field name="reference_amount" invisible="1"/>
+                            <field name="payments_value"/>
+                            <field name="journal_id"/>
+                            <field name="advice_id" invisible="1"/>
+                            <field name="department_id" string="Department" invisible="1"/>
+                        </group>
+                        <group string='Select Approvers Here'>
+                            <field name='approval_level_1' attrs="{'readonly': [('approval_level_1', '!=', False)]}"
+                                   force_save="1"/>
+                            <field name='approval_level_2' attrs="{'readonly': [('approval_level_2', '!=', False)]}"
+                                   force_save="1"/>
+                            <field name='approval_level_3'/>
+                        </group>
+                    </group>
+                    <notebook>
+                        <page string="Payments" name="used_for_payments" id="page_id_for_payments">
+                            <field name="payment_advice_line_ids">
+                                <tree editable="bottom">
+                                    <field name="reference"/>
+                                    <field name="number"/>
+                                    <!--                                        <field name="service_order_id" invisible="1"/>-->
+                                    <!--                                        <field name="total_project_cost" invisible="1"/>-->
+                                    <field name="reference_amount"/>
+                                    <field name="date" invisible="1"/>
+                                    <field name="rec_amount" sum="Total"/>
+                                    <field name="balance_amount"/>
+                                    <field name="amount_due" invisible="1"/>
+                                    <field name="approve_amount" sum="Total"/>
+                                    <field name="balance_amount" invisible="1"/>
+                                    <field name="remarks"/>
+                                </tree>
+                            </field>
+                        </page>
+                    </notebook>
+                    <group>
+                        <group>
+                            <field name="terms" placeholder="Terms &amp; Conditions"/>
+                        </group>
+                        <group>
+                        </group>
+                    </group>
+                </sheet>
+                <div class="oe_chatter">
+                    <field name="message_follower_ids"/>
+                    <field name="activity_ids"/>
+                    <field name="message_ids"/>
+                </div>
+
+            </form>
+        </field>
+    </record>
+
+    <!-- ...............order menu tree view.............. -->
+    <record id="payment_advice_tree_view" model="ir.ui.view">
+        <field name="name">payment.advice.tree</field>
+        <field name="model">payment.advice</field>
+        <field name="arch" type="xml">
+            <tree>
+                <field name="name"/>
+                <field name="partner_id"/>
+                <field name="order_date"/>
+                <field name="company_id"/>
+                <field name="request_owner_id"/>
+                <field name="approve_amount"/>
+                <field name="reference_amount"/>
+                <field name="approver_1"/>
+                <field name="approver_2"/>
+                <field name="balance_amount" invisible="1"/>
+                <field name="state"/>
+                <!-- <field name="payment_approval_status"/> -->
+            </tree>
+        </field>
+    </record>
+
+    <!-- ...............menu.............. -->
+
+
+    <menuitem id="payment_advice_menu_id" name="Payment Advices" parent="bills_approval_main_menu_id"
+              action="action_for_payment_advice"/>
+
+
+</odoo>

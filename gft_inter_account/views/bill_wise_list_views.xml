@@ -1,0 +1,17 @@
+<odoo>
+    <record id="ledger_payment_bill_wise_adjustments_tree_view_inherit" model="ir.ui.view">
+        <field name="name">ledger.payment.bill.wise.adjustments.tree.inherit</field>
+        <field name="model">ledger.payment.bill.wise.adjustments</field>
+        <field name="inherit_id"
+               ref="gft_inter_account.ledger_payment_bill_wise_adjustment_tree"/> <!-- Replace with actual view ID -->
+        <field name="arch" type="xml">
+            <!-- Insert new fields AFTER the 'name' field -->
+            <xpath expr="//field[@name='name']" position="after">
+                <field name="date"/>
+                <field name="source_acc"/>
+                <field name="create_uid"/>
+                <field name="amount"/>
+            </xpath>
+        </field>
+    </record>
+</odoo>

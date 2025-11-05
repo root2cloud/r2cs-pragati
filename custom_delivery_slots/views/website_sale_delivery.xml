@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <template id="website_sale_cart_inherit" inherit_id="website_sale.cart">
+        <xpath expr="//t[@t-call='website_sale.cart_lines']" position="before">
+            <strong>Delivery Day:</strong><b> <t t-esc="sale_order.delivery_day"/></b>
+        </xpath>
+    </template>
+</odoo>

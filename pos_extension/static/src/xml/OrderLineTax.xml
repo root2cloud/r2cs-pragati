@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates id="template" xml:space="preserve">
+    <t t-name="Orderline" t-inherit="point_of_sale.Orderline" t-inherit-mode="extension" owl="1">
+        <!-- Changed the xpath expression to use 'contains' for class attribute -->
+        <xpath expr="//li[contains(@class, 'orderline')]" position="inside">
+            <t t-if="props.line.get_taxes().length and (props.line.product.display_name != 'Delivery Charges' and props.line.product.display_name != 'Dr Consultation Charges')">
+                <t t-set="total_tax_amt" t-value="0.0"/>
+                <ul class="info-list" style="display:flex;justify-content:right;">
+                    <li style="width:50%;float:left;background:#6EC89B;color:#ffff;padding:5px;">
+                        <t t-foreach="props.line.get_taxes()" t-as="tax" t-key="tax.id">
+                            <t t-set="tax_amt" t-value="(props.line.get_unit_display_price() * tax.amount) / 100"/>
+                            <t t-set="total_tax_amt" t-value="total_tax_amt + tax_amt"/>
+                            <li style="display:flex;">
+                                <li style="width:55%;float:left;">
+                                    <t t-esc="tax.name"/>
+                                </li>
+                                <li style="width:45%;float:left;text-align:right;">
+                                    + <t t-esc="env.pos.format_currency(tax_amt)"/>
+                                </li>
+                            </li>
+                        </t>
+                        <li style="display:flex;">
+                            <li style="width:55%;float:left;">
+                                Total Tax Amount:
+                            </li>
+                            <li style="width:45%;float:left;text-align:right;border-top:1px solid;">
+                                <t t-esc="env.pos.format_currency(total_tax_amt)"/>
+                            </li>
+                        </li>
+                    </li>
+                </ul>
+            </t>
+        </xpath>
+    </t>
+</templates>

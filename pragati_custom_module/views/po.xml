@@ -1,0 +1,17 @@
+<odoo>
+    <data>
+
+        <!-- Inherit POS Order Tree View -->
+        <record id="view_pos_order_tree_inherit" model="ir.ui.view">
+            <field name="name">pos.order.tree.payment.method</field>
+            <field name="model">pos.order</field>
+            <field name="inherit_id" ref="point_of_sale.view_pos_order_tree"/>
+            <field name="arch" type="xml">
+                <field name="employee_id" position="replace">
+                    <field name="payment_method_id" invisible="1"/>
+                </field>
+            </field>
+        </record>
+
+    </data>
+</odoo>

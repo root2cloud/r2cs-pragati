@@ -1,0 +1,54 @@
+<odoo>
+	<!-- ...............Action for  family membership menu.............. -->
+    <record id="action_for_family_member_ship" model="ir.actions.act_window">
+        <field name="name">MemberShip</field>
+        <field name="type">ir.actions.act_window</field>
+        <field name="res_model">member.ship</field>
+        <field name="view_mode">tree,form</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+             no records
+            </p>
+        </field>
+    </record>
+     
+    <record id="view_for_membership_menu_form" model="ir.ui.view">
+            <field name="name">member.ship.form</field>
+            <field name="model">member.ship</field>
+            <field name="arch" type="xml">
+                <form string="Request For membership">
+                    <sheet>
+                        <group>
+                            <field name="membership_name"/>
+                         </group>   
+                    </sheet>   
+                </form>
+            </field>    
+    </record>  
+     
+
+    <record id="membership_menu_tree_view" model="ir.ui.view">
+        <field name="name">member.ship.tree</field>
+        <field name="model">member.ship</field>
+        <field name="arch" type="xml">
+            <tree>
+                <field name="membership_name"/>
+            </tree>
+        </field>
+    </record>
+   
+
+  
+ 
+
+	<!-- ...............menu.............. -->
+
+    <menuitem id="member_ship_main_menu_id" name="Membership"/>
+
+    <menuitem id="member_ship_menu_id" name="MemberShip" parent="member_ship_main_menu_id" action="action_for_family_member_ship"/>  
+                                  
+
+
+     <!-- <menuitem id="service_completion_menu_id" name="Completion" parent="member_ship_main_menu_id"
+                action="action_for_membership_planning"/>  --> 
+</odoo>	

@@ -1,0 +1,12 @@
+<odoo>
+    <record id="view_account_account_form_inherited" model="ir.ui.view">
+        <field name="name">account.account.form.inherited</field>
+        <field name="model">account.account</field>
+        <field name="inherit_id" ref="account.view_account_form"/>
+        <field name="arch" type="xml">
+            <field name="account_type" position="replace">
+                <field name="account_type" widget="account_type_selection"/>
+            </field>
+        </field>
+    </record>
+</odoo>

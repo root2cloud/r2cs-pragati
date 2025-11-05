@@ -1,0 +1,49 @@
+
+<odoo>
+
+    <record id="purchase_analysis_view_tree_analysis" model="ir.ui.view">
+        <field name="name">account.move.line.tree</field>
+        <field name="model">account.move.line</field>
+        <field name="arch" type="xml">
+            <tree string="Stock Analysis">
+                <field name="name_of_record"/>
+                <field name="partner_id"/>
+                <field name="gstin_number"/>
+                <field name="l10n_in_gst_treatment"/>
+<!--                <field name="invoice_date"/>-->
+                <field name="date"/>
+                <field name="product_id"/>
+                <field name="l10n_in_hsn_code"/>
+                <field name="price_unit"/>
+                <field name="price_subtotal"/>
+                <field name="sgst_tax_char"/>
+                <field name="sgst_tax"/>
+                <field name="cgst_tax_char"/>
+                <field name="cgst_tax"/>
+                <field name="igst_tax_char"/>
+                <field name="igst_tax"/>
+                <field name="rem_tax_char"/>
+                <field name="remaining_tax"/>
+                <field name="price_total"/>
+            </tree>
+        </field>
+    </record>
+
+    <record id="purchase_analysis_action_accounting" model="ir.actions.act_window">
+        <field name="name">Purchase Analysis</field>
+        <field name="res_model">account.move.line</field>
+        <field name="view_mode">tree,pivot</field>
+<!--        <field name="domain">[('journal_id.name', '=', 'Vendor Bills'), ('product_id', '!=', False),('state_of_rec', '=', 'posted')]</field>-->
+        <field name="domain">[
+        ('move_id.state', '=', 'posted'),
+        ('move_id.move_type', '=', 'in_invoice'),
+        ('product_id', '!=', False)
+    ]</field>
+        <field name="view_id" ref="purchase_analysis_view_tree_analysis"/>
+    </record>
+
+
+
+    <menuitem id="purchase_analysis_report_for_accounting" action="purchase_analysis_action_accounting" parent="account.account_reports_management_menu" sequence="12"/>
+
+</odoo>

@@ -1,0 +1,112 @@
+<odoo>
+    <template id="crop_report">
+        <t t-call="web.html_container">
+            <t t-foreach="docs" t-as="doc">
+                <t t-call="web.external_layout"> <br/> 
+                   <div class="page">
+                        <style>
+                            .main-div 
+                            {
+                                width: 1000px; 
+                                height: 300px; 
+                                border: 2px solid; 
+                            }
+
+                            .left-div 
+                            {
+                                width: 500px;
+                                height:200px;
+                                float:left;
+                                padding: 10px;
+                                <!-- border: 1px solid; -->
+                                margin-top: 0px;
+                                font-size: 18px;
+                                }
+
+                            .right-div 
+                            {
+                                width: 490px;
+                                height:200px;
+                                float:left;  /* Use float to place them side by side */
+                                padding: 10px;
+                                <!-- border: 1px solid; -->
+                                font-size: 18px;
+
+                            }
+                            .table-div 
+                            {
+                                width: 1000px; 
+                                height: 200px; 
+                                border: 0px;
+                            }
+                            .table-heading 
+                            {
+                            font-weight: bold;
+                            }
+                         
+                        </style>
+                        <div class="main-div">
+                            <h1 style="margin: 0px; text-align:center; padding-top:10px;margin-bottom:0px;">Yeild Report</h1>
+
+                            <div class="left-div">
+                                <p style= "padding-left:30px">Crop Id: <span t-field="doc.ref"/></p>
+                                <p style= "padding-left:30px">Farmer : <span t-field="doc.farmer_emp"/></p>
+                                <p style= "padding-left:30px">requested Date: <span t-field="doc.request_date"/></p>
+                                <p style= "padding-left:30px">Source Location: <span t-field="doc.location_id.name"/></p>
+                            </div>
+                            <div class="right-div">
+                                <p style= "padding-left:150px">Seed Name: <span t-field="doc.product_seed_id.name"/></p> 
+                                <p style= "padding-left:150px">Seed Qty(g): <span t-field="doc.stock_change"/></p>
+                                <p style= "padding-left:150px">Operation Type: <span t-field="doc.picking_type_id.name"/></p>
+                                <p style= "padding-left:150px">Destination Location: <span t-field="doc.location_dest_id.name"/></p>
+                            </div>
+                        </div><br/><br/><br/><br/>
+                        <h2 style="margin: 0px;padding-top:10px;margin-bottom:0px;text-align: center"><span t-field="doc.location_dest_id.location_id.name"/>/<span t-field="doc.location_dest_id.name"/> Daily Harvest Report</h2>
+                        <table class= "table-div">
+                            <thead class="table-heading">
+                                <tr style= "height:50px;text-align:center">
+                                    <td style="padding-top:20px">S.No</td>
+                                    <td style="padding-top:20px">Crop Name</td>
+                                    <td style="padding-top:20px">Quantity</td>
+                                    <td style="padding-top:20px">Date</td>
+                                    <td style="padding-top:20px">Stock Picking ID</td>
+                                    <td style="padding-top:20px">Cost Center</td>
+                                    <td style="padding-top:20px">Destination Location</td>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <t t-set="counter" t-value="1"/>
+                                <t t-foreach="doc.crop_line_ids" t-as="record">
+                                    <tr style= "height:30px;">
+                                        <td style="padding:17px 0 0 10px"><t t-esc="counter"/></td>
+                                        <td style="padding:17px 0 0 10px"><t t-esc="record.product_id.name"/></td>
+                                        <td style="padding:17px 0 0 10px"><t t-esc="record.quantity"/></td>
+                                        <td style="padding:17px 0 0 10px"><t t-esc="record.date"/></td>                                     
+                                        <td style="padding:17px 0 0 10px"><t t-esc="record.stock_picking_id.name"/></td>
+                                        <td style="padding:17px 0 0 10px"><t t-esc="record.location_id.location_id.name"/>/<t t-esc="record.location_id.name"/></td>
+                                        <td style="padding:17px 0 0 10px"><t t-esc="record.location_dest_id.location_id.name"/>/<t t-esc="record.location_dest_id.name"/></td>
+
+                                    </tr>
+                                    <t t-set="counter" t-value="counter + 1"/>
+                                </t>
+                            </tbody>
+                        </table>
+                    </div>
+                </t>
+            </t>
+        </t>
+    </template>
+
+
+    <record id="crop" model="ir.actions.report">
+        <field name="name">Crop Report</field>
+        <field name="model">crop.requests</field>
+        <field name="report_type">qweb-pdf</field>
+        <field name="report_name">agriculture_management_odoo.crop_report</field>
+        <field name="report_file">agriculture_management_odoo.crop_report</field>
+        <field name="binding_type">report</field>
+        <field name="binding_model_id" ref="model_crop_requests"/>
+    </record>
+</odoo>
+
+

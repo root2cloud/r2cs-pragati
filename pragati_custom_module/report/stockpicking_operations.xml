@@ -1,0 +1,20 @@
+<odoo>
+   
+        <!-- Inherit the existing template -->
+         <template id="report_picking" inherit_id="stock.report_picking">
+          <xpath expr="//table[@class='table table-sm']//thead//th[@name='th_product']" position="after">
+            <th><strong>Ordered</strong></th>
+          </xpath>
+
+          <xpath expr="//table[@class='table table-sm']//tbody//t//tr//td[1]" position="after">
+            <td>
+              <span t-field="ml.demand"/>
+              <span t-field="ml.product_uom_id" groups="uom.group_uom"/>
+            </td>
+        </xpath>
+        <xpath expr="//table[@class='table table-sm']//thead//th[3]" position="replace">
+            <th><strong>Delivered</strong></th>
+          </xpath>
+    </template>
+   
+</odoo>

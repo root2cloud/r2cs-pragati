@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+        <template id="loyalty_report" inherit_id="loyalty.loyalty_report">
+            <xpath expr="//div[@t-field='o.code']" position="replace">
+                <div style="text-align: center;">
+                <img style="display: block; margin: auto;"
+                     t-att-src="'/report/barcode/?barcode_type=%s&amp;value=%s&amp;width=%s&amp;height=%s'%('QR', o.get_qr_code_url(), 130, 130)"/>
+                </div>
+            </xpath>
+        </template>
+
+        <template id="gift_card_report" inherit_id="loyalty.gift_card_report">
+            <xpath expr="//div[6]" position="replace">
+                <div style="padding:0; margin:0px; padding-top:10px; padding-bottom:10px; text-align:center;">
+                <img style="display: block; margin: auto;"
+                     t-att-src="'/report/barcode/?barcode_type=%s&amp;value=%s&amp;width=%s&amp;height=%s'%('QR', o.get_qr_code_url(), 130, 130)"/>
+                </div>
+            </xpath>
+        </template>
+    </data>
+</odoo>

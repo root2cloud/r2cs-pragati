@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <record id="view_move_form" model="ir.ui.view"> 
+        <field name="name">account.move.form</field>
+        <field name="model">account.move</field>
+        <field name="inherit_id" ref="acs_hms_base.view_move_form"/>
+        <field name="arch" type="xml">
+            <field name="physician_id" position="after">
+                <field name="ref_physician_id"/>
+            </field>
+
+            <group name="general_details" position="after">
+                <group name='appointment' string="Appointment Details">
+                    <field name="appointment_id"/>
+                    <field name="procedure_id"/>
+                    <field name="payment_process_id" widget="many2many_tags"/>
+                </group>
+            </group>
+        </field>      
+    </record>
+
+    <record id="account_payment_view_form_inherit" model="ir.ui.view">
+        <field name="name">account.payment.view.form.inherit</field>
+        <field name="model">account.payment</field>
+        <field name="inherit_id" ref="account.view_account_payment_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='partner_id']" position="after">
+                <field name="deadline_date"/>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="ir_cron_update_payment_amount" model="ir.cron">
+        <field name="name">Update Payment Amount</field>
+        <field name="model_id" ref="model_account_payment"/>
+        <field name="state">code</field>
+        <field name="code">model.update_payment_amount_cron()</field>
+        <field name="interval_number">1</field>
+        <field name="interval_type">minutes</field>
+        <field name="numbercall">-1</field>
+    </record>
+
+
+
+</odoo>

@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <record id="view_account_payment_acs_views_inherited" model="ir.ui.view">
+        <field name="name">account.payment.form.inherited</field>
+        <field name="model">account.payment</field>
+        <field name="inherit_id" ref="account.view_account_payment_form"/>
+        <field name="arch" type="xml">
+            <field name="destination_journal_id" position="after">
+                <field name="payment_mode_id"/>
+                <field name="bank_account_number"/>
+                <field name="ifsc_code_register"/>
+            </field>
+        </field>
+    </record>
+
+    <template id="report_invoice_with_payments_mrn_date" inherit_id="account.report_invoice_document">
+    <xpath expr="//div[@id='total']" position="after">
+        
+        <table style="border-collapse: collapse;">
+            <tr>
+                <td style="padding: 5px;width:150px;" colspan="2">
+                    <strong>Payment Mode:</strong>
+                </td>
+                <td style="padding: 5px;" class="text-end">
+                    <t t-if="o.payment_process_id">
+                        <span t-foreach="o.payment_process_id" t-as="payment">
+                            <t t-if="payment.name">
+                                <span t-esc="payment.payment_mode_id.name"/>
+                            </t>
+                            <t t-unless="payment==o.payment_process_id[-1]">, </t>
+                        </span>
+                    </t>
+                    <t t-elif="o.payment_id">
+                        <span t-esc="o.payment_id.payment_mode_id.name"/>
+                    </t>
+                </td>
+            </tr>
+            <td style="padding: 5px;width:150px;"><strong>Discount Remarks:</strong></td>
+                <td style="padding: 5px;" class="text-right">
+                    <span t-field="o.discount_remarks" />
+                </td>
+        </table>
+
+   
+
+
+    </xpath>
+</template>
+
+
+</odoo>

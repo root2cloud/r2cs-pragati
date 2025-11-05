@@ -1,0 +1,551 @@
+# Translation of Odoo Server.
+# This file contains the translation of the following modules:
+# 	* acs_invoice_summary
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: Odoo Server 15.0+e\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2022-03-14 06:05+0000\n"
+"PO-Revision-Date: 2022-03-14 06:05+0000\n"
+"Last-Translator: \n"
+"Language-Team: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: \n"
+"Plural-Forms: \n"
+
+#. module: acs_invoice_summary
+#: model:ir.model.fields,field_description:acs_invoice_summary.field_acs_invoice_summary__move_count
+msgid "# Moves"
+msgstr ""
+
+#. module: acs_invoice_summary
+#: model:ir.model.fields,field_description:acs_invoice_summary.field_acs_invoice_summary__payment_count
+msgid "# Payments"
+msgstr ""
+
+#. module: acs_invoice_summary
+#: model_terms:ir.ui.view,arch_db:acs_invoice_summary.acs_invoice_summary_report_document
+msgid "&amp;nbsp;<span>on</span>&amp;nbsp;"
+msgstr ""
+
+#. module: acs_invoice_summary
+#: model_terms:ir.ui.view,arch_db:acs_invoice_summary.view_acs_invoice_summary
+msgid "<span class=\"o_stat_text\">Invoices</span>"
+msgstr ""
+
+#. module: acs_invoice_summary
+#: model_terms:ir.ui.view,arch_db:acs_invoice_summary.view_acs_invoice_summary
+msgid "<span class=\"o_stat_text\">Payments</span>"
+msgstr ""
+
+#. module: acs_invoice_summary
+#: model_terms:ir.ui.view,arch_db:acs_invoice_summary.acs_invoice_summary_report_document
+msgid ""
+"<span style=\"margin-left:-15px;\" class=\"col-6 pull-left\"><strong>Responsible:</strong></span>\n"
+"                        <span class=\"col-6\"><strong>Date:</strong></span><br/>\n"
+"                        <span/><br/>\n"
+"                        <span/><br/>"
+msgstr ""
+
+#. module: acs_invoice_summary
+#: model_terms:ir.ui.view,arch_db:acs_invoice_summary.acs_invoice_summary_report_document
+msgid "<span>Summary Invoice: </span>"
+msgstr ""
+
+#. module: acs_invoice_summary
+#: model_terms:ir.ui.view,arch_db:acs_invoice_summary.acs_invoice_summary_report_document
+msgid "<strong>Date: </strong>"
+msgstr ""
+
+#. module: acs_invoice_summary
+#: model_terms:ir.ui.view,arch_db:acs_invoice_summary.acs_invoice_summary_report_document
+msgid "<strong>Description</strong>"
+msgstr ""
+
+#. module: acs_invoice_summary
+#: model_terms:ir.ui.view,arch_db:acs_invoice_summary.acs_invoice_summary_report_document
+msgid "<strong>Partner: </strong>"
+msgstr ""
+
+#. module: acs_invoice_summary
+#: model_terms:ir.ui.view,arch_db:acs_invoice_summary.acs_invoice_summary_report_document
+msgid "<strong>Product</strong>"
+msgstr ""
+
+#. module: acs_invoice_summary
+#: model_terms:ir.ui.view,arch_db:acs_invoice_summary.acs_invoice_summary_report_document
+msgid "<strong>Quantity</strong>"
+msgstr ""
+
+#. module: acs_invoice_summary
+#: model_terms:ir.ui.view,arch_db:acs_invoice_summary.acs_invoice_summary_report_document
+msgid "<strong>Subtotal</strong>"
+msgstr ""
+
+#. module: acs_invoice_summary
+#: model_terms:ir.ui.view,arch_db:acs_invoice_summary.acs_invoice_summary_report_document
+msgid "<strong>Total</strong>"
+msgstr ""
+
+#. module: acs_invoice_summary
+#: model_terms:ir.ui.view,arch_db:acs_invoice_summary.acs_invoice_summary_report_document
+msgid "<strong>Unit Price</strong>"
+msgstr ""
+
+#. module: acs_invoice_summary
+#: model:ir.model.fields,field_description:acs_invoice_summary.field_acs_invoice_summary__message_needaction
+msgid "Action Needed"
+msgstr ""
+
+#. module: acs_invoice_summary
+#: model_terms:ir.ui.view,arch_db:acs_invoice_summary.acs_invoice_summary_report_document
+msgid "Amount"
+msgstr ""
+
+#. module: acs_invoice_summary
+#: model:ir.model.fields,field_description:acs_invoice_summary.field_acs_invoice_summary__message_attachment_count
+msgid "Attachment Count"
+msgstr ""
+
+#. module: acs_invoice_summary
+#: model:ir.model.fields,field_description:acs_invoice_summary.field_acs_invoice_summary_line__categ_total
+msgid "Category Total"
+msgstr ""
+
+#. module: acs_invoice_summary
+#: model:ir.model.fields,field_description:acs_invoice_summary.field_acs_invoice_summary__company_id
+msgid "Company"
+msgstr ""
+
+#. module: acs_invoice_summary
+#: model:ir.model.fields,field_description:acs_invoice_summary.field_acs_invoice_summary__create_uid
+#: model:ir.model.fields,field_description:acs_invoice_summary.field_acs_invoice_summary_line__create_uid
+msgid "Created by"
+msgstr ""
+
+#. module: acs_invoice_summary
+#: model:ir.model.fields,field_description:acs_invoice_summary.field_acs_invoice_summary__create_date
+#: model:ir.model.fields,field_description:acs_invoice_summary.field_acs_invoice_summary_line__create_date
+msgid "Created on"
+msgstr ""
+
+#. module: acs_invoice_summary
+#: model:ir.model.fields,field_description:acs_invoice_summary.field_acs_invoice_summary__currency_id
+#: model:ir.model.fields,field_description:acs_invoice_summary.field_acs_invoice_summary_line__currency_id
+msgid "Currency"
+msgstr ""
+
+#. module: acs_invoice_summary
+#: model:ir.model.fields,field_description:acs_invoice_summary.field_acs_invoice_summary__date_from
+msgid "Date From"
+msgstr ""
+
+#. module: acs_invoice_summary
+#: model:ir.model.fields,field_description:acs_invoice_summary.field_acs_invoice_summary__date_to
+msgid "Date To"
+msgstr ""
+
+#. module: acs_invoice_summary
+#: model:ir.model.fields,field_description:acs_invoice_summary.field_acs_invoice_summary__description
+#: model:ir.model.fields,field_description:acs_invoice_summary.field_acs_invoice_summary_line__name
+msgid "Description"
+msgstr ""
+
+#. module: acs_invoice_summary
+#: model_terms:ir.ui.view,arch_db:acs_invoice_summary.acs_invoice_summary_report_document
+msgid "Disc.(%)"
+msgstr ""
+
+#. module: acs_invoice_summary
+#: model:ir.model.fields,field_description:acs_invoice_summary.field_acs_invoice_summary_line__discount
+msgid "Discount"
+msgstr ""
+
+#. module: acs_invoice_summary
+#: model:ir.model.fields,field_description:acs_invoice_summary.field_acs_invoice_summary__display_name
+#: model:ir.model.fields,field_description:acs_invoice_summary.field_acs_invoice_summary_line__display_name
+msgid "Display Name"
+msgstr ""
+
+#. module: acs_invoice_summary
+#: model:ir.model.fields,field_description:acs_invoice_summary.field_acs_invoice_summary_line__display_type
+msgid "Display Type"
+msgstr ""
+
+#. module: acs_invoice_summary
+#: model_terms:ir.ui.view,arch_db:acs_invoice_summary.view_acs_invoice_summary
+msgid "Done"
+msgstr ""
+
+#. module: acs_invoice_summary
+#: model:ir.model.fields.selection,name:acs_invoice_summary.selection__acs_invoice_summary__state__draft
+msgid "Draft"
+msgstr ""
+
+#. module: acs_invoice_summary
+#: model:ir.model.fields,field_description:acs_invoice_summary.field_acs_invoice_summary__payment_due
+msgid "Due Payment"
+msgstr ""
+
+#. module: acs_invoice_summary
+#: model:ir.model.fields,field_description:acs_invoice_summary.field_acs_invoice_summary__message_follower_ids
+msgid "Followers"
+msgstr ""
+
+#. module: acs_invoice_summary
+#: model:ir.model.fields,field_description:acs_invoice_summary.field_acs_invoice_summary__message_partner_ids
+msgid "Followers (Partners)"
+msgstr ""
+
+#. module: acs_invoice_summary
+#: model_terms:ir.ui.view,arch_db:acs_invoice_summary.view_acs_invoice_summary
+msgid "Get Data"
+msgstr ""
+
+#. module: acs_invoice_summary
+#: model:ir.model.fields,field_description:acs_invoice_summary.field_acs_invoice_summary__has_message
+msgid "Has Message"
+msgstr ""
+
+#. module: acs_invoice_summary
+#: model:ir.model.fields,field_description:acs_invoice_summary.field_acs_invoice_summary__id
+#: model:ir.model.fields,field_description:acs_invoice_summary.field_acs_invoice_summary_line__id
+msgid "ID"
+msgstr ""
+
+#. module: acs_invoice_summary
+#: model:ir.model.fields,help:acs_invoice_summary.field_acs_invoice_summary__message_needaction
+#: model:ir.model.fields,help:acs_invoice_summary.field_acs_invoice_summary__message_unread
+msgid "If checked, new messages require your attention."
+msgstr ""
+
+#. module: acs_invoice_summary
+#: model:ir.model.fields,help:acs_invoice_summary.field_acs_invoice_summary__message_has_error
+#: model:ir.model.fields,help:acs_invoice_summary.field_acs_invoice_summary__message_has_sms_error
+msgid "If checked, some messages have a delivery error."
+msgstr ""
+
+#. module: acs_invoice_summary
+#: model:ir.actions.report,name:acs_invoice_summary.invoice_summary_report
+msgid "Invoice"
+msgstr ""
+
+#. module: acs_invoice_summary
+#: model:ir.model.fields,field_description:acs_invoice_summary.field_acs_invoice_summary__line_ids
+#: model_terms:ir.ui.view,arch_db:acs_invoice_summary.view_acs_invoice_summary
+msgid "Invoice Lines"
+msgstr ""
+
+#. module: acs_invoice_summary
+#: model:ir.actions.act_window,name:acs_invoice_summary.action_acs_invoice_summary
+#: model:ir.model,name:acs_invoice_summary.model_acs_invoice_summary
+#: model:ir.model.fields,field_description:acs_invoice_summary.field_account_bank_statement_line__acs_invoice_summary_id
+#: model:ir.model.fields,field_description:acs_invoice_summary.field_account_move__acs_invoice_summary_id
+#: model:ir.model.fields,field_description:acs_invoice_summary.field_account_move_line__acs_invoice_summary_id
+#: model:ir.model.fields,field_description:acs_invoice_summary.field_account_payment__acs_invoice_summary_id
+#: model:ir.model.fields,field_description:acs_invoice_summary.field_acs_invoice_summary_line__acs_invoice_summary_id
+#: model:ir.ui.menu,name:acs_invoice_summary.menu_acs_invoice_summary
+#: model_terms:ir.ui.view,arch_db:acs_invoice_summary.acs_invoice_summary_list_view
+#: model_terms:ir.ui.view,arch_db:acs_invoice_summary.acs_invoice_summary_search_view
+#: model_terms:ir.ui.view,arch_db:acs_invoice_summary.view_acs_invoice_summary
+msgid "Invoice Summary"
+msgstr ""
+
+#. module: acs_invoice_summary
+#: model:ir.model.fields,field_description:acs_invoice_summary.field_acs_invoice_summary_line__acs_invoice_summary_categ_id
+msgid "Invoice Summary For Category"
+msgstr ""
+
+#. module: acs_invoice_summary
+#: model:ir.actions.act_window,name:acs_invoice_summary.action_acs_invoice_summary_lines
+#: model:ir.model,name:acs_invoice_summary.model_acs_invoice_summary_line
+#: model_terms:ir.ui.view,arch_db:acs_invoice_summary.acs_invoice_summary_line_list_view
+msgid "Invoice Summary Lines"
+msgstr ""
+
+#. module: acs_invoice_summary
+#: model_terms:ir.ui.view,arch_db:acs_invoice_summary.view_acs_invoice_summary
+msgid "Invoices"
+msgstr ""
+
+#. module: acs_invoice_summary
+#: model:ir.model.fields,field_description:acs_invoice_summary.field_acs_invoice_summary__message_is_follower
+msgid "Is Follower"
+msgstr ""
+
+#. module: acs_invoice_summary
+#: model_terms:ir.ui.view,arch_db:acs_invoice_summary.acs_invoice_summary_report_document
+msgid ""
+"Keep this print as reference further communication and procedure.\n"
+"                    Should you have any questions please contact us at your convenience.<br/><br/>\n"
+"                    Best regards,<br/>"
+msgstr ""
+
+#. module: acs_invoice_summary
+#: model:ir.model.fields,field_description:acs_invoice_summary.field_acs_invoice_summary____last_update
+#: model:ir.model.fields,field_description:acs_invoice_summary.field_acs_invoice_summary_line____last_update
+msgid "Last Modified on"
+msgstr ""
+
+#. module: acs_invoice_summary
+#: model:ir.model.fields,field_description:acs_invoice_summary.field_acs_invoice_summary__write_uid
+#: model:ir.model.fields,field_description:acs_invoice_summary.field_acs_invoice_summary_line__write_uid
+msgid "Last Updated by"
+msgstr ""
+
+#. module: acs_invoice_summary
+#: model:ir.model.fields,field_description:acs_invoice_summary.field_acs_invoice_summary__write_date
+#: model:ir.model.fields,field_description:acs_invoice_summary.field_acs_invoice_summary_line__write_date
+msgid "Last Updated on"
+msgstr ""
+
+#. module: acs_invoice_summary
+#: model:ir.model.fields,field_description:acs_invoice_summary.field_acs_invoice_summary__categ_line_ids
+#: model_terms:ir.ui.view,arch_db:acs_invoice_summary.view_acs_invoice_summary
+msgid "Lines"
+msgstr ""
+
+#. module: acs_invoice_summary
+#: model:ir.model.fields,field_description:acs_invoice_summary.field_acs_invoice_summary__message_main_attachment_id
+msgid "Main Attachment"
+msgstr ""
+
+#. module: acs_invoice_summary
+#: model:ir.model.fields,field_description:acs_invoice_summary.field_acs_invoice_summary__message_has_error
+msgid "Message Delivery error"
+msgstr ""
+
+#. module: acs_invoice_summary
+#: model:ir.model.fields,field_description:acs_invoice_summary.field_acs_invoice_summary__message_ids
+msgid "Messages"
+msgstr ""
+
+#. module: acs_invoice_summary
+#: model:ir.model.fields,field_description:acs_invoice_summary.field_acs_invoice_summary_line__move_line_id
+msgid "Move"
+msgstr ""
+
+#. module: acs_invoice_summary
+#: model:ir.model.fields,field_description:acs_invoice_summary.field_acs_invoice_summary__move_ids
+msgid "Moves"
+msgstr ""
+
+#. module: acs_invoice_summary
+#: model:ir.model.fields,field_description:acs_invoice_summary.field_acs_invoice_summary__name
+msgid "Name"
+msgstr ""
+
+#. module: acs_invoice_summary
+#: model:ir.model.fields,field_description:acs_invoice_summary.field_acs_invoice_summary__message_needaction_counter
+msgid "Number of Actions"
+msgstr ""
+
+#. module: acs_invoice_summary
+#: model:ir.model.fields,field_description:acs_invoice_summary.field_acs_invoice_summary__message_has_error_counter
+msgid "Number of errors"
+msgstr ""
+
+#. module: acs_invoice_summary
+#: model:ir.model.fields,help:acs_invoice_summary.field_acs_invoice_summary__message_needaction_counter
+msgid "Number of messages which requires an action"
+msgstr ""
+
+#. module: acs_invoice_summary
+#: model:ir.model.fields,help:acs_invoice_summary.field_acs_invoice_summary__message_has_error_counter
+msgid "Number of messages with delivery error"
+msgstr ""
+
+#. module: acs_invoice_summary
+#: model:ir.model.fields,help:acs_invoice_summary.field_acs_invoice_summary__message_unread_counter
+msgid "Number of unread messages"
+msgstr ""
+
+#. module: acs_invoice_summary
+#: model:ir.model.fields,field_description:acs_invoice_summary.field_acs_invoice_summary__origin
+msgid "Origin"
+msgstr ""
+
+#. module: acs_invoice_summary
+#: model:ir.model.fields,field_description:acs_invoice_summary.field_acs_invoice_summary__partner_id
+msgid "Partner"
+msgstr ""
+
+#. module: acs_invoice_summary
+#: model:ir.model.fields,help:acs_invoice_summary.field_acs_invoice_summary__partner_id
+msgid "Partner-related data of the Patient"
+msgstr ""
+
+#. module: acs_invoice_summary
+#: model:ir.model,name:acs_invoice_summary.model_account_payment
+#: model:ir.model.fields,field_description:acs_invoice_summary.field_acs_invoice_summary__payment_ids
+#: model_terms:ir.ui.view,arch_db:acs_invoice_summary.view_acs_invoice_summary
+msgid "Payments"
+msgstr ""
+
+#. module: acs_invoice_summary
+#: model:ir.model.fields,field_description:acs_invoice_summary.field_acs_invoice_summary_line__price_unit
+msgid "Price Unit"
+msgstr ""
+
+#. module: acs_invoice_summary
+#: model:ir.model.fields,field_description:acs_invoice_summary.field_acs_invoice_summary__print_date_range
+msgid "Print Date Range"
+msgstr ""
+
+#. module: acs_invoice_summary
+#: model:ir.model.fields,field_description:acs_invoice_summary.field_acs_invoice_summary__print_lines
+msgid "Print Lines"
+msgstr ""
+
+#. module: acs_invoice_summary
+#: model_terms:ir.ui.view,arch_db:acs_invoice_summary.acs_invoice_summary_report_document
+msgid "Print Name and Sign"
+msgstr ""
+
+#. module: acs_invoice_summary
+#: model:ir.model.fields,field_description:acs_invoice_summary.field_acs_invoice_summary_line__product_id
+msgid "Product"
+msgstr ""
+
+#. module: acs_invoice_summary
+#: model:ir.model.fields,field_description:acs_invoice_summary.field_account_move_line__acs_product_category_id
+#: model:ir.model.fields,field_description:acs_invoice_summary.field_acs_invoice_summary_line__acs_product_category_id
+msgid "Product Category"
+msgstr ""
+
+#. module: acs_invoice_summary
+#: model_terms:ir.ui.view,arch_db:acs_invoice_summary.acs_invoice_summary_line_list_view
+msgid "Qty"
+msgstr ""
+
+#. module: acs_invoice_summary
+#: model:ir.model.fields,field_description:acs_invoice_summary.field_acs_invoice_summary_line__quantity
+msgid "Quantity"
+msgstr ""
+
+#. module: acs_invoice_summary
+#: model_terms:ir.ui.view,arch_db:acs_invoice_summary.view_acs_invoice_summary
+msgid "Refresh Data"
+msgstr ""
+
+#. module: acs_invoice_summary
+#: model_terms:ir.ui.view,arch_db:acs_invoice_summary.view_acs_invoice_summary
+msgid "Reset to Draft"
+msgstr ""
+
+#. module: acs_invoice_summary
+#: model:ir.model.fields,field_description:acs_invoice_summary.field_acs_invoice_summary__message_has_sms_error
+msgid "SMS Delivery error"
+msgstr ""
+
+#. module: acs_invoice_summary
+#: model:ir.model.fields.selection,name:acs_invoice_summary.selection__acs_invoice_summary_line__display_type__line_section
+msgid "Section"
+msgstr ""
+
+#. module: acs_invoice_summary
+#: model:ir.model.fields,help:acs_invoice_summary.field_account_move_line__acs_product_category_id
+msgid "Select category for the current product"
+msgstr ""
+
+#. module: acs_invoice_summary
+#: model:ir.model.fields,field_description:acs_invoice_summary.field_acs_invoice_summary_line__sequence
+msgid "Sequence"
+msgstr ""
+
+#. module: acs_invoice_summary
+#: model:ir.model.fields,field_description:acs_invoice_summary.field_acs_invoice_summary__state
+msgid "Status"
+msgstr ""
+
+#. module: acs_invoice_summary
+#: model:ir.model.fields,field_description:acs_invoice_summary.field_acs_invoice_summary_line__price_subtotal
+msgid "Subtotal"
+msgstr ""
+
+#. module: acs_invoice_summary
+#: model:ir.model.fields,field_description:acs_invoice_summary.field_acs_invoice_summary__amount_tax
+#: model:ir.model.fields,field_description:acs_invoice_summary.field_acs_invoice_summary_line__tax_id
+#: model_terms:ir.ui.view,arch_db:acs_invoice_summary.acs_invoice_summary_report_document
+msgid "Taxes"
+msgstr ""
+
+#. module: acs_invoice_summary
+#: model:ir.model.fields,field_description:acs_invoice_summary.field_acs_invoice_summary_line__price_tax
+msgid "Taxes Amount"
+msgstr ""
+
+#. module: acs_invoice_summary
+#: model:ir.model.fields,help:acs_invoice_summary.field_acs_invoice_summary_line__display_type
+msgid "Technical field for UX purpose."
+msgstr ""
+
+#. module: acs_invoice_summary
+#: model:ir.model.fields,field_description:acs_invoice_summary.field_acs_invoice_summary__amount_total
+#: model:ir.model.fields,field_description:acs_invoice_summary.field_acs_invoice_summary_line__price_total
+#: model_terms:ir.ui.view,arch_db:acs_invoice_summary.view_acs_invoice_summary
+msgid "Total"
+msgstr ""
+
+#. module: acs_invoice_summary
+#: model:ir.model.fields,field_description:acs_invoice_summary.field_acs_invoice_summary__payment_total
+msgid "Total Payment"
+msgstr ""
+
+#. module: acs_invoice_summary
+#: model_terms:ir.ui.view,arch_db:acs_invoice_summary.acs_invoice_summary_report_document
+msgid "Total Price"
+msgstr ""
+
+#. module: acs_invoice_summary
+#: model:ir.model.fields,field_description:acs_invoice_summary.field_acs_invoice_summary_line__product_uom_id
+msgid "Unit of Measure"
+msgstr ""
+
+#. module: acs_invoice_summary
+#: model:ir.model.fields,field_description:acs_invoice_summary.field_acs_invoice_summary__message_unread
+msgid "Unread Messages"
+msgstr ""
+
+#. module: acs_invoice_summary
+#: model:ir.model.fields,field_description:acs_invoice_summary.field_acs_invoice_summary__message_unread_counter
+msgid "Unread Messages Counter"
+msgstr ""
+
+#. module: acs_invoice_summary
+#: model:ir.model.fields,field_description:acs_invoice_summary.field_acs_invoice_summary__amount_untaxed
+msgid "Untaxed Amount"
+msgstr ""
+
+#. module: acs_invoice_summary
+#: model:ir.model.fields,field_description:acs_invoice_summary.field_acs_invoice_summary__user_id
+msgid "User"
+msgstr ""
+
+#. module: acs_invoice_summary
+#: model_terms:ir.ui.view,arch_db:acs_invoice_summary.view_acs_invoice_summary
+msgid "View Lines"
+msgstr ""
+
+#. module: acs_invoice_summary
+#: model:ir.model.fields,field_description:acs_invoice_summary.field_acs_invoice_summary__website_message_ids
+msgid "Website Messages"
+msgstr ""
+
+#. module: acs_invoice_summary
+#: model:ir.model.fields,help:acs_invoice_summary.field_acs_invoice_summary__website_message_ids
+msgid "Website communication history"
+msgstr ""
+
+#. module: acs_invoice_summary
+#: code:addons/acs_invoice_summary/models/invoice_summary.py:0
+#, python-format
+msgid "You cannot delete an record in Done State."
+msgstr ""
+
+#. module: acs_invoice_summary
+#: model:ir.model.fields.selection,name:acs_invoice_summary.selection__acs_invoice_summary__state__done
+msgid "done"
+msgstr ""

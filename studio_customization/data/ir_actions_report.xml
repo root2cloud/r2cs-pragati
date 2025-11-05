@@ -1,0 +1,158 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<odoo>
+    <data>
+        <!-- Template for CASH Receipt -->
+        <template id="bank_payment_receipt_report_copy_1" name="CASH Receipt">
+            <t t-call="web.external_layout">
+                <div class="page">
+                    <div class="oe_structure"/>
+                    <div class="row">
+                        <div class="col-12">
+                            <h2>CASH Receipt</h2>
+                            <p>Payment Number:
+                                <span t-field="doc.name"/>
+                            </p>
+                            <p>Date:
+                                <span t-field="doc.payment_date"/>
+                            </p>
+                            <p>Amount:
+                                <span t-field="doc.amount"
+                                      t-options='{"widget": "monetary", "display_currency": doc.currency_id}'/>
+                            </p>
+                            <p>Partner:
+                                <span t-field="doc.partner_id.name"/>
+                            </p>
+                            <p>Payment Method:
+                                <span t-field="doc.payment_method_id.name"/>
+                            </p>
+                            <p>Memo:
+                                <span t-field="doc.communication"/>
+                            </p>
+                        </div>
+                    </div>
+                    <div class="oe_structure"/>
+                </div>
+            </t>
+        </template>
+
+        <!-- Template for CASH Payment -->
+<!--        <template id="bank_payment_receipt_report_copy_1" name="CASH Payment">-->
+<!--            <t t-call="web.external_layout">-->
+<!--                <div class="page">-->
+<!--                    <div class="oe_structure"/>-->
+<!--                    <div class="row">-->
+<!--                        <div class="col-12">-->
+<!--                            <h2>CASH Payment</h2>-->
+<!--                            <p>Payment Number:-->
+<!--                                <span t-field="doc.name"/>-->
+<!--                            </p>-->
+<!--                            <p>Date:-->
+<!--                                <span t-field="doc.payment_date"/>-->
+<!--                            </p>-->
+<!--                            <p>Amount:-->
+<!--                                <span t-field="doc.amount"-->
+<!--                                      t-options='{"widget": "monetary", "display_currency": doc.currency_id}'/>-->
+<!--                            </p>-->
+<!--                            <p>Partner:-->
+<!--                                <span t-field="doc.partner_id.name"/>-->
+<!--                            </p>-->
+<!--                            <p>Payment Method:-->
+<!--                                <span t-field="doc.payment_method_id.name"/>-->
+<!--                            </p>-->
+<!--                            <p>Memo:-->
+<!--                                <span t-field="doc.communication"/>-->
+<!--                            </p>-->
+<!--                        </div>-->
+<!--                    </div>-->
+<!--                    <div class="oe_structure"/>-->
+<!--                </div>-->
+<!--            </t>-->
+<!--        </template>-->
+    </data>
+
+    <!-- Report for CASH Receipt -->
+    <record id="studio_customization.bank_payment_receipt_9e8cede8-02aa-44bf-8d06-bc0ba14ea6b2"
+            model="ir.actions.report">
+        <field name="attachment" eval="False"/>
+        <field name="attachment_use" eval="False"/>
+        <field name="binding_model_id" ref="account.model_account_payment"/>
+        <field name="binding_type">report</field>
+        <field name="binding_view_types">list,form</field>
+        <field name="groups_id" eval="[(6, 0, [])]"/>
+        <field name="model">account.payment</field>
+        <field name="multi" eval="False"/>
+        <field name="name">CASH Receipt</field>
+        <field name="paperformat_id" eval="False"/>
+        <field name="report_name">pragati_custom_module.bank_payment_receipt_report_copy_1</field>
+        <field name="report_type">qweb-pdf</field>
+    </record>
+
+    <!-- Report for CASH Payment -->
+<!--    <record id="studio_customization.cash_receipt_0a9736c7-8e9e-4579-aeef-25abab73ff25" model="ir.actions.report">-->
+<!--        <field name="attachment" eval="False"/>-->
+<!--        <field name="attachment_use" eval="False"/>-->
+<!--        <field name="binding_model_id" ref="account.model_account_payment"/>-->
+<!--        <field name="binding_type">report</field>-->
+<!--        <field name="binding_view_types">list,form</field>-->
+<!--        <field name="groups_id" eval="[(6, 0, [])]"/>-->
+<!--        <field name="model">account.payment</field>-->
+<!--        <field name="multi" eval="False"/>-->
+<!--        <field name="name">CASH Payment</field>-->
+<!--        <field name="paperformat_id" eval="False"/>-->
+<!--        <field name="report_name">pragati_custom_module.bank_payment_receipt_report_copy_1</field>-->
+<!--        <field name="report_type">qweb-pdf</field>-->
+<!--    </record>-->
+
+    <!-- Report for Internal Transaction -->
+    <record id="studio_customization.internal_transaction_b35845dd-f31b-49c7-b89d-e05b9b22a059"
+            model="ir.actions.report" context="{'studio': True}">
+        <field name="attachment" eval="False"/>
+        <field name="attachment_use" eval="False"/>
+        <field name="binding_model_id" ref="gft_inter_account.model_internal_transaction"/>
+        <field name="binding_type">report</field>
+        <field name="binding_view_types">list,form</field>
+        <field name="groups_id" eval="[(6, 0, [])]"/>
+        <field name="model">internal.transaction</field>
+        <field name="multi" eval="False"/>
+        <field name="name">Internal Transaction Report</field>
+        <field name="paperformat_id" eval="False"/>
+        <field name="report_name">studio_customization.studio_report_docume_ce3e44de-1bd3-45c6-8220-cd08932c4c30</field>
+        <field name="report_type">qweb-pdf</field>
+    </record>
+
+    <!-- Report for Contra Entry -->
+    <record id="studio_customization.journal_entry_report_8b015aa3-5ef9-4c8b-bfca-d88105bc5e05"
+            model="ir.actions.report">
+        <field name="attachment" eval="False"/>
+        <field name="attachment_use" eval="False"/>
+        <field name="binding_model_id" ref="account.model_account_move"/>
+        <field name="binding_type">report</field>
+        <field name="binding_view_types">list,form</field>
+        <field name="groups_id" eval="[(6, 0, [])]"/>
+        <field name="model">account.move</field>
+        <field name="multi" eval="False"/>
+        <field name="name">Contra Entry Report</field>
+        <field name="paperformat_id" eval="False"/>
+        <field name="report_name">
+            studio_customization.studio_report_docume_e45feeab-4e04-4c12-944b-99b031b54680_copy_5
+        </field>
+        <field name="report_type">qweb-pdf</field>
+    </record>
+
+    <!-- Report for Journal Entry -->
+    <record id="studio_customization.journal_entry_report_ff28dce9-0785-4db1-913a-f4e411d90775"
+            model="ir.actions.report">
+        <field name="attachment" eval="False"/>
+        <field name="attachment_use" eval="False"/>
+        <field name="binding_model_id" ref="account.model_account_move"/>
+        <field name="binding_type">report</field>
+        <field name="binding_view_types">list,form</field>
+        <field name="groups_id" eval="[(6, 0, [])]"/>
+        <field name="model">account.move</field>
+        <field name="multi" eval="False"/>
+        <field name="name">Journal Entry Report</field>
+        <field name="paperformat_id" eval="False"/>
+        <field name="report_name">studio_customization.studio_report_docume_e45feeab-4e04-4c12-944b-99b031b54680</field>
+        <field name="report_type">qweb-pdf</field>
+    </record>
+</odoo>

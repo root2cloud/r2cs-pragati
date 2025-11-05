@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <template id="report_purchase_order_delivery">
+        <t t-call="report.html_container">
+            <t t-foreach="docs" t-as="purchase_order">
+                <div class="page">
+                    <!-- Add your custom report content here -->
+                    <h2>Purchase Order: <t t-esc="purchase_order.name"/></h2>
+                    <!-- Include product prices, unit prices, and taxes here -->
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Product</th>
+                                <th>Unit Price</th>
+                                <th>Taxes</th>
+                                <!-- Add other headers as needed -->
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr t-foreach="purchase_order.order_line" t-as="order_line">
+                                <td><t t-esc="order_line.product_id.name"/></td>
+                                <td><t t-esc="order_line.price_unit"/></td>
+                                <td>
+                                    <!-- Loop through taxes applied to the product -->
+                                    <t t-foreach="order_line.taxes_id" t-as="tax">
+                                        <span><t t-esc="tax.name"/></span>
+                                    </t>
+                                </td>
+                                <!-- Add other fields as needed -->
+                            </tr>
+                        </tbody>
+                    </table>
+                    <!-- Add other report content as needed -->
+                </div>
+            </t>
+        </t>
+    </template>
+</odoo>

@@ -1,0 +1,53 @@
+<odoo>
+	<!-- ...............Action for  family membership plans menu.............. -->
+    <record id="action_for_family_member_ship_plans" model="ir.actions.act_window">
+        <field name="name">MenberShip Plans</field>
+        <field name="type">ir.actions.act_window</field>
+        <field name="res_model">membership.planning</field>
+        <field name="view_mode">tree,form</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+             no records
+            </p>
+        </field>
+    </record>
+     
+    <record id="view_for_membership_plan_menu_form" model="ir.ui.view">
+            <field name="name">membership.planning.form</field>
+            <field name="model">membership.planning</field>
+            <field name="arch" type="xml">
+                <form string="Request For membership plans">
+                    <sheet>
+                        <group>
+                            <field name="plan_name"/>
+                            <field name="plan_duration"/>
+                            <field name="membership_id"/>
+                            <field name="price"/>
+                            <field name="discount_percentage"/>
+                            <field name="discount_amount"/>
+                            <field name="net_price"/>
+                         </group>   
+                    </sheet>  
+                </form>
+            </field>    
+    </record>  
+
+    <record id="membership_menu_plan_tree_view" model="ir.ui.view">
+        <field name="name">membership.planning.tree</field>
+        <field name="model">membership.planning</field>
+        <field name="arch" type="xml">
+            <tree>
+                <field name="plan_name"/>
+            </tree>
+        </field>
+    </record>
+   
+
+  
+ 
+
+	<!-- ...............menu.............. -->
+
+    <menuitem id="member_ship_plans_menu_id" name=" Membership Plans" parent="member_ship_main_menu_id" action="action_for_family_member_ship_plans"/>  
+                                  
+</odoo>	

@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    
+    <!-- Appointment -->
+    <menuitem id="menu_action_online_appointments" name="Online Appointments"
+        parent="acs_hms.action_main_menu_appointmnet_opd" sequence="50" action="action_online_appointments"/>
+
+    <!-- My schedules -->
+    <menuitem id="main_menu_my_appointment_schedules" name="My Schedules"
+        parent="acs_hms.action_main_menu_appointmnet_opd" sequence="60"/>
+    <menuitem id="menu_my_appointment_schedules" name="My Schedules"
+        parent="main_menu_my_appointment_schedules" action="action_my_app_schedules" sequence="10"/>
+    <menuitem id="menu_my_appointment_slots" name="My Slots"
+        parent="main_menu_my_appointment_schedules" action="action_my_appointment_schedule_slot_lines" sequence="20"/>
+    <menuitem id="menu_create_my_appointment_slots" name="Create Own Slots"
+        parent="main_menu_my_appointment_schedules" action="appointmentown_own_scheduler_wizard_action" sequence="30"/>
+
+    <menuitem id="menu_appointment_schedule_slot_lines" name="Appointment Slots"
+        parent="acs_hms.action_main_menu_appointmnet_opd" sequence="50" action="action_appointment_schedule_slot_lines"/>
+
+    <menuitem name="Appointment Booking Conf." id="app_portal_appointment_conf_menu"
+        parent="acs_hms.menu_appointment_cofig" sequence="27" groups="acs_hms_online_appointment.group_hms_online_appointment_manager"/>
+    <menuitem id="menu_appointment_schedule" name="Appointment Schedules"
+        sequence="10" parent="app_portal_appointment_conf_menu" action="action_appointment_schedule_form" groups="acs_hms_online_appointment.group_hms_online_appointment_manager"/>
+    <menuitem id="menu_appointment_schedule_slot" name="Appointment Slots"
+        sequence="20" parent="app_portal_appointment_conf_menu" action="action_appointment_schedule_slot_form" groups="acs_hms_online_appointment.group_hms_online_appointment_manager"/>
+
+    <menuitem id="app_menu_appointment_scheduler_wizard_slot" name="Create Appointment Slots" sequence="30" parent="acs_hms.menu_appointment_cofig" action="appointment_scheduler_wizard_action" groups="acs_hms_online_appointment.group_hms_online_appointment_manager"/>
+
+</odoo>

@@ -1,0 +1,31 @@
+<odoo>
+    <record id="view_wizard_for_register_freight_charge_advice" model="ir.ui.view">
+        <field name="name">open.freight.payment.register.wizard.form</field>
+        <field name="model">open.payment.freight.register.wizard</field>
+        <field name="arch" type="xml">
+            <form>
+                <sheet>
+                    <group>
+                        <group>
+                            <field name="journal_id"/>
+                            <field name="payment_method_line_id"/>
+                            <field name="partner_bank_id"/>
+                        </group>
+                        <group>
+                            <field name="amount"/>
+                            <field name="payment_date"/>
+                            <field name="communication"/>
+                            <field name="partner_id"/>
+                            <field name="available_payment_method_line_ids"/>
+                        </group>
+                    </group>
+                </sheet>
+                <footer>
+                    <button string="Create Payment" name="action_create_payment" type="object" class="oe_highlight" data-hotkey="q"/>
+                    <button string="Cancel" class="btn btn-default" special="cancel" data-hotkey="z"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+
+</odoo>

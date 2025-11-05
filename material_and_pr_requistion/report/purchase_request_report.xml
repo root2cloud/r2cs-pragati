@@ -1,0 +1,110 @@
+<odoo>
+    <template id="purchase_requisition_report"> 
+        <t t-call="web.html_container">
+            <t t-foreach="docs" t-as="doc">
+                <t t-call="web.external_layout"> <br/> 
+                   <div class="page">
+                        <style>
+                                .main-div {
+                                    width: 1000px; 
+                                    height: 300px; 
+                                    border: 2px solid black; 
+                                }
+
+                                .left-div {
+                                    width: 500px;
+                                    height:150px;
+                                    float:left;
+                                    padding: 10px; 
+                                }
+
+                                .right-div {
+                                    width: 490px;
+                                    height:150px;
+                                    float:left;  /* Use float to place them side by side */
+                                    padding: 10px; 
+                                }
+                                .main-div-table {
+                                    width: 1000px; 
+                                    height: 200px; 
+                                    border: 0px;
+                                }                            
+                        </style>
+                        <!-- Part-1: Headings -->
+                        <div class="main-div">
+                            <h1 style="margin: 0px; text-align:center; padding-top:10px"><t t-esc="doc.category_id.name"/></h1><br/>
+
+                            <div class="left-div">
+                                <p style= "padding-left:30px">Purchase Requisition no: <span t-field="doc.name"/></p>
+                                <p style= "padding-left:30px">Warehouse : <span t-field="doc.location_dest_id.name"/></p>
+                                <p style="padding-left: 30px">Narration:
+                                    <span t-field="doc.note" style="word-wrap: break-word; overflow: hidden"></span>
+                                </p>
+                            </div>
+                            <div class="right-div">
+                                <p style= "padding-left:150px">Date: <span t-field="doc.order_date"/></p> 
+                                <p style= "padding-left:150px">Delivery Date: <span t-field="doc.expect_arrival"/></p>
+                            </div>
+                        </div> <br/>
+                        <!-- Part-2 : table data -->
+                        <div class="main-div-table">
+                            <table  class="main-div-table" style="border: 2px solid black; height:0px">
+                                <thead>
+                                    <tr style= "height:50px;text-align:center">
+                                        <td style="padding-top:15px">S.No</td>
+                                        <td style="padding-top:15px">Product</td>
+                                        <td style="padding-top:15px">Description</td>
+                                        <td style="padding-top:15px">UOM</td>
+                                        <td style="padding-top:15px">Quantity</td>
+                                        <td style="padding-top:15px">Issued Quantity</td>
+                                        <td style="padding-top:15px">Remarks</td>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <t t-set="counter" t-value="1"/>
+                                    <t t-foreach="doc.pr_request_line_ids" t-as="record">
+                                        <tr style= "height:30px;">
+                                            <td style="padding-left:10px"><t t-esc="counter"/></td>
+                                            <td style="padding-left:10px"><t t-esc="record.product_id.name"/></td>
+                                            <td style="padding-left:10px"><t t-esc="record.description"/></td>                                     
+                                            <td style="padding-left:10px"><t t-esc="record.product_uom_id.name"/></td>
+                                            <td style="padding-left:10px"><t t-esc="record.quantity"/></td>
+                                            <td style="padding-left:10px"><t t-esc="record.issued_quantity"/></td>
+                                            <td style="padding-left:10px; max-width:500px; white-space: wrap"><t t-esc="record.remarks"/></td>
+                                        </tr>
+                                        <t t-set="counter" t-value="counter + 1"/>
+                                    </t>
+                                </tbody>
+                            </table> <br/> <br/>
+                                                    <!-- Box for the authorized persons -->
+                            <table class="table table-ar" style="border: 2px solid black; height: 50px; width: 980px;">
+                                <thead>
+                                    <tr>  
+                                        <td ><b>Created by:</b><t t-esc="doc.request_owner_id.name"/></td> 
+                                        <td ><b>Approver 1: </b><t t-esc="doc.approver_1"/></td>                        
+                                        <td ><b>Approver 2: </b> <t t-esc="doc.approver_2"/></td>
+                                        
+                                        <td ><b>Approver 3: </b> <t t-esc="doc.approver_3"/></td> 
+                                    </tr>
+                                </thead>
+                                
+                            </table>
+                        </div>
+                    </div>
+                </t>
+            </t>
+        </t>
+    </template>
+
+
+
+    <record id="purchase_request_report_seperate" model="ir.actions.report">
+        <field name="name">Purchase Requisition</field>
+        <field name="model">purchase.request</field>
+        <field name="report_type">qweb-pdf</field>
+        <field name="report_name">material_and_pr_requistion.purchase_requisition_report</field>
+        <field name="report_file">material_and_pr_requistion.purchase_requisition_report</field>
+        <field name="binding_type">report</field>
+        <field name="binding_model_id" ref="model_purchase_request"/>
+    </record>
+</odoo>

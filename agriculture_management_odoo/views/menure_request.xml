@@ -1,0 +1,91 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<odoo>
+    <record id="view_menure_request_tree" model="ir.ui.view">
+        <field name="name">menure.request.tree</field>
+        <field name="model">menure.request</field>
+        <field name="arch" type="xml">
+            <tree>
+                <field name="ref" optional="show"/>
+                <field name="farmer_emp" optional="show"/>
+                <field name="crop_id" optional="show"/>
+                <field name="product_id_menure" optional="show"/>
+                <field name="location_id" optional="hide"/>
+                <field name="request_date" optional="show"/>
+                <field name="state" optional="show"/>
+                <field name="stock_change_menure" optional="hide"/>
+                <field name="picking_type_id" optional="hide"/>
+                <field name="location_dest_id" optional="hide"/>
+                <field name="zone_ids" widget="many2many_tags"/>
+                <field name="beds_ids" widget="many2many_tags"/>
+            </tree>
+        </field>
+    </record>
+
+    <record id="view_manure_request_form" model="ir.ui.view">
+        <field name="name">menure.request.form</field>
+        <field name="model">menure.request</field>
+        <field name="arch" type="xml">
+            <form>
+                <header>
+                    <button id="button_menure" name="approve_menure" string="Submit"
+                            type="object" class="oe_highlight" states='draft'/>
+                    <button id="button_draft" name="action_draft" string="Draft"
+                            type="object" class="oe_highlight" states='submit'/>
+                    <field name="state" widget="statusbar"
+                           statusbar_visible="draft,submit"/>
+                </header>
+                <sheet>
+                    <label for="location_dest_id"/>
+                    <h2><field name="location_dest_id" placeholder="Select a NetHouse"/></h2>
+                    <label for="crop_id"/>
+                    <h2><field name="crop_id" placeholder="Select a crop"/></h2>
+                    <group>
+                        <group>
+                            <field name="location_id"/>
+                            <field name="zone_ids" widget="many2many_tags" force_save="1"/>
+                            <field name="beds_ids" widget="many2many_tags" force_save="1"/>
+                            <field name="menure_zone" invisible="1"/>
+                            <field name="menure_bed" invisible="1"/>
+                            
+                            <field name="stock_picking_id"/>
+                        </group>
+                        <group>
+                            <field name="request_date"/>
+                            <field name="farmer_emp"/>
+                            <field name="product_id_menure"/>
+                            <label for="stock_change_menure"/>
+                            <div class="o_row">
+                                <field name="stock_change_menure" class="oe_inline"/>
+                                <span><field name="uom_name"/></span>
+                            </div>
+                            <field name="picking_type_id"/>
+                        </group>
+                    </group>
+                    <field name="note" placeholder="Menure Description"/>
+                </sheet>
+                <div class="oe_chatter">
+                    <field name="message_follower_ids"/>
+                    <field name="activity_ids"/>
+                    <field name="message_ids"/>
+                </div>
+            </form>
+        </field>
+    </record>
+    <record id="view_menure_request_pivot" model="ir.ui.view">
+        <field name="name">menure.request.pivot</field>
+        <field name="model">menure.request</field>
+        <field name="arch" type="xml">
+            <pivot>
+            </pivot>
+        </field>
+    </record>
+    <record id="view_menure_request_search" model="ir.ui.view">
+        <field name="name">menure.request.search</field>
+        <field name="model">menure.request</field>
+        <field name="arch" type="xml">
+            <search>
+            </search>
+        </field>
+    </record>
+
+</odoo>

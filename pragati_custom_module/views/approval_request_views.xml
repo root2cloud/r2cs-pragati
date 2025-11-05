@@ -1,0 +1,33 @@
+<odoo>
+    <record id="view_approval_request_inherited" model="ir.ui.view">
+        <field name="name">approval.request.inherited</field>
+        <field name="model">approval.request</field>
+        <field name="inherit_id" ref="approvals.approval_request_view_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//form/sheet/group/group/field[@name='company_id']" position="after">
+                <field name="service_order_sep_id"
+                       attrs="{'invisible': [('category_name', 'not in', ['Service Order'])]}"/>
+                <field name="service_completion_id"
+                       attrs="{'invisible': [('category_name', 'not in', ['Service Completion'])]}"/>
+                <field name="material_indent_id"
+                       attrs="{'invisible': [('category_name', 'not in', ['Material Indent'])]}"/>
+                <field name="purchase_request_id"
+                       attrs="{'invisible': [('category_name', 'not in', ['Purchase Request'])]}"/>
+                <field name="bills_sep_id" attrs="{'invisible': [('category_name', 'not in', ['Bills Approval'])]}"/>
+                <field name="payment_advice_sep_id"
+                       attrs="{'invisible': [('category_name', 'not in', ['Payment Advice'])]}"/>
+                <field name="category_name" invisible="1"/>
+                <field name="account_move_sep_id"
+                       attrs="{'invisible': [('category_name', 'not in', ['Account Move'])]}"/>
+                <field name="purchase_no_id" attrs="{'invisible': [('category_name', 'not in', ['Purchase Order'])]}"/>
+                <field name="stock_picking_id" attrs="{'invisible': [('category_name', 'not in', ['MRN Order'])]}"/>
+                <field name="ledger_payment_id" attrs="{'invisible': [('category_name', 'not in', ['Bank Receipt'])]}"/>
+
+                <field name="category_name" invisible="1"/>
+            </xpath>
+            <xpath expr="//form/header" position="inside">
+                <button name="open_any_order" string="OPEN ORDER" type="object" class="btn-primary" data-hotkey="v"/>
+            </xpath>
+        </field>
+    </record>
+</odoo>

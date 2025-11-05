@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="sh_pos_res_config_settings_take_away" model="ir.ui.view">
+        <field name="name">pos.config.settings.logo</field>
+        <field name="model">pos.config</field>
+        <field name="inherit_id" ref="point_of_sale.pos_config_view_form" />
+        <field name="arch" type="xml">
+            <xpath expr="//sheet" position="inside">
+                <h2>Multi Warehouse Configuration</h2>
+
+                <div class="row mt16 o_settings_container">
+                    <div class="col-xs-6 col-md-6 o_setting_box">
+                        <div class="o_setting_left_pane">
+                            <field name="sh_enable_multi_warehouse"/>
+                        </div>
+                        <div class="o_setting_right_pane">
+                            <div>
+                                <label for="sh_enable_multi_warehouse" />
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-xs-6 col-md-6 o_setting_box" attrs="{'invisible': [('sh_enable_multi_warehouse','!=',True)]}">
+                        <div class="o_setting_left_pane">
+                        </div>
+                        <div class="o_setting_right_pane">
+                            <div>
+                                <label for="sh_stock_type" />
+                                <field name="sh_stock_type" />
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-xs-6 col-md-6 o_setting_box" attrs="{'invisible': [('sh_enable_multi_warehouse','!=',True)]}">
+                        <div class="o_setting_left_pane">
+                        </div>
+                        <div class="o_setting_right_pane">
+                            <div>
+                                <label for="sh_warehouse_tags" />
+                                <field name="sh_warehouse_tags" widget="many2many_tags" attrs="{'required': [('sh_enable_multi_warehouse','=',True)]}" />
+                            </div>
+                          
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row mt16 o_settings_container" attrs="{'invisible': [('sh_enable_multi_warehouse','!=',True)]}">
+                    <div class="col-xs-6 col-md-6 o_setting_box">
+                        <div class="o_setting_left_pane">
+                            <field name="sh_picking_sate" />
+                        </div>
+                        <div class="o_setting_right_pane">
+                            <label for="sh_picking_sate" />
+                        </div>
+                    </div>
+                    <div class="col-xs-6 col-md-6 o_setting_box">
+                        <div class="o_setting_left_pane">
+                            <field name="sh_negative_selling" />
+                        </div>
+                        <div class="o_setting_right_pane">
+                            <label for="sh_negative_selling" />
+                        </div>
+                    </div>
+                </div>
+            </xpath>
+        </field>
+    </record>
+</odoo>

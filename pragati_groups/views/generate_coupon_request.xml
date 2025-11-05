@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="loyalty_generate_request_form" model="ir.ui.view">
+        <field name="name">loyalty.generate.request.form</field>
+        <field name="model">loyalty.generate.request</field>
+        <field name="arch" type="xml">
+            <form string="loyalty_generate_request">
+                <header>
+                    <button name="action_draft" type="object" string="Set To Draft" attrs="{'invisible': ['|',('status','in',['draft']),('is_admin_user', '=', True)]}"/>
+                    <button name="action_reject" type="object" string="Reject" attrs="{'invisible': ['|',('status','in',['reject','cancel']),('is_admin_user', '=', False)]}"/>
+                    <button name="action_approve" type="object" string="Approve" attrs="{'invisible': ['|',('status','in',['approve','cancel']),('is_admin_user', '=', False)]}"/>
+                    <button name="action_cancel" type="object" string="Cancel" attrs="{'invisible': ['|',('status','in',['cancel']), ('is_admin_user', '=', True)]}"/>
+                    <field name="is_admin_user" invisible="1"/>
+                    <field name="status" widget="statusbar" statusbar_visible="draft,reject,approve,cancel"/>
+                </header>
+                <sheet>
+                    <group>
+                        <group>
+                            <field name="program_id" readonly="1"/>
+                            <field name="salesperson_id" />
+                            <field name="customer_ids" widget="many2many_tags"/>
+                            <field name="customer_tag_ids" widget="many2many_tags"/>
+                            <field name="valid_until" />
+                        </group>
+                        <group>
+                            <field name="coupon_qty" />
+                            <field name="price_unit" />
+                            <field name="mode" />
+                            <field name="points_granted" />
+                            <field name="points_name" />
+                            <field name="status" />
+                        </group>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="loyalty_generate_request_tree" model="ir.ui.view">
+        <field name="name">loyalty.generate.request.tree</field>
+        <field name="model">loyalty.generate.request</field>
+        <field name="arch" type="xml">
+            <tree string="Loyalty Program Request">
+                <field name="program_id"/>
+                <field name="salesperson_id"/>
+                <field name="coupon_qty"/>
+                <field name="valid_until" />
+                <field name="status"/>
+            </tree>
+        </field>
+    </record>
+
+
+    <record id="loyalty_generate_request_action" model="ir.actions.act_window">
+        <field name="name">Loyalty Generate Request</field>
+        <field name="type">ir.actions.act_window</field>
+        <field name="res_model">loyalty.generate.request</field>
+        <field name="view_mode">tree,form</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                No Record's Are Available
+            </p>
+        </field>
+    </record>
+    <menuitem id="loyalty_generate_request_id" name="Generate Coupon Request" action="loyalty_generate_request_action"  parent="sale.product_menu_catalog" groups="base.group_user"/>
+
+</odoo>
