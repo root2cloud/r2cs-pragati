@@ -10,6 +10,7 @@ class AccountMove(models.Model):
     physician_id = fields.Many2one('hms.physician', string='Physician', readonly=True, states={'draft': [('readonly', False)]}) 
     hospital_invoice_type = fields.Selection([
         ('patient','Patient')], string="Hospital Invoice Type")
+       
 
     @api.onchange('patient_id')
     def onchange_patient(self):
