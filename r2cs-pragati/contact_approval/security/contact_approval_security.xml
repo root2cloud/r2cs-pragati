@@ -1,5 +1,0 @@
-<odoo>
-    <record model="res.groups" id="group_contacts_approval">
-        <field name="name">Contacts Approval Manager</field>
-    </record>
-</odoo>

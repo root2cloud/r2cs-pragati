@@ -1,9 +1,0 @@
-<odoo>
-    <record id="seq_rcm_voucher" model="ir.sequence">
-        <field name="name">RCM Voucher</field>
-        <field name="code">rcm.voucher</field>
-        <field name="prefix">RCM/</field>
-        <field name="padding">5</field>
-        <field name="number_increment">1</field>
-    </record>
-</odoo>

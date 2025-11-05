@@ -1,8 +1,0 @@
-<?xml version="1.0" encoding="utf-8"?>
-<odoo>
-    <record id="general_ledger_report_my_field" model="account.report.column">
-        <field name="name">My Field</field>
-        <field name="expression_label">my_field</field>
-        <field name="figure_type">none</field>
-    </record>
-</odoo>
