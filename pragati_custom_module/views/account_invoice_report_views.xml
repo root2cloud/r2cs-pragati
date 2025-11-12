@@ -10,6 +10,7 @@
             </xpath>
             <xpath expr="//tree/field[@name='price_subtotal']" position="after">
                 <field name="sgst_tax_char" sum="Total"/>
+
                 <field name="sgst_tax" sum="Total"/>
                 <field name="cgst_tax_char" sum="Total"/>
                 <field name="cgst_tax" sum="Total"/>
