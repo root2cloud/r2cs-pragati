@@ -6,6 +6,7 @@
         <field name="arch" type="xml">
             <field name="account_type" position="replace">
                 <field name="account_type" widget="account_type_selection"/>
+
             </field>
         </field>
     </record>
