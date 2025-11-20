@@ -52,6 +52,7 @@
                                     <th name="reference" class="text-left">Reference</th>
                                     <th name="designation" class="text-right">Designation</th>
                                     <th name="uom" class="text-right">UoM</th>
+                                    <th name="hsn" class="text-right">HSN</th>
                                     <th name="initial" class="text-right">Initial Stock</th>
                                     <th name="in" class="text-right">In</th>
                                     <th name="out" class="text-right">Out</th>
@@ -81,6 +82,9 @@
                                                 <td name="uom" class="text-right" style="font-size:14px;">
                                                     <span t-esc="line['uom']"/>
                                                 </td>
+                                                <td name="hsn" class="text-right" style="font-size:14px;">
+                                                    <span t-esc="line['hsn']"/>
+                                                </td>
                                                 <td name="initial_stock" class="text-right" style="font-size:14px;">
                                                     <span t-esc="line['initial_stock']"/>
                                                 </td>
@@ -107,6 +111,7 @@
                                             <td class="text-right" style="font-size:14px;">
                                                 <strong t-esc="category_totals[element]['initial_stock']"/>
                                             </td>
+                                            <td></td>
                                             <td class="text-right" style="font-size:14px;">
                                                 <strong t-esc="category_totals[element]['in']"/>
                                             </td>
@@ -136,6 +141,9 @@
                                             <td name="uom" class="text-right" style="font-size:14px;">
                                                 <span t-esc="dec['uom']"/>
                                             </td>
+                                            <td name="hsn" class="text-right" style="font-size:14px;">
+                                                <span t-esc="dec['hsn']"/>
+                                            </td>
                                             <td name="initial_stock" class="text-right" style="font-size:14px;">
                                                 <span t-esc="dec['initial_stock']"/>
                                             </td>
@@ -163,6 +171,7 @@
                                     <td class="text-right">
                                         <strong t-esc="total_initial_stock"/>
                                     </td>
+                                    <td></td>
                                     <td class="text-right">
                                         <strong t-esc="total_in"/>
                                     </td>
