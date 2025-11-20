@@ -5,10 +5,43 @@
         <field name="inherit_id" ref="base.view_partner_form"/>
         <field name="arch" type="xml">
             <xpath expr="//form/sheet/group/group/field[@name='category_id']" position="after">
-                <field name="taxes_id"  widget="many2many_tags"/>
+                <field name="taxes_id" widget="many2many_tags"/>
                 <field name="customer_type"/>
                 <field name="primary_physician_id"/>
             </xpath>
+            <!-- Add fields below any existing field -->
+            <xpath expr="//field[@name='provide_commission']" position="after">
+                <field name="approver_1" readonly="1"/>
+                <field name="approver_2" readonly="1"/>
+                <field name="is_current_user_approver" invisible="1"/>
+            </xpath>
+
+            <!-- HEADER SECTION -->
+            <xpath expr="//sheet" position="before">
+                <header>
+                    <!-- Statusbar widget -->
+                    <field name="state"
+                           widget="statusbar"
+                           statusbar_visible="draft,waiting_approval,approved,rejected"/>
+                    <!-- SUBMIT button -->
+                    <button name="action_submit" type="object" string="Submit for Approval"
+                            attrs="{'invisible': [('state','!=','draft')]}"/>
+
+
+                    <!-- APPROVE button -->
+                    <button name="action_approve" type="object" string="Approve"
+                            attrs="{'invisible': ['|', ('state', 'in', ['approved', 'rejected']),
+                                 ('is_current_user_approver','=', False)]}"/>
+
+                    <button name="action_reject" type="object" string="Reject"
+                            attrs="{'invisible': ['|', ('state', 'in', ['approved', 'rejected']),
+                                 ('is_current_user_approver','=', False)]}"/>
+
+
+                </header>
+            </xpath>
+
+
         </field>
     </record>
 </odoo>
