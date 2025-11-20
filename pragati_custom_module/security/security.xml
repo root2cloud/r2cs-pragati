@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data noupdate="0">
+        <!-- Category for your custom groups -->
+        <record id="module_category_accounting" model="ir.module.category">
+            <field name="name">Accounting Customization</field>
+            <field name="sequence">1</field>
+        </record>
+        <!-- Security group - users in this group CAN see Reset to Draft -->
+        <record id="group_can_reset_to_draft" model="res.groups">
+            <field name="name">Can Reset to Draft</field>
+            <field name="category_id" ref="module_category_accounting"/>
+        </record>
+    </data>
+</odoo>

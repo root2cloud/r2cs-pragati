@@ -1,0 +1,400 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<odoo>
+  <record id="ks_df_advance_income_tax_incltds_receivables" model="ks.dynamic.financial.reports">
+    <field name="ks_name">Advance Income Tax (Incl.TDS Receivables)</field>
+    <field name="ks_parent_id" ref=""/>
+    <field name="ks_hide_default_reports" eval="True"/>
+    <field name="ks_df_report_account_type">accounts</field>
+  </record>
+  <record id="ks_df_advertisment_and_business_promotion" model="ks.dynamic.financial.reports">
+    <field name="ks_name">Advertisment &amp; Business Promotion</field>
+    <field name="ks_parent_id" ref=""/>
+    <field name="ks_hide_default_reports" eval="True"/>
+    <field name="ks_df_report_account_type">accounts</field>
+  </record>
+  <record id="ks_df_agriculture_expenses" model="ks.dynamic.financial.reports">
+    <field name="ks_name">Agriculture Expenses</field>
+    <field name="ks_parent_id" ref=""/>
+    <field name="ks_hide_default_reports" eval="True"/>
+    <field name="ks_df_report_account_type">accounts</field>
+  </record>
+  <record id="ks_df_audit_charges_and_expenses" model="ks.dynamic.financial.reports">
+    <field name="ks_name">Audit Charges &amp; Expenses</field>
+    <field name="ks_parent_id" ref=""/>
+    <field name="ks_hide_default_reports" eval="True"/>
+    <field name="ks_df_report_account_type">accounts</field>
+  </record>
+  <record id="ks_df_bank_accounts" model="ks.dynamic.financial.reports">
+    <field name="ks_name">Bank Accounts</field>
+    <field name="ks_parent_id" ref=""/>
+    <field name="ks_hide_default_reports" eval="True"/>
+    <field name="ks_df_report_account_type">accounts</field>
+  </record>
+  <record id="ks_df_cash_in_hand" model="ks.dynamic.financial.reports">
+    <field name="ks_name">Cash In Hand</field>
+    <field name="ks_parent_id" ref=""/>
+    <field name="ks_hide_default_reports" eval="True"/>
+    <field name="ks_df_report_account_type">accounts</field>
+  </record>
+  <record id="ks_df_civil_work_expenses" model="ks.dynamic.financial.reports">
+    <field name="ks_name">Civil Work Expenses</field>
+    <field name="ks_parent_id" ref=""/>
+    <field name="ks_hide_default_reports" eval="True"/>
+    <field name="ks_df_report_account_type">accounts</field>
+  </record>
+  <record id="ks_df_closing_stock_p_l" model="ks.dynamic.financial.reports">
+    <field name="ks_name">CLOSING STOCK P/L</field>
+    <field name="ks_parent_id" ref=""/>
+    <field name="ks_hide_default_reports" eval="True"/>
+    <field name="ks_df_report_account_type">accounts</field>
+  </record>
+  <record id="ks_df_commission_and_brokerage" model="ks.dynamic.financial.reports">
+    <field name="ks_name">Commission &amp; Brokerage</field>
+    <field name="ks_parent_id" ref=""/>
+    <field name="ks_hide_default_reports" eval="True"/>
+    <field name="ks_df_report_account_type">accounts</field>
+  </record>
+  <record id="ks_df_computers" model="ks.dynamic.financial.reports">
+    <field name="ks_name">Computers</field>
+    <field name="ks_parent_id" ref=""/>
+    <field name="ks_hide_default_reports" eval="True"/>
+    <field name="ks_df_report_account_type">accounts</field>
+  </record>
+  <record id="ks_df_computers_and_software_maintainance" model="ks.dynamic.financial.reports">
+    <field name="ks_name">Computers &amp; Software Maintainance</field>
+    <field name="ks_parent_id" ref=""/>
+    <field name="ks_hide_default_reports" eval="True"/>
+    <field name="ks_df_report_account_type">accounts</field>
+  </record>
+  <record id="ks_df_defered_tax_expense" model="ks.dynamic.financial.reports">
+    <field name="ks_name">Defered Tax Expense</field>
+    <field name="ks_parent_id" ref=""/>
+    <field name="ks_hide_default_reports" eval="True"/>
+    <field name="ks_df_report_account_type">accounts</field>
+  </record>
+  <record id="ks_df_deferred_tax_liability" model="ks.dynamic.financial.reports">
+    <field name="ks_name">DEFERRED TAX LIABILITY</field>
+    <field name="ks_parent_id" ref=""/>
+    <field name="ks_hide_default_reports" eval="True"/>
+    <field name="ks_df_report_account_type">accounts</field>
+  </record>
+  <record id="ks_df_deposits" model="ks.dynamic.financial.reports">
+    <field name="ks_name">Deposits</field>
+    <field name="ks_parent_id" ref=""/>
+    <field name="ks_hide_default_reports" eval="True"/>
+    <field name="ks_df_report_account_type">accounts</field>
+  </record>
+  <record id="ks_df_depreciation" model="ks.dynamic.financial.reports">
+    <field name="ks_name">Depreciation</field>
+    <field name="ks_parent_id" ref=""/>
+    <field name="ks_hide_default_reports" eval="True"/>
+    <field name="ks_df_report_account_type">accounts</field>
+  </record>
+  <record id="ks_df_donation" model="ks.dynamic.financial.reports">
+    <field name="ks_name">Donation</field>
+    <field name="ks_parent_id" ref=""/>
+    <field name="ks_hide_default_reports" eval="True"/>
+    <field name="ks_df_report_account_type">accounts</field>
+  </record>
+  <record id="ks_df_electrical_equipment" model="ks.dynamic.financial.reports">
+    <field name="ks_name">ELECTRICAL EQUIPMENT</field>
+    <field name="ks_parent_id" ref=""/>
+    <field name="ks_hide_default_reports" eval="True"/>
+    <field name="ks_df_report_account_type">accounts</field>
+  </record>
+  <record id="ks_df_electricity_power_and_water" model="ks.dynamic.financial.reports">
+    <field name="ks_name">Electricity, Power &amp; Water</field>
+    <field name="ks_parent_id" ref=""/>
+    <field name="ks_hide_default_reports" eval="True"/>
+    <field name="ks_df_report_account_type">accounts</field>
+  </record>
+  <record id="ks_df_employee_salary_advance" model="ks.dynamic.financial.reports">
+    <field name="ks_name">Employee Salary Advance</field>
+    <field name="ks_parent_id" ref=""/>
+    <field name="ks_hide_default_reports" eval="True"/>
+    <field name="ks_df_report_account_type">accounts</field>
+  </record>
+  <record id="ks_df_equity_share_capital" model="ks.dynamic.financial.reports">
+    <field name="ks_name">Equity Share Capital</field>
+    <field name="ks_parent_id" ref=""/>
+    <field name="ks_hide_default_reports" eval="True"/>
+    <field name="ks_df_report_account_type">accounts</field>
+  </record>
+  <record id="ks_df_finance_cost" model="ks.dynamic.financial.reports">
+    <field name="ks_name">FINANCE COST</field>
+    <field name="ks_parent_id" ref=""/>
+    <field name="ks_hide_default_reports" eval="True"/>
+    <field name="ks_df_report_account_type">accounts</field>
+  </record>
+  <record id="ks_df_furniture_and_fixture" model="ks.dynamic.financial.reports">
+    <field name="ks_name">Furniture &amp; Fixture</field>
+    <field name="ks_parent_id" ref=""/>
+    <field name="ks_hide_default_reports" eval="True"/>
+    <field name="ks_df_report_account_type">accounts</field>
+  </record>
+  <record id="ks_df_general_expenses" model="ks.dynamic.financial.reports">
+    <field name="ks_name">General Expenses-</field>
+    <field name="ks_parent_id" ref=""/>
+    <field name="ks_hide_default_reports" eval="True"/>
+    <field name="ks_df_report_account_type">accounts</field>
+  </record>
+  <record id="ks_df_input_gst" model="ks.dynamic.financial.reports">
+    <field name="ks_name">Input GST</field>
+    <field name="ks_parent_id" ref=""/>
+    <field name="ks_hide_default_reports" eval="True"/>
+    <field name="ks_df_report_account_type">accounts</field>
+  </record>
+  <record id="ks_df_insurance" model="ks.dynamic.financial.reports">
+    <field name="ks_name">Insurance</field>
+    <field name="ks_parent_id" ref=""/>
+    <field name="ks_hide_default_reports" eval="True"/>
+    <field name="ks_df_report_account_type">accounts</field>
+  </record>
+  <record id="ks_df_intangible_asset" model="ks.dynamic.financial.reports">
+    <field name="ks_name">Intangible Asset</field>
+    <field name="ks_parent_id" ref=""/>
+    <field name="ks_hide_default_reports" eval="True"/>
+    <field name="ks_df_report_account_type">accounts</field>
+  </record>
+  <record id="ks_df_interest_income" model="ks.dynamic.financial.reports">
+    <field name="ks_name">Interest Income</field>
+    <field name="ks_parent_id" ref=""/>
+    <field name="ks_hide_default_reports" eval="True"/>
+    <field name="ks_df_report_account_type">accounts</field>
+  </record>
+  <record id="ks_df_inventories" model="ks.dynamic.financial.reports">
+    <field name="ks_name">Inventories</field>
+    <field name="ks_parent_id" ref=""/>
+    <field name="ks_hide_default_reports" eval="True"/>
+    <field name="ks_df_report_account_type">accounts</field>
+  </record>
+  <record id="ks_df_investment_in_group_companies" model="ks.dynamic.financial.reports">
+    <field name="ks_name">Investment in Group companies</field>
+    <field name="ks_parent_id" ref=""/>
+    <field name="ks_hide_default_reports" eval="True"/>
+    <field name="ks_df_report_account_type">accounts</field>
+  </record>
+  <record id="ks_df_lab_equipment" model="ks.dynamic.financial.reports">
+    <field name="ks_name">LAB EQUIPMENT</field>
+    <field name="ks_parent_id" ref=""/>
+    <field name="ks_hide_default_reports" eval="True"/>
+    <field name="ks_df_report_account_type">accounts</field>
+  </record>
+  <record id="ks_df_land_asset" model="ks.dynamic.financial.reports">
+    <field name="ks_name">Land Asset</field>
+    <field name="ks_parent_id" ref=""/>
+    <field name="ks_hide_default_reports" eval="True"/>
+    <field name="ks_df_report_account_type">accounts</field>
+  </record>
+  <record id="ks_df_office_equipments" model="ks.dynamic.financial.reports">
+    <field name="ks_name">Office Equipments</field>
+    <field name="ks_parent_id" ref=""/>
+    <field name="ks_hide_default_reports" eval="True"/>
+    <field name="ks_df_report_account_type">accounts</field>
+  </record>
+  <record id="ks_df_opening_stock_pandl" model="ks.dynamic.financial.reports">
+    <field name="ks_name">OPENING STOCK P&amp;L</field>
+    <field name="ks_parent_id" ref=""/>
+    <field name="ks_hide_default_reports" eval="True"/>
+    <field name="ks_df_report_account_type">accounts</field>
+  </record>
+  <record id="ks_df_other_assets" model="ks.dynamic.financial.reports">
+    <field name="ks_name">Other Assets</field>
+    <field name="ks_parent_id" ref=""/>
+    <field name="ks_hide_default_reports" eval="True"/>
+    <field name="ks_df_report_account_type">accounts</field>
+  </record>
+  <record id="ks_df_other_creditors" model="ks.dynamic.financial.reports">
+    <field name="ks_name">Other Creditors</field>
+    <field name="ks_parent_id" ref=""/>
+    <field name="ks_hide_default_reports" eval="True"/>
+    <field name="ks_df_report_account_type">accounts</field>
+  </record>
+  <record id="ks_df_other_expenses" model="ks.dynamic.financial.reports">
+    <field name="ks_name">Other Expenses</field>
+    <field name="ks_parent_id" ref=""/>
+    <field name="ks_hide_default_reports" eval="True"/>
+    <field name="ks_df_report_account_type">accounts</field>
+  </record>
+  <record id="ks_df_other_income" model="ks.dynamic.financial.reports">
+    <field name="ks_name">Other Income</field>
+    <field name="ks_parent_id" ref=""/>
+    <field name="ks_hide_default_reports" eval="True"/>
+    <field name="ks_df_report_account_type">accounts</field>
+  </record>
+  <record id="ks_df_other_non_current_assests" model="ks.dynamic.financial.reports">
+    <field name="ks_name">OTHER NON CURRENT ASSESTS</field>
+    <field name="ks_parent_id" ref=""/>
+    <field name="ks_hide_default_reports" eval="True"/>
+    <field name="ks_df_report_account_type">accounts</field>
+  </record>
+  <record id="ks_df_output_gst" model="ks.dynamic.financial.reports">
+    <field name="ks_name">Output GST</field>
+    <field name="ks_parent_id" ref=""/>
+    <field name="ks_hide_default_reports" eval="True"/>
+    <field name="ks_df_report_account_type">accounts</field>
+  </record>
+  <record id="ks_df_paytm_and_razorpay_collection" model="ks.dynamic.financial.reports">
+    <field name="ks_name">PAYTM &amp; Razorpay Collection</field>
+    <field name="ks_parent_id" ref=""/>
+    <field name="ks_hide_default_reports" eval="True"/>
+    <field name="ks_df_report_account_type">accounts</field>
+  </record>
+  <record id="ks_df_postage_telephone_and_internet" model="ks.dynamic.financial.reports">
+    <field name="ks_name">Postage, Telephone &amp; Internet</field>
+    <field name="ks_parent_id" ref=""/>
+    <field name="ks_hide_default_reports" eval="True"/>
+    <field name="ks_df_report_account_type">accounts</field>
+  </record>
+  <record id="ks_df_professional_and_consultancy_charges" model="ks.dynamic.financial.reports">
+    <field name="ks_name">Professional &amp; Consultancy Charges</field>
+    <field name="ks_parent_id" ref=""/>
+    <field name="ks_hide_default_reports" eval="True"/>
+    <field name="ks_df_report_account_type">accounts</field>
+  </record>
+  <record id="ks_df_profit_and_loss_account" model="ks.dynamic.financial.reports">
+    <field name="ks_name">Profit &amp; Loss Account</field>
+    <field name="ks_parent_id" ref=""/>
+    <field name="ks_hide_default_reports" eval="True"/>
+    <field name="ks_df_report_account_type">accounts</field>
+  </record>
+  <record id="ks_df_provision_for_depriciation" model="ks.dynamic.financial.reports">
+    <field name="ks_name">Provision for Depriciation</field>
+    <field name="ks_parent_id" ref=""/>
+    <field name="ks_hide_default_reports" eval="True"/>
+    <field name="ks_df_report_account_type">accounts</field>
+  </record>
+  <record id="ks_df_provision_for_expenses" model="ks.dynamic.financial.reports">
+    <field name="ks_name">Provision for Expenses</field>
+    <field name="ks_parent_id" ref=""/>
+    <field name="ks_hide_default_reports" eval="True"/>
+    <field name="ks_df_report_account_type">accounts</field>
+  </record>
+  <record id="ks_df_purchases_of_products_raw_materials" model="ks.dynamic.financial.reports">
+    <field name="ks_name">Purchases of Products/Raw Materials</field>
+    <field name="ks_parent_id" ref=""/>
+    <field name="ks_hide_default_reports" eval="True"/>
+    <field name="ks_df_report_account_type">accounts</field>
+  </record>
+  <record id="ks_df_rent" model="ks.dynamic.financial.reports">
+    <field name="ks_name">Rent</field>
+    <field name="ks_parent_id" ref=""/>
+    <field name="ks_hide_default_reports" eval="True"/>
+    <field name="ks_df_report_account_type">accounts</field>
+  </record>
+  <record id="ks_df_repairs_andmaintenance" model="ks.dynamic.financial.reports">
+    <field name="ks_name">Repairs &amp;Maintenance</field>
+    <field name="ks_parent_id" ref=""/>
+    <field name="ks_hide_default_reports" eval="True"/>
+    <field name="ks_df_report_account_type">accounts</field>
+  </record>
+  <record id="ks_df_salaries_and_allowances" model="ks.dynamic.financial.reports">
+    <field name="ks_name">Salaries &amp; Allowances</field>
+    <field name="ks_parent_id" ref=""/>
+    <field name="ks_hide_default_reports" eval="True"/>
+    <field name="ks_df_report_account_type">accounts</field>
+  </record>
+  <record id="ks_df_sale_of_products_services" model="ks.dynamic.financial.reports">
+    <field name="ks_name">Sale of Products/Services</field>
+    <field name="ks_parent_id" ref=""/>
+    <field name="ks_hide_default_reports" eval="True"/>
+    <field name="ks_df_report_account_type">accounts</field>
+  </record>
+  <record id="ks_df_short_term_borrowings" model="ks.dynamic.financial.reports">
+    <field name="ks_name">Short Term Borrowings</field>
+    <field name="ks_parent_id" ref=""/>
+    <field name="ks_hide_default_reports" eval="True"/>
+    <field name="ks_df_report_account_type">accounts</field>
+  </record>
+  <record id="ks_df_staff_welfare" model="ks.dynamic.financial.reports">
+    <field name="ks_name">Staff Welfare</field>
+    <field name="ks_parent_id" ref=""/>
+    <field name="ks_hide_default_reports" eval="True"/>
+    <field name="ks_df_report_account_type">accounts</field>
+  </record>
+  <record id="ks_df_statutory_payments__gst" model="ks.dynamic.financial.reports">
+    <field name="ks_name">Statutory Payments - GST</field>
+    <field name="ks_parent_id" ref=""/>
+    <field name="ks_hide_default_reports" eval="True"/>
+    <field name="ks_df_report_account_type">accounts</field>
+  </record>
+  <record id="ks_df_statutory_payments__others" model="ks.dynamic.financial.reports">
+    <field name="ks_name">Statutory Payments - Others</field>
+    <field name="ks_parent_id" ref=""/>
+    <field name="ks_hide_default_reports" eval="True"/>
+    <field name="ks_df_report_account_type">accounts</field>
+  </record>
+  <record id="ks_df_statutory_payments__pf_esi" model="ks.dynamic.financial.reports">
+    <field name="ks_name">Statutory Payments - PF ESI</field>
+    <field name="ks_parent_id" ref=""/>
+    <field name="ks_hide_default_reports" eval="True"/>
+    <field name="ks_df_report_account_type">accounts</field>
+  </record>
+  <record id="ks_df_statutory_payments__tds" model="ks.dynamic.financial.reports">
+    <field name="ks_name">Statutory Payments - TDS</field>
+    <field name="ks_parent_id" ref=""/>
+    <field name="ks_hide_default_reports" eval="True"/>
+    <field name="ks_df_report_account_type">accounts</field>
+  </record>
+  <record id="ks_df_sundry_creditors" model="ks.dynamic.financial.reports">
+    <field name="ks_name">Sundry Creditors</field>
+    <field name="ks_parent_id" ref=""/>
+    <field name="ks_hide_default_reports" eval="True"/>
+    <field name="ks_df_report_account_type">accounts</field>
+  </record>
+  <record id="ks_df_sundry_debtors_resort_sparsh" model="ks.dynamic.financial.reports">
+    <field name="ks_name">Sundry Debtors Resort Sparsh</field>
+    <field name="ks_parent_id" ref=""/>
+    <field name="ks_hide_default_reports" eval="True"/>
+    <field name="ks_df_report_account_type">accounts</field>
+  </record>
+  <record id="ks_df_sundry_debtors_sparsh_mp" model="ks.dynamic.financial.reports">
+    <field name="ks_name">Sundry Debtors Sparsh MP</field>
+    <field name="ks_parent_id" ref=""/>
+    <field name="ks_hide_default_reports" eval="True"/>
+    <field name="ks_df_report_account_type">accounts</field>
+  </record>
+  <record id="ks_df_tds_payable" model="ks.dynamic.financial.reports">
+    <field name="ks_name">TDS Payable</field>
+    <field name="ks_parent_id" ref=""/>
+    <field name="ks_hide_default_reports" eval="True"/>
+    <field name="ks_df_report_account_type">accounts</field>
+  </record>
+  <record id="ks_df_transport_charges" model="ks.dynamic.financial.reports">
+    <field name="ks_name">Transport Charges</field>
+    <field name="ks_parent_id" ref=""/>
+    <field name="ks_hide_default_reports" eval="True"/>
+    <field name="ks_df_report_account_type">accounts</field>
+  </record>
+  <record id="ks_df_travelling_and_conveyance" model="ks.dynamic.financial.reports">
+    <field name="ks_name">Travelling &amp; Conveyance</field>
+    <field name="ks_parent_id" ref=""/>
+    <field name="ks_hide_default_reports" eval="True"/>
+    <field name="ks_df_report_account_type">accounts</field>
+  </record>
+  <record id="ks_df_unsecured_loans_from_related_parties" model="ks.dynamic.financial.reports">
+    <field name="ks_name">Unsecured Loans From Related Parties</field>
+    <field name="ks_parent_id" ref=""/>
+    <field name="ks_hide_default_reports" eval="True"/>
+    <field name="ks_df_report_account_type">accounts</field>
+  </record>
+  <record id="ks_df_vehicles" model="ks.dynamic.financial.reports">
+    <field name="ks_name">Vehicles</field>
+    <field name="ks_parent_id" ref=""/>
+    <field name="ks_hide_default_reports" eval="True"/>
+    <field name="ks_df_report_account_type">accounts</field>
+  </record>
+    <record id="ks_df_income_tax" model="ks.dynamic.financial.reports">
+    <field name="ks_name">IncomeTax</field>
+    <field name="ks_parent_id" ref=""/>
+    <field name="ks_hide_default_reports" eval="True"/>
+    <field name="ks_df_report_account_type">accounts</field>
+</record>
+<record id="ks_df_printing_stationery" model="ks.dynamic.financial.reports">
+    <field name="ks_name">Priting &amp; Stationery</field>
+    <field name="ks_parent_id" ref=""/>
+    <field name="ks_hide_default_reports" eval="True"/>
+    <field name="ks_df_report_account_type">accounts</field>
+</record>
+
+</odoo>

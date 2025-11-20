@@ -1,5 +1,5 @@
 <odoo>
-	<record id="view_account_inovice_report_tree_inherited" model="ir.ui.view">
+    <record id="view_account_inovice_report_tree_inherited" model="ir.ui.view">
         <field name="name">account.invoice.report.inherited</field>
         <field name="model">account.invoice.report</field>
         <field name="inherit_id" ref="account.account_invoice_report_view_tree"/>
@@ -9,14 +9,15 @@
                 <field name="sale_price_product"/>
             </xpath>
             <xpath expr="//tree/field[@name='price_subtotal']" position="after">
-                <field name="sgst_tax_char" sum="SGST"/>
-                <field name="sgst_tax"/>
-                <field name="cgst_tax_char" sum="CGST"/>
-                <field name="cgst_tax"/>
-                <field name="igst_tax_char" sum="IGST"/>
-                <field name="igst_tax"/>
-                <field name="rem_tax_char"/>
-                <field name="remaining_tax"/>
+                <field name="sgst_tax_char" sum="Total"/>
+
+                <field name="sgst_tax" sum="Total"/>
+                <field name="cgst_tax_char" sum="Total"/>
+                <field name="cgst_tax" sum="Total"/>
+                <field name="igst_tax_char" sum="Total"/>
+                <field name="igst_tax" sum="Total"/>
+                <field name="rem_tax_char" sum="Total"/>
+                <field name="remaining_tax" sum="Total"/>
             </xpath>
             <xpath expr="//tree/field[@name='partner_id']" position="after">
                 <field name="gstin_number"/>

@@ -17,6 +17,7 @@
     ],
     'data': [
         'security/ir.model.access.csv',
+        'security/security.xml',
         'views/account_invoice_report_views.xml',
         'views/menu_action.xml',
         'views/menu_items.xml',

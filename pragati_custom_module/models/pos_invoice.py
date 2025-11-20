@@ -1,5 +1,6 @@
 from odoo import models, fields
 
+
 class AccountInvoiceReport(models.Model):
     _inherit = 'account.invoice.report'
 
