@@ -4698,7 +4698,7 @@ class ks_dynamic_financial_base(models.Model):
         ks_action_ctx = ast.literal_eval(ustr(ks_action.get('context')))
         ks_ctx.update(ks_action_ctx)
 
-        ks_df_informations['account_ids'] = [account_id] if account_id else []
+        ks_df_informations['account_ids'] = [ks_parameter.get('accountId', '')]
         if 'date' in ks_df_informations and ks_df_informations['date']['ks_process'] == 'single':
             # If we are coming from a report with a single date, we need to change the options to ranged
             # ks_df_informations['date']['ks_process'] = 'range'
