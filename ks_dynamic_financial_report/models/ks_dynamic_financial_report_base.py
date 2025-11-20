@@ -1633,7 +1633,8 @@ class ks_dynamic_financial_base(models.Model):
             ks_cash_move_line.append({
                 'ks_name': _('Average debtors days'),
                 'balance': {
-                    rec: round(ks_cash_receivables[rec]['balance'] / ks_operate_income[rec] * 364,2) if ks_operate_income.get(
+                    rec: round(ks_cash_receivables[rec]['balance'] / ks_operate_income[rec] * 364,
+                               2) if ks_operate_income.get(
                         rec, False) else 0.0
                     for rec in ks_cash_receivables},
                 'style_type': 'main',
@@ -1648,8 +1649,9 @@ class ks_dynamic_financial_base(models.Model):
             ks_cash_move_line.append({
                 'ks_name': _('Average creditors days'),
                 'balance': {
-                    rec: round(-ks_cash_payable[rec]['balance'] / ks_operate_income[rec] * 364,2) if ks_operate_income.get(rec,
-                                                                                                                  False) else 0.0
+                    rec: round(-ks_cash_payable[rec]['balance'] / ks_operate_income[rec] * 364,
+                               2) if ks_operate_income.get(rec,
+                                                           False) else 0.0
                     for
                     rec in ks_cash_payable},
                 'style_type': 'main',
@@ -1981,6 +1983,7 @@ class ks_dynamic_financial_base(models.Model):
                 'company_currency_id': ks_company_currency_id.id}}
 
             return ks_move_lines, ks_retained, ks_subtotal
+
     # Method to fetch data for Tax report
     def ks_process_tax_report(self, ks_df_informations):
         if ks_df_informations:
@@ -3102,6 +3105,7 @@ class ks_dynamic_financial_base(models.Model):
 
         _logger.info(f"Partner Ledger processing completed. Processed {len(ks_move_lines)} partners with data.")
         return ks_move_lines, 0.0, 0.0, 0.0
+
     @api.model
     def ks_build_where_clause(self, ks_df_informations=False, partner_ledger=False):
         if ks_df_informations:
@@ -3713,6 +3717,7 @@ class ks_dynamic_financial_base(models.Model):
                 0: {'name': 'Not Due', 'start': '', 'stop': ks_as_on_date or fields.Date.today().strftime('%Y-%m-%d')},
                 1: {'name': '1 - 30', 'start': '', 'stop': ''},
             }
+
     #############################################################################################
     #   Consolidate journals
     #############################################################################################
