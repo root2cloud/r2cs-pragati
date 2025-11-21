@@ -41,3 +41,4 @@ from . import follow_up_reports
 from . import bwa
 from . import account_account
 # from . import qr_code
+from . import negative_bal_restriction

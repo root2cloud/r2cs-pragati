@@ -1051,38 +1051,31 @@
                         <tr class="" data-bs-toggle="collapse"
                             t-attf-data-bs-id=".a{{account_data[account]['id']}}">
                             <td class="bld ks_color_td_1" t-att-data-bs-account-id="account_data[account]['id']">
-                                <div class="dropdown">
-                                    <a data-bs-toggle="dropdown" href="#">
-                                        <span t-att-data-bs-account-id="account_data[account]['id']">
-                                            <t t-esc="account_data[account]['code']"/>
-                                            -
-                                            <t t-esc="account_data[account]['name']"/>
-                                        </span>
-                                        <i class="fa fa-angle-down" role="img" aria-label="Unfolded"
-                                           title="Unfolded"></i>
-
-                                    </a>
-                                    <span t-att-data-bs-account-id="account_data[account]['id']"></span>
-                                    <ul class="dropdown-menu p-2" role="menu">
-                                        <t t-if="account_data[account]['id']">
-                                            <li role="presentation">
-                                                <a role="menuitem" class="ks_view-source" tabindex="-1"
-                                                   action="ks_show_df_journal_items"
-                                                   t-att-data-bs-account-id="account_data[account]['id']">
-                                                    Journal Items
-                                                </a>
-                                            </li>
-                                            <li role="presentation">
-                                                <a role="menuitem" class="ks_view-source" tabindex="1"
-                                                   action="ks_show_df_general_ledger"
-                                                   t-att-data-bs-account-id="account_data[account]['id']">
-                                                    General Ledger
-                                                </a>
-                                            </li>
-                                        </t>
-                                    </ul>
-                                </div>
-                            </td>
+    <div class="dropdown">
+        <a href="#" data-bs-toggle="dropdown" style="text-decoration: none; color: inherit;">
+            <t t-esc="account_data[account]['code']"/> - <t t-esc="account_data[account]['name']"/>
+            <i class="fa fa-caret-down" style="margin-left: 5px;"/>
+        </a>
+        <ul class="dropdown-menu">
+            <li>
+                <a href="#"
+                   class="dropdown-item ks_view-source"
+                   action="ks_show_df_journal_items"
+                   t-att-data-bs-account-id="account_data[account]['id']">
+                    Journal Items
+                </a>
+            </li>
+            <li>
+                <a href="#"
+                   class="dropdown-item ks_view-source"
+                   action="ks_show_df_general_ledger"
+                   t-att-data-bs-account-id="account_data[account]['id']">
+                    General Ledger
+                </a>
+            </li>
+        </ul>
+    </div>
+</td>
                             <td class="ks_amt ks_color_td_2">
                                 <t t-raw="account_data[account]['initial_debit']"/>
                             </td>
