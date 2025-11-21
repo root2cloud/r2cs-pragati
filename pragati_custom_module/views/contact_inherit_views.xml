@@ -8,66 +8,66 @@
                 <field name="taxes_id" widget="many2many_tags"/>
                 <field name="customer_type"/>
                 <field name="primary_physician_id"/>
-<!--                <field name="approver_1" readonly="1"/>-->
-<!--                <field name="approver_2" readonly="1"/>-->
-<!--                <field name="is_current_user_approver" invisible="1"/>-->
+                <field name="approver_1" readonly="1"/>
+                <field name="approver_2" readonly="1"/>
+                <field name="is_current_user_approver" invisible="1"/>
             </xpath>
 
-            <!-- HEADER SECTION -->
-<!--            <xpath expr="//sheet" position="before">-->
-<!--                <header>-->
-<!--                    &lt;!&ndash; Statusbar widget &ndash;&gt;-->
-<!--                    <field name="state"-->
-<!--                           widget="statusbar"-->
-<!--                           statusbar_visible="draft,waiting_approval,approved,rejected"/>-->
-<!--                    &lt;!&ndash; SUBMIT button &ndash;&gt;-->
-<!--                    <button name="action_submit" type="object" string="Submit for Approval"-->
-<!--                            attrs="{'invisible': [('state','!=','draft')]}"/>-->
+            <!--            HEADER SECTION-->
+            <xpath expr="//sheet" position="before">
+                <header>
+                    <!-- Statusbar widget -->
+                    <field name="state"
+                           widget="statusbar"
+                           statusbar_visible="draft,waiting_approval,approved,rejected"/>
+                    <!-- SUBMIT button -->
+                    <button name="action_submit" type="object" string="Submit for Approval"
+                            attrs="{'invisible': [('state','!=','draft')]}"/>
 
 
-<!--                    &lt;!&ndash; APPROVE button &ndash;&gt;-->
-<!--                    <button name="action_approve" type="object" string="Approve"-->
-<!--                            attrs="{'invisible': ['|', ('state', 'in', ['approved', 'rejected']),-->
-<!--                                 ('is_current_user_approver','=', False)]}"/>-->
+                    <!-- APPROVE button -->
+                    <button name="action_approve" type="object" string="Approve"
+                            attrs="{'invisible': ['|', ('state', 'in', ['approved', 'rejected']),
+                                 ('is_current_user_approver','=', False)]}"/>
 
-<!--                    <button name="action_reject" type="object" string="Reject"-->
-<!--                            attrs="{'invisible': ['|', ('state', 'in', ['approved', 'rejected']),-->
-<!--                                 ('is_current_user_approver','=', False)]}"/>-->
+                    <button name="action_reject" type="object" string="Reject"
+                            attrs="{'invisible': ['|', ('state', 'in', ['approved', 'rejected']),
+                                 ('is_current_user_approver','=', False)]}"/>
 
 
-<!--                </header>-->
-<!--            </xpath>-->
+                </header>
+            </xpath>
 
 
         </field>
     </record>
 
-    <!-- Add Search View with Filters -->
-<!--    <record id="view_partner_search_approval" model="ir.ui.view">-->
-<!--        <field name="name">res.partner.search.approval</field>-->
-<!--        <field name="model">res.partner</field>-->
-<!--        <field name="inherit_id" ref="base.view_res_partner_filter"/>-->
-<!--        <field name="arch" type="xml">-->
+<!--    Add Search View with Filters-->
+    <record id="view_partner_search_approval" model="ir.ui.view">
+        <field name="name">res.partner.search.approval</field>
+        <field name="model">res.partner</field>
+        <field name="inherit_id" ref="base.view_res_partner_filter"/>
+        <field name="arch" type="xml">
 
-<!--            &lt;!&ndash; Add approval state filters after Archived filter &ndash;&gt;-->
-<!--            <xpath expr="//filter[@name='inactive']" position="after">-->
-<!--                <separator/>-->
-<!--                <filter string="Draft" name="filter_draft"-->
-<!--                        domain="[('state', '=', 'draft')]"/>-->
-<!--                <filter string="Waiting Approval" name="filter_waiting"-->
-<!--                        domain="[('state', '=', 'waiting_approval')]"/>-->
-<!--                <filter string="Approved" name="filter_approved"-->
-<!--                        domain="[('state', '=', 'approved')]"/>-->
-<!--                <filter string="Rejected" name="filter_rejected"-->
-<!--                        domain="[('state', '=', 'rejected')]"/>-->
-<!--            </xpath>-->
+            <!-- Add approval state filters after Archived filter -->
+            <xpath expr="//filter[@name='inactive']" position="after">
+                <separator/>
+                <filter string="Draft" name="filter_draft"
+                        domain="[('state', '=', 'draft')]"/>
+                <filter string="Waiting Approval" name="filter_waiting"
+                        domain="[('state', '=', 'waiting_approval')]"/>
+                <filter string="Approved" name="filter_approved"
+                        domain="[('state', '=', 'approved')]"/>
+                <filter string="Rejected" name="filter_rejected"
+                        domain="[('state', '=', 'rejected')]"/>
+            </xpath>
 
-<!--            &lt;!&ndash; Add group by approval status &ndash;&gt;-->
-<!--            <xpath expr="//filter[@name='group_country']" position="after">-->
-<!--                <filter string="Approval Status" name="group_by_state"-->
-<!--                        context="{'group_by': 'state'}"/>-->
-<!--            </xpath>-->
+            <!-- Add group by approval status -->
+            <xpath expr="//filter[@name='group_country']" position="after">
+                <filter string="Approval Status" name="group_by_state"
+                        context="{'group_by': 'state'}"/>
+            </xpath>
 
-<!--        </field>-->
-<!--    </record>-->
+        </field>
+    </record>
 </odoo>
