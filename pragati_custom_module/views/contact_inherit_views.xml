@@ -8,9 +8,6 @@
                 <field name="taxes_id" widget="many2many_tags"/>
                 <field name="customer_type"/>
                 <field name="primary_physician_id"/>
-            </xpath>
-            <!-- Add fields below any existing field -->
-            <xpath expr="//field[@name='provide_commission']" position="after">
                 <field name="approver_1" readonly="1"/>
                 <field name="approver_2" readonly="1"/>
                 <field name="is_current_user_approver" invisible="1"/>
@@ -41,6 +38,35 @@
                 </header>
             </xpath>
 
+
+        </field>
+    </record>
+
+    <!-- Add Search View with Filters -->
+    <record id="view_partner_search_approval" model="ir.ui.view">
+        <field name="name">res.partner.search.approval</field>
+        <field name="model">res.partner</field>
+        <field name="inherit_id" ref="base.view_res_partner_filter"/>
+        <field name="arch" type="xml">
+
+            <!-- Add approval state filters after Archived filter -->
+            <xpath expr="//filter[@name='inactive']" position="after">
+                <separator/>
+                <filter string="Draft" name="filter_draft"
+                        domain="[('state', '=', 'draft')]"/>
+                <filter string="Waiting Approval" name="filter_waiting"
+                        domain="[('state', '=', 'waiting_approval')]"/>
+                <filter string="Approved" name="filter_approved"
+                        domain="[('state', '=', 'approved')]"/>
+                <filter string="Rejected" name="filter_rejected"
+                        domain="[('state', '=', 'rejected')]"/>
+            </xpath>
+
+            <!-- Add group by approval status -->
+            <xpath expr="//filter[@name='group_country']" position="after">
+                <filter string="Approval Status" name="group_by_state"
+                        context="{'group_by': 'state'}"/>
+            </xpath>
 
         </field>
     </record>
