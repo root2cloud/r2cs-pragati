@@ -5,7 +5,7 @@ class AccountSubSubGroup(models.Model):
     _name = 'account.sub.sub.group'
     _description = 'Account Sub-Sub Group'
 
-    name = fields.Char(string='Name', required=True, translate=True)
+    name = fields.Char(string='Name', required=True)
 
 
 class AccountAccount(models.Model):
