@@ -1,109 +1,30 @@
-from odoo import api, fields, models
+from odoo import fields, models
 
 
-class AccountGroup(models.Model):
+class AccountSubSubGroup(models.Model):
+    _name = 'account.sub.sub.group'
+    _description = 'Account Sub-Sub Group'
+
+    name = fields.Char(string='Name', required=True, translate=True)
+
+
+class AccountAccount(models.Model):
     _inherit = 'account.account'
 
-    sub_group = fields.Selection(
-        selection=[
-            ("current_assets", "Current Assets"),
-            ("other_current_asset", "Other Current Asset"),
-            ("non_current_asset", "Non - Current Asset"),
-            ("non_operating_revenue", "Non - Operating Revenue"),
-            ("current_liability", "Current Liability"),
-            ("prepaid_expenses", "Prepaid Expenses"),
-            ("indirect_expenses", "Indirect Expenses"),
-            ("fixed_assets", "Fixed Assets"),
-            ("short_term_provision", "SHORT TERM PROVISION"),
-            ("non_current_liability", "Non-Current Liability"),
-            ("direct_expenses", "Direct Expenses"),
-            ("changes_inventory", "Changes In Inventory"),
-            ("revenue_operations", "Revenue From Operations"),
-            ("loans_borrowings", "Loans & Borrowings"),
-            ("control_account", "Control Account"),
-            ("capital_accounts", "Capital Accounts"),
-        ],
-        string='Sub Group',
-        help='Sub group classification for account',
-    )
-
-    sub_sub_group = fields.Selection([
-        ('profit_loss', 'Profit & Loss Account'),
-        ('bank_accounts', 'Bank Accounts'),
-        ('cash_in_hand', 'Cash In Hand'),
-        ('employee_salary_advance', 'Employee Salary Advance'),
-        ('inventories', 'Inventories'),
-        ('paytm_razorpay_collection', 'PAYTM & Razorpay Collection'),
-        ('sundry_debtors_resort_sparsh', 'Sundry Debtors Resort Sparsh'),
-        ('sundry_debtors_sparsh_mp', 'Sundry Debtors Sparsh MP'),
-        ('computers', 'Computers'),
-        ('electrical_equipment', 'ELECTRICAL EQUIPMENT'),
-        ('furniture_fixture', 'Furniture & Fixture'),
-        ('intangible_asset', 'Intangible Asset'),
-        ('lab_equipment', 'LAB EQUIPMENT'),
-        ('land_asset', 'Land Asset'),
-        ('office_equipments', 'Office Equipments'),
-        ('other_assets', 'Other Assets'),
-        ('provision_for_depreciation', 'Provision for Depriciation'),
-        ('vehicles', 'Vehicles'),
-        ('deposits', 'Deposits'),
-        ('investment_in_group_companies', 'Investment in Group companies'),
-        ('other_non_current_assets', 'OTHER NON CURRENT ASSESTS'),
-        ('advance_income_tax', 'Advance Income Tax (Incl.TDS Receivables)'),
-        ('input_gst', 'Input GST'),
-        ('equity_share_capital', 'Equity Share Capital'),
-        ('closing_stock_pl', 'CLOSING STOCK P/L'),
-        ('opening_stock_pl', 'OPENING STOCK P&L'),
-        ('purchases_raw_materials', 'Purchases of Products/Raw Materials'),
-        ('advertisement_business_promotion', 'Advertisment & Business Promotion'),
-        ('agriculture_expenses', 'Agriculture Expenses'),
-        ('audit_charges_expenses', 'Audit Charges & Expenses'),
-        ('civil_work_expenses', 'Civil Work Expenses'),
-        ('commission_brokerage', 'Commission & Brokerage'),
-        ('computers_software_maintenance', 'Computers & Software Maintainance'),
-        ('deferred_tax_expense', 'Defered Tax Expense'),
-        ('depreciation', 'Depreciation'),
-        ('donation', 'Donation'),
-        ('electricity_power_water', 'Electricity, Power & Water'),
-        ('finance_cost', 'FINANCE COST'),
-        ('general_expenses', 'General Expenses-'),
-        ('income_tax', 'IncomeTax'),
-        ('insurance', 'Insurance'),
-        ('other_expenses', 'Other Expenses'),
-        ('postage_telephone_internet', 'Postage, Telephone & Internet'),
-        ('printing_stationery', 'Priting & Stationery'),
-        ('professional_consultancy_charges', 'Professional & Consultancy Charges'),
-        ('rent', 'Rent'),
-        ('repairs_maintenance', 'Repairs &Maintenance'),
-        ('salaries_allowances', 'Salaries & Allowances'),
-        ('staff_welfare', 'Staff Welfare'),
-        ('statutory_payments_gst', 'Statutory Payments - GST'),
-        ('statutory_payments_others', 'Statutory Payments - Others'),
-        ('statutory_payments_pf_esi', 'Statutory Payments - PF ESI'),
-        ('statutory_payments_tds', 'Statutory Payments - TDS'),
-        ('transport_charges', 'Transport Charges'),
-        ('travelling_conveyance', 'Travelling & Conveyance'),
-        ('other_creditors', 'Other Creditors'),
-        ('provision_for_expenses', 'Provision for Expenses'),
-        ('sundry_creditors', 'Sundry Creditors'),
-        ('short_term_borrowings', 'Short Term Borrowings'),
-        ('deferred_tax_liability', 'DEFERRED TAX LIABILITY'),
-        ('unsecured_loans_related_parties', 'Unsecured Loans From Related Parties'),
-        ('output_gst', 'Output GST'),
-        ('tds_payable', 'TDS Payable'),
-        ('interest_income', 'Interest Income'),
-        ('other_income', 'Other Income'),
-        ('sale_of_products_services', 'Sale of Products/Services'),
-    ], string='Sub-Sub Group', help='Select the Sub-Sub Group category')
-
     main_group = fields.Selection(
-        selection=[
+        [
             ('asset', 'ASSETS'),
             ('equity', 'EQUITY'),
             ('expense', 'EXPENSES'),
             ('liability', 'LIABILITIES'),
             ('income', 'REVENUE'),
         ],
-        string="Main Group", store=True
+        string="Main Group",
+        store=True,
     )
 
+    sub_sub_group_id = fields.Many2one(
+        'account.sub.sub.group',
+        string='Sub-Sub Group',
+        help='Select the Sub-Sub Group category',
+    )
