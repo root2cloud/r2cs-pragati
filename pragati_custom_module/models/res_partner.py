@@ -27,6 +27,10 @@ class ResPartner(models.Model):
         ('rejected', 'Rejected'),
     ], default='draft', readonly=True, string="Approval Status")
 
+    l10n_in_pan = fields.Char(
+        required=True
+    )
+
     # ============================================
     # CREATE METHOD
     # ============================================
@@ -49,6 +53,10 @@ class ResPartner(models.Model):
             vals['approver_2'] = approver_2.id if approver_2 else False
             vals['state'] = 'draft'
             vals['active'] = False
+
+            # Auto-format PAN on create
+            if 'l10n_in_pan' in vals and vals['l10n_in_pan']:
+                vals['l10n_in_pan'] = vals['l10n_in_pan'].replace(' ', '').upper()
 
         partners = super(ResPartner, self).create(vals_list)
         return partners
@@ -87,7 +95,7 @@ class ResPartner(models.Model):
                 'res_model_id': self.env['ir.model']._get_id('res.partner'),
                 'res_id': self.id,
                 'activity_type_id': self.env.ref('mail.mail_activity_data_todo').id,
-                'summary': f"Contact Approval: {self.name}",  # ← Changed to be more visible
+                'summary': f"Contact Approval: {self.name}",
                 'note': f"<p>Please review and approve the contact: <strong>{self.name}</strong></p>",
                 'user_id': self.approver_1.id,
             })
@@ -116,7 +124,7 @@ class ResPartner(models.Model):
                 'title': 'Submitted',
                 'message': f"Contact '{self.name}' submitted for approval. Check your Activities!",
                 'type': 'success',
-                'sticky': True,  # ← Keep visible
+                'sticky': True,
             }
         }
 
@@ -206,7 +214,7 @@ class ResPartner(models.Model):
             # Pad with zeros at the END to make it 6 digits
             next_code_str = str(next_code_num)
             if len(next_code_str) < 6:
-                next_code = next_code_str + '0' * (6 - len(next_code_str))  # ← Zeros at END
+                next_code = next_code_str + '0' * (6 - len(next_code_str))
             else:
                 next_code = next_code_str
 
@@ -230,7 +238,7 @@ class ResPartner(models.Model):
                     # Success! Assign to partner and exit
                     self.sudo().write({'property_account_payable_id': payable_account.id})
                     _logger.info(f"✓ Created account {next_code} - {self.name}")
-                    return  # EXIT - Success!
+                    return
 
                 except Exception as e:
                     # Creation failed (maybe race condition), try next code
@@ -240,3 +248,36 @@ class ResPartner(models.Model):
 
             # Code exists, try next one
             next_code_num += 1
+
+    # ============================================
+    # PAN FIELD CONSTRAINTS
+    # ============================================
+
+    @api.constrains('l10n_in_pan')
+    def _check_pan_unique(self):
+        for rec in self:
+            if rec.l10n_in_pan:
+                # Format the PAN
+                pan = rec.l10n_in_pan.replace(' ', '').upper()
+
+                # Check for duplicates
+                duplicate = self.search([
+                    ('l10n_in_pan', '=', pan),
+                    ('id', '!=', rec.id)
+                ], limit=1)
+
+                if duplicate:
+                    raise ValidationError(
+                        f'PAN Number already exists! '
+                        f'This PAN is already assigned to: {duplicate.name}'
+                    )
+
+    # ============================================
+    # WRITE METHOD
+    # ============================================
+
+    def write(self, vals):
+        # Auto-format PAN on write
+        if 'l10n_in_pan' in vals and vals['l10n_in_pan']:
+            vals['l10n_in_pan'] = vals['l10n_in_pan'].replace(' ', '').upper()
+        return super(ResPartner, self).write(vals)
