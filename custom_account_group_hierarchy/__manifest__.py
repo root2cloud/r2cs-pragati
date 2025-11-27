@@ -8,8 +8,9 @@
         and allows manual parent selection for creating multi-level hierarchies.
     ''',
     'author': 'Root2cloud Solutions',
-    'depends': ['account','ks_dynamic_financial_report'],
+    'depends': ['account', 'ks_dynamic_financial_report'],
     'data': [
+        'security/ir.model.access.csv',
         'data/report_data.xml',
         'views/account_group_views.xml',
     ],

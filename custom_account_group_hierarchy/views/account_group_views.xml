@@ -5,11 +5,11 @@
         <field name="model">account.account</field>
         <field name="inherit_id" ref="account.view_account_form"/>
         <field name="arch" type="xml">
-            <xpath expr="//field[@name='account_type']" position="after">
+            <xpath expr="//field[@name='name']" position="after">
                 <field name="main_group"/>
-                <field name="sub_group"/>
-                <field name="sub_sub_group"/>
-
+            </xpath>
+            <xpath expr="//field[@name='account_type']" position="after">
+                <field name="sub_sub_group_id"/>
             </xpath>
         </field>
     </record>
@@ -19,12 +19,11 @@
         <field name="model">account.account</field>
         <field name="inherit_id" ref="account.view_account_list"/>
         <field name="arch" type="xml">
-            
-         
             <xpath expr="//field[@name='name']" position="after">
                 <field name="main_group"/>
-                <field name="sub_group"/>
-                <field name="sub_sub_group"/>
+            </xpath>
+            <xpath expr="//field[@name='account_type']" position="after">
+                <field name="sub_sub_group_id"/>
             </xpath>
 
         </field>

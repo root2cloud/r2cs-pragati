@@ -166,6 +166,7 @@ class ReportWizard(models.TransientModel):
                 'uom': res.product_uom_id.name,
                 'reference': res.reference,
                 'initial_stock': initial_stock,
+                'hsn': res.product_id.product_tmpl_id.l10n_in_hsn_code or '',
                 'in': in_com,
                 'out': out_go,
                 'balance': balance,
@@ -300,6 +301,7 @@ class ReportWizard(models.TransientModel):
                 'uom': res.product_uom_id.name,
                 'reference': res.reference,
                 'initial_stock': initial_stock,
+                'hsn': res.product_id.product_tmpl_id.l10n_in_hsn_code or '',
                 'in': in_com,
                 'out': out_go,
                 'balance': balance,
@@ -345,12 +347,13 @@ class ReportWizard(models.TransientModel):
         row_head = 8
         sheet.write(row_head, 0, 'Reference', head_style)
         sheet.write(row_head, 1, 'Designation', head_style)
-        sheet.write(row_head, 2, 'Uom', head_style)
-        sheet.write(row_head, 3, 'Initial stock', head_style)
-        sheet.write(row_head, 4, 'IN', head_style)
-        sheet.write(row_head, 5, 'OUT', head_style)
-        sheet.write(row_head, 6, 'Balance', head_style)
-        sheet.write(row_head, 7, 'Value', head_style)  # new column header
+        sheet.write(row_head, 2, 'UoM', head_style)
+        sheet.write(row_head, 3, 'HSN', head_style)
+        sheet.write(row_head, 4, 'Initial stock', head_style)
+        sheet.write(row_head, 5, 'IN', head_style)
+        sheet.write(row_head, 6, 'OUT', head_style)
+        sheet.write(row_head, 7, 'Balance', head_style)
+        sheet.write(row_head, 8, 'Value', head_style)
         sheet.freeze_panes(10, 0)
 
         categ_style = workbook.add_format({'bg_color': '#dedede', 'align': 'center'})
@@ -367,27 +370,30 @@ class ReportWizard(models.TransientModel):
                 sheet.write(row, 5, '', categ_style)
                 sheet.write(row, 6, '', categ_style)
                 sheet.write(row, 7, '', categ_style)
+                sheet.write(row, 8, '', categ_style)
                 for line in category_dict[main]:
                     row += 1
                     sheet.write(row, 0, line.get('default_code'), data_font_style)
                     sheet.write(row, 1, line.get('product'), data_font_style)
                     sheet.write(row, 2, line.get('uom'), data_font_style)
-                    sheet.write(row, 3, line.get('initial_stock'), data_font_style)
-                    sheet.write(row, 4, line.get('in'), data_font_style)
-                    sheet.write(row, 5, line.get('out'), data_font_style)
-                    sheet.write(row, 6, line.get('balance'), data_font_style)
-                    sheet.write(row, 7, line.get('value'), data_font_style)  # new column value
+                    sheet.write(row, 3, line.get('hsn'), data_font_style)
+                    sheet.write(row, 4, line.get('initial_stock'), data_font_style)
+                    sheet.write(row, 5, line.get('in'), data_font_style)
+                    sheet.write(row, 6, line.get('out'), data_font_style)
+                    sheet.write(row, 7, line.get('balance'), data_font_style)
+                    sheet.write(row, 8, line.get('value'), data_font_style)  # new column value
 
                 # Add category subtotal
                 row += 1
                 sheet.write(row, 0, 'Category Subtotal:', subtotal_style)
                 sheet.write(row, 1, '', subtotal_style)
                 sheet.write(row, 2, '', subtotal_style)
-                sheet.write(row, 3, category_totals[main]['initial_stock'], subtotal_style)
-                sheet.write(row, 4, category_totals[main]['in'], subtotal_style)
-                sheet.write(row, 5, category_totals[main]['out'], subtotal_style)
-                sheet.write(row, 6, category_totals[main]['balance'], subtotal_style)
-                sheet.write(row, 7, category_totals[main]['value'], subtotal_style)  # subtotal value
+                sheet.write(row, 3, '', subtotal_style)
+                sheet.write(row, 4, category_totals[main]['initial_stock'], subtotal_style)
+                sheet.write(row, 5, category_totals[main]['in'], subtotal_style)
+                sheet.write(row, 6, category_totals[main]['out'], subtotal_style)
+                sheet.write(row, 7, category_totals[main]['balance'], subtotal_style)
+                sheet.write(row, 8, category_totals[main]['value'], subtotal_style)  # subtotal value
                 row += 2
         else:
             for line in record_list:
@@ -395,22 +401,24 @@ class ReportWizard(models.TransientModel):
                 sheet.write(row, 0, line.get('default_code'), data_font_style)
                 sheet.write(row, 1, line.get('product'), data_font_style)
                 sheet.write(row, 2, line.get('uom'), data_font_style)
-                sheet.write(row, 3, line.get('initial_stock'), data_font_style)
-                sheet.write(row, 4, line.get('in'), data_font_style)
-                sheet.write(row, 5, line.get('out'), data_font_style)
-                sheet.write(row, 6, line.get('balance'), data_font_style)
-                sheet.write(row, 7, line.get('value'), data_font_style)  # new column value
+                sheet.write(row, 3, line.get('hsn'), data_font_style)
+                sheet.write(row, 4, line.get('initial_stock'), data_font_style)
+                sheet.write(row, 5, line.get('in'), data_font_style)
+                sheet.write(row, 6, line.get('out'), data_font_style)
+                sheet.write(row, 7, line.get('balance'), data_font_style)
+                sheet.write(row, 8, line.get('value'), data_font_style)  # new column value
 
         # Add grand total row
         row += 2
         sheet.write(row, 0, 'GRAND TOTAL:', total_style)
         sheet.write(row, 1, '', total_style)
         sheet.write(row, 2, '', total_style)
-        sheet.write(row, 3, grand_totals['initial_stock'], total_style)
-        sheet.write(row, 4, grand_totals['in'], total_style)
-        sheet.write(row, 5, grand_totals['out'], total_style)
-        sheet.write(row, 6, grand_totals['balance'], total_style)
-        sheet.write(row, 7, grand_totals['value'], total_style)  # grand total value
+        sheet.write(row, 3, '', total_style)
+        sheet.write(row, 4, grand_totals['initial_stock'], total_style)
+        sheet.write(row, 5, grand_totals['in'], total_style)
+        sheet.write(row, 6, grand_totals['out'], total_style)
+        sheet.write(row, 7, grand_totals['balance'], total_style)
+        sheet.write(row, 8, grand_totals['value'], total_style)  # grand total value
 
         workbook.close()
         xlsx_data = output.getvalue()
