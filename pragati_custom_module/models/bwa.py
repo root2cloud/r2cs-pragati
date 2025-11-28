@@ -9,12 +9,12 @@ class AccountPayment(models.Model):
     approval_level_1 = fields.Many2one('res.users', string='Approval User')
 
     # Extend states: keep Odoo’s 'draft' & 'posted', add custom
-    state = fields.Selection([
-        ('draft', 'Draft'),
-        ('waiting', 'Waiting for Approval'),
-        ('approved', 'Approved'),
-        ('rejected', 'Rejected')
-    ], string='Status', default='draft', tracking=True)
+    # state = fields.Selection([
+    #     ('draft', 'Draft'),
+    #     ('waiting', 'Waiting for Approval'),
+    #     ('approved', 'Approved'),
+    #     ('rejected', 'Rejected')
+    # ], string='Status', default='draft', tracking=True)
 
     @api.onchange('department_id')
     def _onchange_department_id(self):
