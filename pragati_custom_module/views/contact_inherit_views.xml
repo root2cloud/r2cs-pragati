@@ -19,7 +19,11 @@
                     <!-- Statusbar widget -->
                     <field name="state"
                            widget="statusbar"
-                           statusbar_visible="waiting_approval,approved,rejected"/>
+                           statusbar_visible="draft,waiting_approval,approved,rejected"/>
+                    <!-- SUBMIT button -->
+                    <button name="action_submit" type="object" string="Submit for Approval"
+                            attrs="{'invisible': [('state','!=','draft')]}"/>
+
 
                     <!-- APPROVE button -->
                     <button name="action_approve" type="object" string="Approve"
@@ -38,7 +42,7 @@
         </field>
     </record>
 
-    <!--    Add Search View with Filters-->
+<!--    Add Search View with Filters-->
     <record id="view_partner_search_approval" model="ir.ui.view">
         <field name="name">res.partner.search.approval</field>
         <field name="model">res.partner</field>
@@ -48,6 +52,8 @@
             <!-- Add approval state filters after Archived filter -->
             <xpath expr="//filter[@name='inactive']" position="after">
                 <separator/>
+                <filter string="Draft" name="filter_draft"
+                        domain="[('state', '=', 'draft')]"/>
                 <filter string="Waiting Approval" name="filter_waiting"
                         domain="[('state', '=', 'waiting_approval')]"/>
                 <filter string="Approved" name="filter_approved"
