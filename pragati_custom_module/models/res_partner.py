@@ -16,7 +16,7 @@ class ResPartner(models.Model):
     approver_2 = fields.Many2one("res.users", string="Approver 2", readonly=True)
 
     is_current_user_approver = fields.Boolean(
-        compute="_compute_is_current_user_approver",
+        # compute="_compute_is_current_user_approver",
         store=False
     )
 
