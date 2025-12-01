@@ -1,15 +1,38 @@
 <odoo>
-  <data>
-    <!-- Inherit product.product tree view used by Inventory at Date -->
-    <record id="view_product_tree_inherit_add_location" model="ir.ui.view">
-      <field name="name">product.product.tree.inherit.location</field>
-      <field name="model">product.product</field>
-      <field name="inherit_id" ref="stock.view_stock_product_tree"/> <!-- or product.product_tree_view depending on use -->
-      <field name="arch" type="xml">
-        <field name="name" position="before">
-          <field name="location_id"/>
-        </field>
-      </field>
-    </record>
-  </data>
+    <data>
+        <!-- Inherit product.product tree view used by Inventory at Date -->
+        <record id="view_product_tree_inherit_add_location" model="ir.ui.view">
+            <field name="name">product.product.tree.inherit.location</field>
+            <field name="model">product.product</field>
+            <field name="inherit_id"
+                   ref="stock.view_stock_product_tree"/> <!-- or product.product_tree_view depending on use -->
+            <field name="arch" type="xml">
+                <field name="name" position="before">
+                    <field name="location_id"/>
+                </field>
+            </field>
+        </record>
+
+        <record id="view_product_tree_inherit_add_gst" model="ir.ui.view">
+            <field name="name">product.product.tree.inherit.gst</field>
+            <field name="model">product.product</field>
+            <field name="inherit_id" ref="stock.product_product_stock_tree"/>
+            <field name="arch" type="xml">
+                <!-- Add Sales Price -->
+                <field name="avg_cost" position="before">
+                    <field name="lst_price" string="Sales Price"/>
+                </field>
+
+                <!-- Add SGST -->
+                <field name="avg_cost" position="before">
+                    <field name="sgst_value" string="SGST (%)"/>
+                </field>
+
+                <!-- Add CGST -->
+                <field name="avg_cost" position="before">
+                    <field name="cgst_value" string="CGST (%)"/>
+                </field>
+            </field>
+        </record>
+    </data>
 </odoo>
