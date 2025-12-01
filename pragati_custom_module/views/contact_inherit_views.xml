@@ -14,29 +14,29 @@
             </xpath>
 
             <!--            HEADER SECTION-->
-            <xpath expr="//sheet" position="before">
-                <header>
-                    <!-- Statusbar widget -->
-                    <field name="state"
-                           widget="statusbar"
-                           statusbar_visible="draft,waiting_approval,approved,rejected"/>
-                    <!-- SUBMIT button -->
-                    <button name="action_submit" type="object" string="Submit for Approval"
-                            attrs="{'invisible': [('state','!=','draft')]}"/>
+<!--            <xpath expr="//sheet" position="before">-->
+<!--                <header>-->
+<!--                    &lt;!&ndash; Statusbar widget &ndash;&gt;-->
+<!--                    <field name="state"-->
+<!--                           widget="statusbar"-->
+<!--                           statusbar_visible="draft,waiting_approval,approved,rejected"/>-->
+<!--                    &lt;!&ndash; SUBMIT button &ndash;&gt;-->
+<!--                    <button name="action_submit" type="object" string="Submit for Approval"-->
+<!--                            attrs="{'invisible': [('state','!=','draft')]}"/>-->
 
 
-                    <!-- APPROVE button -->
-                    <button name="action_approve" type="object" string="Approve"
-                            attrs="{'invisible': ['|', ('state', 'in', ['approved', 'rejected']),
-                                 ('is_current_user_approver','=', False)]}"/>
+<!--                    &lt;!&ndash; APPROVE button &ndash;&gt;-->
+<!--                    <button name="action_approve" type="object" string="Approve"-->
+<!--                            attrs="{'invisible': ['|', ('state', 'in', ['approved', 'rejected']),-->
+<!--                                 ('is_current_user_approver','=', False)]}"/>-->
 
-                    <button name="action_reject" type="object" string="Reject"
-                            attrs="{'invisible': ['|', ('state', 'in', ['approved', 'rejected']),
-                                 ('is_current_user_approver','=', False)]}"/>
+<!--                    <button name="action_reject" type="object" string="Reject"-->
+<!--                            attrs="{'invisible': ['|', ('state', 'in', ['approved', 'rejected']),-->
+<!--                                 ('is_current_user_approver','=', False)]}"/>-->
 
 
-                </header>
-            </xpath>
+<!--                </header>-->
+<!--            </xpath>-->
 
 
         </field>
