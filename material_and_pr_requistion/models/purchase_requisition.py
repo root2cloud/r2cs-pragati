@@ -61,7 +61,7 @@ class PurchaseRequest(models.Model):
     terms = fields.Text(string='Terms & Conditions', tracking=True)
     user_id = fields.Many2one('res.users', string='Responsible user',
                               default=lambda self: self.env.user, tracking=True)
-    material_indent_id = fields.Many2one('material.indent', string='Material Reference Id')
+    material_indent_id = fields.Many2one('material.indent', string='Material Reference Id',domain="[('close_indent', '=', False), ('state', '=', 'approve')]")
     pr_confirmation = fields.Boolean(string='PR Confirm', default=False, tracking=True,
                                      compute="_compute_true_all_pro_qty_zero", store=True)
     partner_id = fields.Many2one('res.partner', related='request_owner_id.partner_id', tracking=True)
@@ -281,6 +281,8 @@ class PurchaseRequest(models.Model):
             if approver_list:
                 record._create_mail_activity_to_approval(approver_list[0])
                 record.state = 'waiting1'
+
+            if record.material_indent_id: record.material_indent_id.write({'close_indent': True})
 
         return True
 
