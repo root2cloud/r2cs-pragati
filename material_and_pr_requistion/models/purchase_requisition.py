@@ -61,7 +61,8 @@ class PurchaseRequest(models.Model):
     terms = fields.Text(string='Terms & Conditions', tracking=True)
     user_id = fields.Many2one('res.users', string='Responsible user',
                               default=lambda self: self.env.user, tracking=True)
-    material_indent_id = fields.Many2one('material.indent', string='Material Reference Id')
+    material_indent_id = fields.Many2one('material.indent', string='Material Reference Id',
+                                         domain="[('close_indent', '=', False), ('state', '=', 'approve')]")
     pr_confirmation = fields.Boolean(string='PR Confirm', default=False, tracking=True,
                                      compute="_compute_true_all_pro_qty_zero", store=True)
     partner_id = fields.Many2one('res.partner', related='request_owner_id.partner_id', tracking=True)
@@ -96,9 +97,8 @@ class PurchaseRequest(models.Model):
             purchase_order_ids = self.env['purchase.order'].search([('pr_request_ids', 'in', rec.id)])
             rec.purchase_count = len(purchase_order_ids)
 
-
     def view_purchase_order(self):
-        purchase_order_ids  = self.env['purchase.order'].search([('pr_request_ids','in',self.id)])
+        purchase_order_ids = self.env['purchase.order'].search([('pr_request_ids', 'in', self.id)])
         return {
             'name': _('Purchase Order'),
             'view_mode': 'tree,form',
@@ -111,21 +111,23 @@ class PurchaseRequest(models.Model):
     @api.onchange('approval_level_1')
     def _onchange_approval_level_1(self):
         for record in self:
-            if record.approval_level_1 and (record.approval_level_1 == record.approval_level_2 or record.approval_level_1 == record.approval_level_3):
+            if record.approval_level_1 and (
+                    record.approval_level_1 == record.approval_level_2 or record.approval_level_1 == record.approval_level_3):
                 raise UserError("The same Approver is selected more than once. Please check and correct it.")
 
     @api.onchange('approval_level_2')
     def _onchange_approval_level_2(self):
         for record in self:
-            if record.approval_level_2 and (record.approval_level_2 == record.approval_level_1 or record.approval_level_2 == record.approval_level_3):
+            if record.approval_level_2 and (
+                    record.approval_level_2 == record.approval_level_1 or record.approval_level_2 == record.approval_level_3):
                 raise UserError("The same Approver is selected more than once. Please check and correct it.")
 
     @api.onchange('approval_level_3')
     def _onchange_approval_level_3(self):
         for record in self:
-            if record.approval_level_3 and (record.approval_level_3 == record.approval_level_1 or record.approval_level_3 == record.approval_level_2):
+            if record.approval_level_3 and (
+                    record.approval_level_3 == record.approval_level_1 or record.approval_level_3 == record.approval_level_2):
                 raise UserError("The same Approver is selected more than once. Please check and correct it.")
-
 
     @api.onchange('material_indent_id')
     def _onchange_material_indent_id(self):
@@ -154,10 +156,11 @@ class PurchaseRequest(models.Model):
                 lines.append((0, 0, vals))
 
             self.pr_request_line_ids = lines
-        if self.material_indent_id.stock_picking_id and self.material_indent_id.stock_picking_id.state=='done':
+        if self.material_indent_id.stock_picking_id and self.material_indent_id.stock_picking_id.state == 'done':
             for line in self.pr_request_line_ids:
                 l1 = []
-                for stock_move in self.material_indent_id.stock_picking_id.move_ids.filtered(lambda m: m.product_id == line.product_id):
+                for stock_move in self.material_indent_id.stock_picking_id.move_ids.filtered(
+                        lambda m: m.product_id == line.product_id):
                     issued = stock_move.quantity_done
                     l1.append(issued)
                     line.quantity -= issued
@@ -166,7 +169,7 @@ class PurchaseRequest(models.Model):
     @api.model_create_multi
     def create(self, values_list):
         records = super(PurchaseRequest, self).create(values_list)
-        
+
         for record in records:
             if record.name == _('New'):
                 fiscal_years = self.env['account.fiscal.year'].search([])
@@ -197,7 +200,6 @@ class PurchaseRequest(models.Model):
 
         return records
 
-
     def order_cancel(self):
         self.state = 'cancel'
 
@@ -226,13 +228,13 @@ class PurchaseRequest(models.Model):
     #             print("%%%%%%%%%%%%%%%%%%%%%%%##################")
     #             record.write({'state':'approve', 'request_approval_status':'approve'})
     #             record.material_indent_id.write({'close_indent':True})
-                
+
     #         else:
     #             record.request_approval_status = 'pending'
 
     def action_for_purchase_request_submit(self):
         approver_list = []
-        
+
         if self.approval_level_1:
             approver_list.append(self.approval_level_1.id)
         if self.approval_level_2:
@@ -240,11 +242,10 @@ class PurchaseRequest(models.Model):
         if self.approval_level_3:
             approver_list.append(self.approval_level_3.id)
 
-
         for record in self:
             if not record.pr_request_line_ids:
                 raise ValidationError(_("Please enter some PR lines in the below section."))
-                
+
             # if not record.request_owner_id or not record.category_id:
             #     raise UserError("Please fill in the required fields: Purchase No, Request Owner, and Category")
             # if record.reuse_button:
@@ -272,7 +273,6 @@ class PurchaseRequest(models.Model):
             #     'approver_ids': approver_values,
             # })
 
-
             # if record.purchase_request_approval_id:
             #     record.purchase_request_approval_id.action_confirm()
             # if record.purchase_request_approval_id:
@@ -281,7 +281,7 @@ class PurchaseRequest(models.Model):
             if approver_list:
                 record._create_mail_activity_to_approval(approver_list[0])
                 record.state = 'waiting1'
-
+            if record.material_indent_id: record.material_indent_id.write({'close_indent': True})
         return True
 
     @api.depends('pr_request_line_ids')
@@ -296,7 +296,7 @@ class PurchaseRequest(models.Model):
             # record._create_mail_activity_for_reject()
         self.sudo()._get_user_approval_activities(user=self.env.user).action_done()
         return True
-    
+
     def action_approve(self):
         for record in self:
             if record.state == 'waiting1':
@@ -355,7 +355,7 @@ class PurchaseRequest(models.Model):
             })
             return activity
         return False
-        
+
     def _get_user_approval_activities(self, user):
         domain = [
             ('res_model', '=', 'purchase.request'),
@@ -364,21 +364,21 @@ class PurchaseRequest(models.Model):
             ('user_id', '=', user.id)
         ]
         activities = self.env['mail.activity'].search(domain)
-        print("############",activities)
+        print("############", activities)
         return activities
 
 
 class PurchaseRequestLine(models.Model):
-    _name = "purchase.request.line"   
+    _name = "purchase.request.line"
     _description = 'Purchase Request Lines'
     request_id = fields.Many2one("purchase.request")
 
-    product_id = fields.Many2one("product.product",string="Product", required=True)
+    product_id = fields.Many2one("product.product", string="Product", required=True)
     po_numbers = fields.Char(string="PO Numbers", related='request_id.po_numbers')
-    description=fields.Text(string="Description")
+    description = fields.Text(string="Description")
     quantity = fields.Float(string="Quantity")
-    last_purchase_cost=fields.Float(string="Last Purchase Cost",compute='_compute_last_purchase_cost')
-    currency_id=fields.Many2one("res.currency",string="Currency") 
+    last_purchase_cost = fields.Float(string="Last Purchase Cost", compute='_compute_last_purchase_cost')
+    currency_id = fields.Many2one("res.currency", string="Currency")
 
     product_uom_id = fields.Many2one(
         'uom.uom', string="Unit of Measure",
@@ -387,30 +387,26 @@ class PurchaseRequestLine(models.Model):
     product_uom_category_id = fields.Many2one(related='product_id.uom_id.category_id')
     remarks = fields.Char(string='Remarks')
     issued_quantity = fields.Float(string='Issued Quantity')
-    company_id = fields.Many2one('res.company', string='Company', required=True, default=lambda self: self.env.company.id,
-        help='The default company for this user.', context={'user_preference': True})
+    company_id = fields.Many2one('res.company', string='Company', required=True,
+                                 default=lambda self: self.env.company.id,
+                                 help='The default company for this user.', context={'user_preference': True})
     purchased_qty = fields.Float(string='Purchased Qty')
-
 
     @api.depends('product_id')
     def _compute_product_uom_id(self):
         for line in self:
             line.product_uom_id = line.product_id.uom_id
-    
-
-
 
     @api.onchange('product_id')
     def onchange_product_name(self):
         for rec in self:
             if rec.product_id:
-                rec.description=rec.product_id.default_code
-                rec.quantity=1.0
-               
-            else:
-               rec.description=''
-               rec.quantity=0.0
+                rec.description = rec.product_id.default_code
+                rec.quantity = 1.0
 
+            else:
+                rec.description = ''
+                rec.quantity = 0.0
 
     # ......unit price....
     @api.depends('product_id')
@@ -422,15 +418,13 @@ class PurchaseRequestLine(models.Model):
             sale_price = line.product_id.list_price
             line.price_unit = cost_price
 
-
-    
     # ..........last purchase cost.......
     @api.depends('product_id')
     def _compute_last_purchase_cost(self):
         for line in self:
             purchase_invoice_lines = self.env['account.move.line'].search([
-            ('product_id', '=', line.product_id.id),
-            ('move_id.move_type', '=', 'in_invoice'),
+                ('product_id', '=', line.product_id.id),
+                ('move_id.move_type', '=', 'in_invoice'),
             ])
 
             sorted_invoice_lines = purchase_invoice_lines.sorted(key=lambda r: (r.move_id.date, r.id), reverse=True)
@@ -441,5 +435,3 @@ class PurchaseRequestLine(models.Model):
                 line.last_purchase_cost = purchase_invoice_line.price_unit
             else:
                 line.last_purchase_cost = 0.0
-
-

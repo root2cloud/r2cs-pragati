@@ -41,4 +41,5 @@ from . import follow_up_reports
 from . import bwa
 from . import account_account
 from . import res_partner
+from . import negative_bal_restriction
 # from . import qr_code
