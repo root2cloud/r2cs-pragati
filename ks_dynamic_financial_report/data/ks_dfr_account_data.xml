@@ -76,6 +76,12 @@
             <field name="ks_account_type">expense_indirect</field>
         </record>
 
+
+        <record id="ks_df_expense_changes_in_inventory" model="ks.dynamic.financial.reports.account">
+            <field name="ks_name">Changes In Inventory</field>
+            <field name="ks_account_type">expense_changes_inventory</field>
+        </record>
+
         <record id="ks_df_expense_direct_cost" model="ks.dynamic.financial.reports.account">
             <field name="ks_name">Cost of Revenue</field>
             <field name="ks_account_type">expense_direct_cost</field>
