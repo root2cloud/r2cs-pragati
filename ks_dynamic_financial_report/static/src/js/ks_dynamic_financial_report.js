@@ -1406,31 +1406,30 @@ odoo.define('ks_dynamic_financial_report.dynamic_report', function (require) {
         /**
          * @method to render report body and currency conversion
         */
-ksGetAction: function (e) {
-    e.preventDefault();
-    e.stopPropagation();
+        ksGetAction: function (e) {
+            e.stopPropagation();
+            var self = this;
+            var action = $(e.target).attr('action');
+            var id = $(e.target).parents('td').data('bsAccountId') || $(e.target).parents('td').data('bsMoveId');
+            var params = $(e.target).data();
+            var context = new Context(this.ks_df_context, params.actionContext || {}, {
+                active_id: id
+            });
 
-    var self = this;
-    var $link = $(e.currentTarget);
-    var action = $link.attr('action');
-    var account_id = $link.data('bsAccountId');
+            params = _.omit(params, 'actionContext');
+            if (action) {
+                return this._rpc({
+                        model: this.ks_dyn_fin_model,
+                        method: action,
+                        args: [this.ks_report_id, this.ks_df_report_opt, params],
+                        context: context.eval(),
+                    })
+                    .then(function (result) {
+                        return self.do_action(result);
+                    });
+            }
+        },
 
-    if (!account_id || !action) {
-        return;
-    }
-
-    var params = { accountId: parseInt(account_id) };
-    var context = this.ks_df_context || {};
-
-    return this._rpc({
-        model: this.ks_dyn_fin_model,
-        method: action,
-        args: [this.ks_report_id, this.ks_df_report_opt, params],
-        context: context,
-    }).then(function (result) {
-        return self.do_action(result);
-    });
-},
         /**
          * @method to format currnecy with amount
          */

@@ -16,7 +16,6 @@ import base64
 import re
 from odoo.osv import expression
 
-
 FETCH_RANGE = 2000
 _logger = logging.getLogger(__name__)
 
@@ -4690,52 +4689,23 @@ class ks_dynamic_financial_base(models.Model):
         }
 
     def ks_show_df_general_ledger(self, ks_df_informations, ks_parameter=None):
-        """
-        Open General Ledger for a specific account from Trial Balance
-        """
         if not ks_parameter:
-            ks_parameter = {}
+            params = {}
+        ks_ctx = self.env.context.copy()
+        ks_ctx.pop('id', '')
+        ks_ctx['default_filter_accounts'] = self.env['account.account'].browse(ks_parameter.get('id', 0)).code or ''
+        ks_action = self.env["ir.actions.actions"]._for_xml_id("ks_dynamic_financial_report.ks_df_gl_action")
+        ks_action_ctx = ast.literal_eval(ustr(ks_action.get('context')))
+        ks_ctx.update(ks_action_ctx)
 
-        # Get account ID
-        account_id = ks_parameter.get('accountId', 0)
+        ks_df_informations['account_ids'] = [ks_parameter.get('accountId', '')]
+        if 'date' in ks_df_informations and ks_df_informations['date']['ks_process'] == 'single':
+            # If we are coming from a report with a single date, we need to change the options to ranged
+            # ks_df_informations['date']['ks_process'] = 'range'
+            ks_df_informations['date']['ks_interval_type'] = 'fiscalyear'
 
-        try:
-            account_id = int(account_id)
-        except (ValueError, TypeError):
-            account_id = 0
-
-        if not account_id:
-            raise UserError(_("No account selected!"))
-
-        # Verify account exists
-        account = self.env['account.account'].browse(account_id)
-        if not account.exists():
-            raise UserError(_("Account not found!"))
-
-        # Copy current options
-        new_options = ks_df_informations.copy()
-
-        # Update account filter
-        if 'account' in new_options and new_options['account']:
-            for acc in new_options['account']:
-                acc['selected'] = (acc.get('id') == account_id)
-        else:
-            new_options['account'] = [{
-                'id': account_id,
-                'name': account.display_name,
-                'code': account.code,
-                'selected': True
-            }]
-
-        # Enable account filter
-        new_options['ks_account_filter_visiblity'] = True
-
-        # Return action using XML ID
-        action = self.env.ref('ks_dynamic_financial_report.ks_df_gl_action').read()[0]
-        action['ks_df_informations'] = new_options
-        action['ignore_session'] = 'read'
-
-        return action
+        ks_action.update({'ks_df_informations': ks_df_informations, 'context': ks_ctx, 'ignore_session': 'read'})
+        return ks_action
 
     def ks_show_df_journal_items(self, ks_df_informations, ks_parameter=None):
         ks_action = self.env["ir.actions.actions"]._for_xml_id("account.action_move_line_select")
