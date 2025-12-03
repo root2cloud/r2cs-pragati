@@ -7,7 +7,8 @@ class InternalTransactions(models.Model):
     _description = 'Internal Transaction'
 
     # Fields
-    name = fields.Char(string='Reference', required=True, copy=False, readonly=True, tracking=True, default=lambda self: _('New'))
+    name = fields.Char(string='Reference', required=True, copy=False, readonly=True, tracking=True,
+                       default=lambda self: _('New'))
     date = fields.Date(string="Date", required=True)
     boole = fields.Selection([('send', 'Send'), ('receive', 'Receive')], string="Payment Type", default='send')
     source_acc = fields.Many2one('account.account', string="From Account", domain=[('account_type', '=', 'asset_cash')])
@@ -28,11 +29,16 @@ class InternalTransactions(models.Model):
     journal_entry_id = fields.Many2one('account.move', string='Journal Entry', readonly=True, copy=False)
     reconciled_amount = fields.Float(string="Reconciled Amount", store=True)
     company_id = fields.Many2one('res.company', 'Company', default=lambda self: self.env.company)
-    state = fields.Selection([('draft', 'Draft'),('submit','Submit'),('approve','Approved'), ('post','Posted'), ('cancel', 'Cancelled')], default='draft')
+    state = fields.Selection([('draft', 'Draft'), ('submit', 'Submit'), ('approve', 'Approved'), ('post', 'Posted'),
+                              ('cancel', 'Cancelled')], default='draft')
 
-    approval_level_1 = fields.Many2one('res.users', string='Approver Level 1', domain="[('share', '=', False)]")
-    approval_level_2 = fields.Many2one('res.users', string='Approver Level 2', domain="[('share', '=', False)]")
-    approval_level_3 = fields.Many2one('res.users', string='Approver Level 3', domain="[('share', '=', False)]")
+    department_id = fields.Many2one('hr.department', 'Department', tracking=True, required=True)
+    approval_level_1 = fields.Many2one('res.users', string='Approver Level 1', domain="[('share', '=', False)]",
+                                       readonly=True)
+    approval_level_2 = fields.Many2one('res.users', string='Approver Level 2', domain="[('share', '=', False)]",
+                                       readonly=True)
+    approval_level_3 = fields.Many2one('res.users', string='Approver Level 3', domain="[('share', '=', False)]",
+                                       readonly=True)
     approval_id = fields.Many2one('approval.request', string='Approval ID')
 
     request_owner_id = fields.Many2one('res.users', string="Request Owner",
@@ -44,24 +50,47 @@ class InternalTransactions(models.Model):
 
     is_approval_user = fields.Boolean('res.users', compute="_compute_is_approval_user")
 
+    @api.depends('approval_level_1', 'approval_level_2', 'approval_level_3', 'state')
+    def _compute_is_approval_user(self):
+        for rec in self:
+            user_id = self.env.user.id
+            rec.is_approval_user = False
+            if rec.state in ['submit', 'waiting2', 'waiting3']:
+                if rec.state == 'submit' and rec.approval_level_1 and rec.approval_level_1.id == user_id:
+                    rec.is_approval_user = True
+                elif rec.state == 'waiting2' and rec.approval_level_2 and rec.approval_level_2.id == user_id:
+                    rec.is_approval_user = True
+                elif rec.state == 'waiting3' and rec.approval_level_3 and rec.approval_level_3.id == user_id:
+                    rec.is_approval_user = True
+
+    @api.onchange('department_id')
+    def _onchange_department_id(self):
+        if self.department_id:
+            self.approval_level_1 = self.department_id.approver1.id if self.department_id.approver1 else False
+            self.approval_level_2 = self.department_id.approver2.id if self.department_id.approver2 else False
+            self.approval_level_3 = self.department_id.approver3.id if self.department_id.approver3 else False
+        else:
+            self.approval_level_1 = False
+            self.approval_level_2 = False
+            self.approval_level_3 = False
+
     def approve_contra(self):
         self.write({'state': 'approve'})
 
-
-    def _compute_is_approval_user(self):
-        for lp in self:
-            approver_list = []
-
-            if lp.approval_level_1:
-                approver_list.append(lp.approval_level_1.id)
-            if lp.approval_level_2:
-                approver_list.append(lp.approval_level_2.id)
-            if lp.approval_level_3:
-                approver_list.append(lp.approval_level_3.id)
-            if lp.env.user.id in approver_list:
-                lp.is_approval_user = True
-            else:
-                lp.is_approval_user = False
+    # def _compute_is_approval_user(self):
+    #     for lp in self:
+    #         approver_list = []
+    #
+    #         if lp.approval_level_1:
+    #             approver_list.append(lp.approval_level_1.id)
+    #         if lp.approval_level_2:
+    #             approver_list.append(lp.approval_level_2.id)
+    #         if lp.approval_level_3:
+    #             approver_list.append(lp.approval_level_3.id)
+    #         if lp.env.user.id in approver_list:
+    #             lp.is_approval_user = True
+    #         else:
+    #             lp.is_approval_user = False
 
     def send_for_approval(self):
         self.write({'state': 'submit'})
@@ -177,8 +206,6 @@ class InternalTransactions(models.Model):
         # Post the draft journal entry
         self.journal_entry_id.action_post()
 
-
-
         return True
 
     def action_internal_journal_entries(self):
@@ -191,7 +218,6 @@ class InternalTransactions(models.Model):
             'view_mode': 'tree,form',
             'target': 'current',
         }
-
 
     @api.model
     def _write(self, values):

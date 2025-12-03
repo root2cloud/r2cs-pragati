@@ -69,7 +69,7 @@
                                 <field name="document_number"/>
                                 <field name="vehicle_number"/>
                                 <!--                                <field name="invoice_id"/>-->
-<!--                                <field name="invoice_ids" widget="many2many_tags" invisible="1"/>-->
+                                <!--                                <field name="invoice_ids" widget="many2many_tags" invisible="1"/>-->
                                 <field name="attachment" string="Attachment" widget="binary"
                                        filename="attachment_filename"/>
                                 <span>
@@ -87,14 +87,10 @@
 
                             </group>
                         </group>
-                        <group string="Select Approver">
-                            <field name="approval1_readonly" invisible="1"/>
-                            <field name="approval2_readonly" invisible="1"/>
-                            <field name="approval_level_1" attrs="{'readonly': [('approval1_readonly', '=', True)]}"
-                                   force_save="1"/>
-                            <field name="approval_level_2" attrs="{'readonly': [('approval2_readonly', '=', True)]}"
-                                   force_save="1"/>
-                            <field name="approval_level_3"/>
+                        <group string='Select Approvers Here'>
+                            <field name='approval_level_1' readonly="1" force_save="1"/>
+                            <field name='approval_level_2' readonly="1" force_save="1"/>
+                            <field name='approval_level_3' readonly="1" force_save="1"/>
                         </group>
                         <notebook>
                             <page string="Order Lines">

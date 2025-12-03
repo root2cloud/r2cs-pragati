@@ -57,7 +57,7 @@ class PurchaseRequest(models.Model):
                                  help='The default company for this user.', context={'user_preference': True})
     location_id = fields.Many2one('stock.location', "Cost Center", readonly=False, tracking=True)
     department_id = fields.Many2one('hr.department', 'Department', tracking=True)
-    shipping_address_id = fields.Many2one('res.partner', string='Shipping Address', tracking=True)
+    shipping_address_id = fields.Many2one('res.partner', string='Shipping Address', tracking=True, required=True)
     terms = fields.Text(string='Terms & Conditions', tracking=True)
     user_id = fields.Many2one('res.users', string='Responsible user',
                               default=lambda self: self.env.user, tracking=True)
@@ -69,10 +69,11 @@ class PurchaseRequest(models.Model):
     note = fields.Text(string='Remarks', tracking=True)
     location_dest_id = fields.Many2one('stock.location', "warehouse", default=_get_default_location_id, readonly=False,
                                        tracking=True)
-    approval_level_1 = fields.Many2one('res.users', string="Approver Level 1", tracking=True)
-    approval_level_2 = fields.Many2one('res.users', string="Approver Level 2", tracking=True)
+    approval_level_1 = fields.Many2one('res.users', string="Approver Level 1", tracking=True, readonly=True)
+    approval_level_2 = fields.Many2one('res.users', string="Approver Level 2", tracking=True, readonly=True)
 
-    approval_level_3 = fields.Many2one('res.users', string='Approver Level 3', domain="[('share', '=', False)]")
+    approval_level_3 = fields.Many2one('res.users', string='Approver Level 3', domain="[('share', '=', False)],",
+                                       readonly=True)
     show_approve_button = fields.Boolean(string='Show Approve Button', compute='_compute_show_approve_button',
                                          tracking=True)
     show_reject_button = fields.Boolean(string='Show Reject Button', compute='_compute_show_approve_button',
@@ -86,12 +87,13 @@ class PurchaseRequest(models.Model):
     @api.onchange('department_id')
     def _onchange_department_id(self):
         if self.department_id:
-            self.approval_level_1 = self.department_id.approver1.id
-            self.approval_level_2 = self.department_id.approver2.id
+            self.approval_level_1 = self.department_id.approver1.id if self.department_id.approver1 else False
+            self.approval_level_2 = self.department_id.approver2.id if self.department_id.approver2 else False
+            self.approval_level_3 = self.department_id.approver3.id if self.department_id.approver3 else False
         else:
             self.approval_level_1 = False
             self.approval_level_2 = False
-
+            self.approval_level_3 = False
     def _compute_purchase_count(self):
         for rec in self:
             purchase_order_ids = self.env['purchase.order'].search([('pr_request_ids', 'in', rec.id)])

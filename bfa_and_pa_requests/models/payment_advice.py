@@ -81,7 +81,7 @@ class PaymentAdvice(models.Model):
                                  readonly="1")
     location_id = fields.Many2one('stock.location', "Cost Center", tracking=True, states=READONLY_STATES,
                                   domain=[('is_cost_center', '=', True)])
-    department_id = fields.Many2one('hr.department', 'Department', tracking=True, states=READONLY_STATES)
+    department_id = fields.Many2one('hr.department', 'Department', tracking=True, states=READONLY_STATES, required=True)
     shipping_address_id = fields.Many2one('res.partner', string='Shipping Address', tracking=True,
                                           states=READONLY_STATES)
     terms = fields.Text(string='Terms & Conditions', tracking=True, states=READONLY_STATES)
@@ -96,11 +96,11 @@ class PaymentAdvice(models.Model):
                                           store=True, states=READONLY_STATES)
     payment_id = fields.Many2one('account.payment', string='Payment Id')
     approval_level_1 = fields.Many2one('res.users', string='Approver Level 1', domain="[('share', '=', False)]",
-                                       states=READONLY_STATES, tracking=True)
+                                       readonly=True, tracking=True)
     approval_level_2 = fields.Many2one('res.users', string='Approver Level 2', domain="[('share', '=', False)]",
-                                       states=READONLY_STATES, tracking=True)
+                                       readonly=True, tracking=True)
     approval_level_3 = fields.Many2one('res.users', string='Approver Level 3', domain="[('share', '=', False)]",
-                                       states=READONLY_STATES)
+                                       readonly=True)
     payments_count = fields.Integer(string='Payments Count', compute='_compute_payment_count')
     payments_value = fields.Float(string='Payments Value', states=READONLY_STATES)
     journal_id = fields.Many2one('account.journal', string='Journal Id', domain=[('type', '=', 'bank')],
@@ -115,15 +115,16 @@ class PaymentAdvice(models.Model):
     amount_due = fields.Float(string="Amount Due")
     advice_id = fields.Many2one('payment.advice', string='Advice Id')
 
-    # @api.onchange('department_id')
-    # def _onchange_department_id(self):
-    #
-    #     if self.department_id:
-    #         self.approval_level_1 = self.department_id.approver1.id
-    #         self.approval_level_2 = self.department_id.approver2.id
-    #     else:
-    #         self.approval_level_1 = False
-    #         self.approval_level_2 = False
+    @api.onchange('department_id')
+    def _onchange_department_id(self):
+        if self.department_id:
+            self.approval_level_1 = self.department_id.approver1.id if self.department_id.approver1 else False
+            self.approval_level_2 = self.department_id.approver2.id if self.department_id.approver2 else False
+            self.approval_level_3 = self.department_id.approver3.id if self.department_id.approver3 else False
+        else:
+            self.approval_level_1 = False
+            self.approval_level_2 = False
+            self.approval_level_3 = False
 
     @api.onchange('approval_level_1')
     def _onchange_approval_level_1(self):
@@ -305,7 +306,6 @@ class PaymentAdvice(models.Model):
     #         }))
     #
     #     self.payment_advice_line_ids = lines
-
 
     @api.model_create_multi
     def create(self, values_list):
@@ -608,7 +608,6 @@ class PaymentAdvice(models.Model):
         print("############", activities)
         return activities
 
-
     @api.onchange('partner_id')
     def _onchange_partner_id(self):
         self.payment_advice_line_ids = [(5, 0, 0)]
@@ -686,7 +685,6 @@ class PaymentAdvice(models.Model):
             invoice = self.env['account.move'].search([('name', '=', ref_name)], limit=1)
             balance = invoice.balance_amount if invoice else (total - advance)
 
-
             lines.append((0, 0, {
                 'reference': ref_name,
                 'reference_amount': total,
@@ -697,7 +695,6 @@ class PaymentAdvice(models.Model):
             }))
 
         self.payment_advice_line_ids = lines
-
 
     @api.onchange('partner_id')
     def _onchange_partner_id(self):
@@ -785,9 +782,6 @@ class PaymentAdvice(models.Model):
             add_line(inv.name, total, inv.invoice_date, model_balance=inv.balance_amount, bill_ref=inv.ref or "")
 
         self.payment_advice_line_ids = lines
-
-
-
 
 
 class PaymentAdviceLine(models.Model):

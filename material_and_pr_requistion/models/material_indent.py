@@ -2,17 +2,22 @@ from odoo import models, fields, api, _
 from odoo.exceptions import UserError, ValidationError
 from datetime import datetime, timedelta
 
+
 class MaterialIndent(models.Model):
     _name = 'material.indent'
     _inherit = ["mail.thread", 'mail.activity.mixin']
     _description = 'Material Indent Module'
 
+    READONLY_STATES = {
+        'complete': [('readonly', True)],
+    }
+
     def _get_default_category_id(self):
-            domain = [('name', '=', "Material Indent")]
-            category_type = self.env['approval.category'].search(domain, limit=1)
-            if category_type:
-                return category_type.id
-            return False
+        domain = [('name', '=', "Material Indent")]
+        category_type = self.env['approval.category'].search(domain, limit=1)
+        if category_type:
+            return category_type.id
+        return False
 
     def _get_default_picking_type_id(self):
         domain = [('name', '=', "Issued Products")]
@@ -21,7 +26,6 @@ class MaterialIndent(models.Model):
             return picking_type.id
         return False
 
-
     def _get_default_location_id(self):
         domain = [('name', '=', "Stock")]
         location = self.env['stock.location'].search(domain, limit=1)
@@ -29,84 +33,98 @@ class MaterialIndent(models.Model):
             return location.id
         return False
 
-
     name = fields.Char(string='Reference', required=True, copy=False,
-                      readonly=True, tracking=True,
-                      default=lambda self: _('New'))
+                       readonly=True, tracking=True,
+                       default=lambda self: _('New'))
     complete_date = fields.Date(string="Date of Request", tracking=True, required=True)
     currency_id = fields.Many2one('res.currency', 'Currency', required=True,
-        default=lambda self: self.env.company.currency_id.id, tracking=True)
+                                  default=lambda self: self.env.company.currency_id.id, tracking=True)
     transport = fields.Char(string="Transportation", tracking=True)
     service_narration = fields.Char(string="Indent Narration", tracking=True)
     # service_link=fields.Many2many("approval.request",string="Service Link")
-    material_indent_approval_id = fields.Many2one("approval.request",string="Material Indent Approval Id", tracking=True)
+    material_indent_approval_id = fields.Many2one("approval.request", string="Material Indent Approval Id",
+                                                  tracking=True)
     service_approval_status = fields.Selection([('pending', 'Pending'), ('approve', 'Approved')],
-        string='Approval Status', default='pending', tracking=True)
+                                               string='Approval Status', default='pending', tracking=True)
     request_owner_id = fields.Many2one('res.users', string="Request Owner",
-        check_company=True, domain="[('company_ids', 'in', company_id)]", default=lambda self: self.env.user, tracking=True)
-    category_id = fields.Many2one('approval.category',string='category',default=_get_default_category_id)
-    expect_arrival = fields.Datetime(string="Expected Arrival", tracking=True,required=True)
-    state = fields.Selection([("draft","Draft"),("waiting1","Waiting Level1"),("waiting2","Waiting Level2"),("waiting3","Waiting Level3"),("approve","Approved"),('reject', 'Approval Rejected'),("complete","Completed"),("cancel","Cancel")], default="draft", tracking=True)
-    material_indent_line_ids = fields.One2many("material.indent.line","indent_id",string="Service Completion Lines", tracking=True, required=True)
+                                       check_company=True, domain="[('company_ids', 'in', company_id)]",
+                                       default=lambda self: self.env.user, tracking=True)
+    category_id = fields.Many2one('approval.category', string='category', default=_get_default_category_id)
+    expect_arrival = fields.Datetime(string="Expected Arrival", tracking=True, required=True)
+    state = fields.Selection([("draft", "Draft"), ("waiting1", "Waiting Level1"), ("waiting2", "Waiting Level2"),
+                              ("waiting3", "Waiting Level3"), ("approve", "Approved"), ('reject', 'Approval Rejected'),
+                              ("complete", "Completed"), ("cancel", "Cancel")], default="draft", tracking=True)
+    material_indent_line_ids = fields.One2many("material.indent.line", "indent_id", string="Service Completion Lines",
+                                               tracking=True, required=True)
     approver_1 = fields.Char(string='Approver 1', store=True, tracking=True)
     approver_2 = fields.Char(string='Approver 2', store=True, tracking=True)
     approver_3 = fields.Char(string='Approver 3', store=True, tracking=True)
-    company_id = fields.Many2one('res.company', string='Company', required=True, default=lambda self: self.env.company.id,
-        help='The default company for this user.', context={'user_preference': True}, tracking=True)
+    company_id = fields.Many2one('res.company', string='Company', required=True,
+                                 default=lambda self: self.env.company.id,
+                                 help='The default company for this user.', context={'user_preference': True},
+                                 tracking=True)
     location_id = fields.Many2one('stock.location', "Cost Center", readonly=False, tracking=True)
-    department_id = fields.Many2one('hr.department','Department', tracking=True)
+    department_id = fields.Many2one('hr.department', 'Department', tracking=True, states=READONLY_STATES, required=True)
     reuse_button = fields.Boolean(default=False, tracking=True)
     picking_type_id = fields.Many2one(
-        'stock.picking.type', 'Operation Type',default=_get_default_picking_type_id, domain=[('name', 'ilike', 'Issued')], tracking=True)
+        'stock.picking.type', 'Operation Type', default=_get_default_picking_type_id,
+        domain=[('name', 'ilike', 'Issued')], tracking=True)
     location_id = fields.Many2one('stock.location', "Cost Center", readonly=False)
-    location_dest_id = fields.Many2one('stock.location', "warehouse", default=_get_default_location_id, readonly=False,required=True, tracking=True)
+    location_dest_id = fields.Many2one('stock.location', "warehouse", default=_get_default_location_id, readonly=False,
+                                       required=True, tracking=True)
     stock_picking_id = fields.Many2one('stock.picking', string='Stock Picking ID', tracking=True)
-    shipping_address_id = fields.Many2one('res.partner',string='Shipping Address', tracking=True)
+    shipping_address_id = fields.Many2one('res.partner', string='Shipping Address', tracking=True)
     partner_id = fields.Many2one('res.partner', related='request_owner_id.partner_id', tracking=True)
     note = fields.Text(string='Remarks', tracking=True)
-    approval_level_1 = fields.Many2one('res.users', string='Approver Level 1', domain="[('share', '=', False)]")
-    approval_level_2 = fields.Many2one('res.users', string='Approver Level 2', domain="[('share', '=', False)]")
-    approval_level_3 = fields.Many2one('res.users', string='Approver Level 3', domain="[('share', '=', False)]")
-    terms = fields.Text(string = 'Terms & Conditions', tracking=True)
+    approval_level_1 = fields.Many2one('res.users', string='Approver Level 1', domain="[('share', '=', False)]",
+                                       readonly=True)
+    approval_level_2 = fields.Many2one('res.users', string='Approver Level 2', domain="[('share', '=', False)]",
+                                       readonly=True)
+    approval_level_3 = fields.Many2one('res.users', string='Approver Level 3', domain="[('share', '=', False)]",
+                                       readonly=True)
+    terms = fields.Text(string='Terms & Conditions', tracking=True)
     close_indent = fields.Boolean(string='Close Indent', default=False, tracking=True)
-    show_approve_button = fields.Boolean(string='Show Approve Button', compute='_compute_show_approve_button', tracking=True)
-    show_reject_button =  fields.Boolean(string='Show Reject Button', compute='_compute_show_approve_button', tracking=True)
+    show_approve_button = fields.Boolean(string='Show Approve Button', compute='_compute_show_approve_button',
+                                         tracking=True)
+    show_reject_button = fields.Boolean(string='Show Reject Button', compute='_compute_show_approve_button',
+                                        tracking=True)
 
     @api.onchange('department_id')
     def _onchange_department_id(self):
-
         if self.department_id:
-            self.approval_level_1 = self.department_id.approver1.id
-            self.approval_level_2 = self.department_id.approver2.id
+            self.approval_level_1 = self.department_id.approver1.id if self.department_id.approver1 else False
+            self.approval_level_2 = self.department_id.approver2.id if self.department_id.approver2 else False
+            self.approval_level_3 = self.department_id.approver3.id if self.department_id.approver3 else False
         else:
             self.approval_level_1 = False
             self.approval_level_2 = False
-
-
+            self.approval_level_3 = False
 
     @api.onchange('approval_level_1')
     def _onchange_approval_level_1(self):
         for record in self:
-            if record.approval_level_1 and (record.approval_level_1 == record.approval_level_2 or record.approval_level_1 == record.approval_level_3):
+            if record.approval_level_1 and (
+                    record.approval_level_1 == record.approval_level_2 or record.approval_level_1 == record.approval_level_3):
                 raise UserError("The same Approver is selected more than once. Please check and correct it.")
 
     @api.onchange('approval_level_2')
     def _onchange_approval_level_2(self):
         for record in self:
-            if record.approval_level_2 and (record.approval_level_2 == record.approval_level_1 or record.approval_level_2 == record.approval_level_3):
+            if record.approval_level_2 and (
+                    record.approval_level_2 == record.approval_level_1 or record.approval_level_2 == record.approval_level_3):
                 raise UserError("The same Approver is selected more than once. Please check and correct it.")
 
     @api.onchange('approval_level_3')
     def _onchange_approval_level_3(self):
         for record in self:
-            if record.approval_level_3 and (record.approval_level_3 == record.approval_level_1 or record.approval_level_3 == record.approval_level_2):
+            if record.approval_level_3 and (
+                    record.approval_level_3 == record.approval_level_1 or record.approval_level_3 == record.approval_level_2):
                 raise UserError("The same Approver is selected more than once. Please check and correct it.")
-
 
     @api.model_create_multi
     def create(self, values_list):
         records = super(MaterialIndent, self).create(values_list)
-        
+
         for record in records:
             if record.name == _('New'):
                 fiscal_years = self.env['account.fiscal.year'].search([])
@@ -162,7 +180,7 @@ class MaterialIndent(models.Model):
 
     def action_for_material_indent_submit(self):
         approver_list = []
-        
+
         if self.approval_level_1:
             approver_list.append(self.approval_level_1.id)
         if self.approval_level_2:
@@ -173,7 +191,7 @@ class MaterialIndent(models.Model):
         for record in self:
             if not record.material_indent_line_ids:
                 raise ValidationError(_("Please enter some Material Lines in the below section."))
-                
+
             # if not record.request_owner_id or not record.category_id:
             #     raise UserError("Please fill in the required fields: Purchase No, Request Owner, and Category")
             # if record.reuse_button:
@@ -211,7 +229,6 @@ class MaterialIndent(models.Model):
                 record.state = 'waiting1'
 
         return True
-
 
     def order_cancel(self):
         self.state = 'cancel'
@@ -341,7 +358,7 @@ class MaterialIndent(models.Model):
             })
             return activity
         return False
-        
+
     def _get_user_approval_activities(self, user):
         domain = [
             ('res_model', '=', 'material.indent'),
@@ -350,57 +367,54 @@ class MaterialIndent(models.Model):
             ('user_id', '=', user.id)
         ]
         activities = self.env['mail.activity'].search(domain)
-        print("############",activities)
+        print("############", activities)
         return activities
 
 
 class MaterialIndentLine(models.Model):
-    _name="material.indent.line"
+    _name = "material.indent.line"
     _description = 'Material Indent Lines'
 
-    indent_id = fields.Many2one("material.indent",string='Indent ID')
+    indent_id = fields.Many2one("material.indent", string='Indent ID')
 
-    product_id = fields.Many2one("product.product",string="Product", required=True)
-    description=fields.Text(string="Description")
+    product_id = fields.Many2one("product.product", string="Product", required=True)
+    description = fields.Text(string="Description")
     quantity = fields.Float(string="Quantity")
-    last_purchase_cost=fields.Float(string="Last Purchase Cost",compute='_compute_last_purchase_cost')
-    currency_id=fields.Many2one("res.currency",string="Currency") 
+    last_purchase_cost = fields.Float(string="Last Purchase Cost", compute='_compute_last_purchase_cost')
+    currency_id = fields.Many2one("res.currency", string="Currency")
     product_uom_id = fields.Many2one(
         'uom.uom', string="Unit of Measure",
         compute="_compute_product_uom_id", store=True, readonly=False, precompute=True,
         domain="[('category_id', '=', product_uom_category_id)]")
     product_uom_category_id = fields.Many2one(related='product_id.uom_id.category_id')
     remarks = fields.Char(string='Remarks')
-    company_id = fields.Many2one('res.company', string='Company', required=True, default=lambda self: self.env.company.id,
-        help='The default company for this user.', context={'user_preference': True})
-    
+    company_id = fields.Many2one('res.company', string='Company', required=True,
+                                 default=lambda self: self.env.company.id,
+                                 help='The default company for this user.', context={'user_preference': True})
+
     @api.depends('product_id')
     def _compute_product_uom_id(self):
         for line in self:
             line.product_uom_id = line.product_id.uom_id
-    
-
-
 
     @api.onchange('product_id')
     def onchange_product_name(self):
         for rec in self:
             if rec.product_id:
-                rec.description=rec.product_id.default_code
-                rec.quantity=1.0
-               
-            else:
-               rec.description=''
-               rec.quantity=0.0
+                rec.description = rec.product_id.default_code
+                rec.quantity = 1.0
 
-    
+            else:
+                rec.description = ''
+                rec.quantity = 0.0
+
     # ..........last purchase cost.......
     @api.depends('product_id')
     def _compute_last_purchase_cost(self):
         for line in self:
             purchase_invoice_lines = self.env['account.move.line'].search([
-            ('product_id', '=', line.product_id.id),
-            ('move_id.move_type', '=', 'in_invoice'),
+                ('product_id', '=', line.product_id.id),
+                ('move_id.move_type', '=', 'in_invoice'),
             ])
 
             sorted_invoice_lines = purchase_invoice_lines.sorted(key=lambda r: (r.move_id.date, r.id), reverse=True)
@@ -411,4 +425,3 @@ class MaterialIndentLine(models.Model):
                 line.last_purchase_cost = purchase_invoice_line.price_unit
             else:
                 line.last_purchase_cost = 0.0
-
