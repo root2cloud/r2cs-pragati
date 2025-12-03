@@ -1108,78 +1108,77 @@ odoo.define('ks_dynamic_financial_report.dynamic_report', function (require) {
         /**
          * @method to render trial balance report
         */
-        ksRenderTrialBalance: function(){
-            var self = this;
+        // ... Assuming this is inside an Odoo Widget/Class ...
+ksRenderTrialBalance: function(){
+    var self = this;
 
-            _.each(self.ks_report_lines, function (k, v) {
-                    var ksFormatConfigurations = {
-                        currency_id: k.company_currency_id,
-                        noSymbol: true,
-                    };
-                    k.initial_debit = self.ksFormatCurrencySign(k.initial_debit, ksFormatConfigurations, k.initial_debit < 0 ? '-' : '');
-                    k.initial_credit = self.ksFormatCurrencySign(k.initial_credit, ksFormatConfigurations, k.initial_credit < 0 ? '-' : '');
-                    k.initial_balance = self.ksFormatCurrencySign(k.initial_balance, ksFormatConfigurations, k.initial_balance < 0 ? '-' : '');
-                    k.ending_debit = self.ksFormatCurrencySign(k.ending_debit, ksFormatConfigurations, k.ending_debit < 0 ? '-' : '');
-                    k.ending_credit = self.ksFormatCurrencySign(k.ending_credit, ksFormatConfigurations, k.ending_credit < 0 ? '-' : '');
-                    k.ending_balance = self.ksFormatCurrencySign(k.ending_balance, ksFormatConfigurations, k.ending_balance < 0 ? '-' : '');
-                });
-            _.each(self.ks_retained, function (k, v) {
-                var ksFormatConfigurations = {
-                    currency_id: k.company_currency_id,
-                    noSymbol: true,
-                };
-                k.debit = self.ksFormatCurrencySign(k.debit, ksFormatConfigurations, k.debit < 0 ? '-' : '');
-                k.credit = self.ksFormatCurrencySign(k.credit, ksFormatConfigurations, k.credit < 0 ? '-' : '');
-                k.balance = self.ksFormatCurrencySign(k.balance, ksFormatConfigurations, k.balance < 0 ? '-' : '');
-                k.initial_debit = self.ksFormatCurrencySign(k.initial_debit, ksFormatConfigurations, k.initial_debit < 0 ? '-' : '');
-                k.initial_credit = self.ksFormatCurrencySign(k.initial_credit, ksFormatConfigurations, k.initial_credit < 0 ? '-' : '');
-                k.initial_balance = self.ksFormatCurrencySign(k.initial_balance, ksFormatConfigurations, k.initial_balance < 0 ? '-' : '');
-                k.ending_debit = self.ksFormatCurrencySign(k.ending_debit, ksFormatConfigurations, k.ending_debit < 0 ? '-' : '');
-                k.ending_credit = self.ksFormatCurrencySign(k.ending_credit, ksFormatConfigurations, k.ending_credit < 0 ? '-' : '');
-                k.ending_balance = self.ksFormatCurrencySign(k.ending_balance, ksFormatConfigurations, k.ending_balance < 0 ? '-' : '');
-            });
-            _.each(self.ks_subtotal, function (k, v) {
-                    var ksFormatConfigurations = {
-                        currency_id: k.company_currency_id,
-                        noSymbol: true,
-                    };
-                    k.debit = self.ksFormatCurrencySign(k.debit, ksFormatConfigurations, k.debit < 0 ? '-' : '');
-                    k.credit = self.ksFormatCurrencySign(k.credit, ksFormatConfigurations, k.credit < 0 ? '-' : '');
-                    k.balance = self.ksFormatCurrencySign(k.balance, ksFormatConfigurations, k.balance < 0 ? '-' : '');
-                    k.initial_debit = self.ksFormatCurrencySign(k.initial_debit, ksFormatConfigurations, k.initial_debit < 0 ? '-' : '');
-                    k.initial_credit = self.ksFormatCurrencySign(k.initial_credit, ksFormatConfigurations, k.initial_credit < 0 ? '-' : '');
-                    k.initial_balance = self.ksFormatCurrencySign(k.initial_balance, ksFormatConfigurations, k.initial_balance < 0 ? '-' : '');
-                    k.ending_debit = self.ksFormatCurrencySign(k.ending_debit, ksFormatConfigurations, k.ending_debit < 0 ? '-' : '');
-                    k.ending_credit = self.ksFormatCurrencySign(k.ending_credit, ksFormatConfigurations, k.ending_credit < 0 ? '-' : '');
-                    k.ending_balance = self.ksFormatCurrencySign(k.ending_balance, ksFormatConfigurations, k.ending_balance < 0 ? '-' : '');
-                });
-                let options = { // Set the options for the datetimepickers
-                        locale: moment.locale(),
-                        format: 'L',
-                        icons: {
-                            date: "fa fa-calendar",
-                        },
-                    };
-                    let dt = new datepicker.DateWidget(options);
-                    let date_format = dt.options.format
-                    let new_date_format = date_format.replaceAll('/', '-');
-//                    if (this.ks_df_report_opt['date']['ks_end_date']) {
-//                         this.ks_df_report_opt['date']['ks_end_date'] = moment(this.ks_df_report_opt['date']['ks_end_date']).format(new_date_format)
-//                        }
-//                     ks_df_new_report_opt['date']['ks_end_date'] = moment(self.ks_df_report_opt['date']['ks_end_date']).format(new_date_format)
-//                     ks_df_report_new_opt['date']['ks_start_date'] = moment(self.ks_df_report_opt['date']['ks_start_date']).format(new_date_format)
-                  var ks_df_new_start_report_opt = moment(self.ks_df_report_opt['date']['ks_start_date']).format(new_date_format)
-                  var  ks_df_new_end_report_opt = moment(self.ks_df_report_opt['date']['ks_end_date']).format(new_date_format)
-            self.$('.o_content').html(QWeb.render('ks_df_trial_balance', {
 
-                    account_data: self.ks_report_lines,
-                    retained: self.ks_retained,
-                    ks_df_new_start_report_opt: ks_df_new_start_report_opt,
-                    ks_df_new_end_report_opt: ks_df_new_end_report_opt,
-                    subtotal: self.ks_subtotal,
-                }));
-//                ks_df_report_opt['date']['ks_end_date'] = moment(ks_df_report_opt['date']['ks_end_date']).format(new_date_format)
+    /*
+    _.each(self.ks_report_lines, function (k, v) {
+        var ksFormatConfigurations = {
+            currency_id: k.company_currency_id,
+            noSymbol: true,
+        };
+        // Removed k.initial_debit = self.ksFormatCurrencySign(k.initial_debit, ...); and all similar lines.
+    });
+    // Removed similar formatting for self.ks_retained and self.ks_subtotal
+    */
+
+    // Date formatting (Unchanged)
+    let options = { // Set the options for the datetimepickers
+        locale: moment.locale(),
+        format: 'L',
+        icons: {
+            date: "fa fa-calendar",
         },
+    };
+    let dt = new datepicker.DateWidget(options);
+    let date_format = dt.options.format
+    let new_date_format = date_format.replaceAll('/', '-');
+    var ks_df_new_start_report_opt = moment(self.ks_df_report_opt['date']['ks_start_date']).format(new_date_format)
+    var  ks_df_new_end_report_opt = moment(self.ks_df_report_opt['date']['ks_end_date']).format(new_date_format)
+
+
+
+    console.log(self.ks_report_lines)
+    self.$('.o_content').html(QWeb.render('ks_df_trial_balance', {
+        account_data: self.ks_report_lines,
+        retained: self.ks_retained,
+        ks_df_new_start_report_opt: ks_df_new_start_report_opt,
+        ks_df_new_end_report_opt: ks_df_new_end_report_opt,
+        subtotal: self.ks_subtotal,
+    }));
+
+    var company_currency_id = self.ks_report_lines.length > 0 ? self.ks_report_lines[0].company_currency_id : null;
+    var ksFormatConfigurations = {
+        currency_id: company_currency_id,
+        noSymbol: true,
+    };
+
+    // Helper to format a single cell
+    function formatCell(cell) {
+        var value = parseFloat($(cell).text().trim()) || 0.0;
+        var currency_id = $(cell).data('company-currency-id') || company_currency_id;
+        var configs = { currency_id: currency_id, noSymbol: true };
+
+        // Use the existing formatting logic from your original code
+        var formattedValue = self.ksFormatCurrencySign(value, configs, value < 0 ? '-' : '');
+        $(cell).html(formattedValue);
+    }
+
+    // A. Format the newly added group total cells
+    // The classes used here are the ones added to the XML above.
+self.$('.ks_total_init_debit, .ks_total_init_credit, .ks_total_init_balance, .ks_total_debit, .ks_total_credit, .ks_total_balance, .ks_total_end_debit, .ks_total_end_credit, .ks_total_end_balance').each(function() {
+    formatCell(this);
+});
+
+    // B. Re-format the main account lines (which were passed as raw numbers)
+    // We target the cells in the account details rows (which lack the new total classes)
+    self.$('tr:not([id$="-header"]):not([style*="#E5CCFF"]) td.ks_amt').each(function() {
+        formatCell(this);
+    });
+},
+// ...
 
         /**
          * @method to render partner ledger report
@@ -1326,8 +1325,8 @@ odoo.define('ks_dynamic_financial_report.dynamic_report', function (require) {
                         currency_id: k.company_currency_id,
                         noSymbol: true,
                     };
-                    k.debit = self.ksFormatCurrencySign(k.debit, ksFormatConfigurations, k.debit < 0 ? '-' : '');
-                    k.credit = self.ksFormatCurrencySign(k.credit, ksFormatConfigurations, k.credit < 0 ? '-' : '');
+//                    k.debit = self.ksFormatCurrencySign(k.debit, ksFormatConfigurations, k.debit < 0 ? '-' : '');
+//                    k.credit = self.ksFormatCurrencySign(k.credit, ksFormatConfigurations, k.credit < 0 ? '-' : '');
                     if (self.controlPanelProps.action.xml_id == _t('ks_dynamic_financial_report.ks_df_tb_action')){
 
                     }else{
@@ -1335,7 +1334,7 @@ odoo.define('ks_dynamic_financial_report.dynamic_report', function (require) {
                     }
                     //  changed the values of balance
                     if (!k['percentage']) {
-                        k.balance = self.ksFormatCurrencySign(k.balance, ksFormatConfigurations, k.balance < 0 ? '-' : '');
+//                        k.balance = self.ksFormatCurrencySign(k.balance, ksFormatConfigurations, k.balance < 0 ? '-' : '');
                     } else {
                         k.balance = String(Math.round(k.balance)) + "%";
                     }

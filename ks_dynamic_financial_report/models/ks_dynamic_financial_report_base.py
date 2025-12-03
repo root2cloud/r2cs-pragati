@@ -1813,6 +1813,9 @@ class ks_dynamic_financial_base(models.Model):
                                            'code': ks_account_type_id.code,
                                            'id': ks_account_type_id.id,
                                            'group': ks_account_type_id,
+                                           'main_type': dict(ks_account_type_id._fields['main_group'].selection).get(ks_account_type_id.main_group) or False,
+                                           'account_type': dict(ks_account_type_id._fields['account_type'].selection).get(ks_account_type_id.account_type) or False,
+                                           'sub_type': ks_account_type_id.sub_sub_group_id.name,
                                            'initial_debit': 0.0,
                                            'initial_credit': 0.0,
                                            'initial_balance': 0.0,
@@ -1898,7 +1901,6 @@ class ks_dynamic_financial_base(models.Model):
                     ks_deb = ks_op['debit']
                     ks_cre = ks_op['credit']
                     ks_bln = ks_op['balance']
-                    print()
                     ks_move_lines[ks_account.code]['debit'] = ks_deb
                     ks_move_lines[ks_account.code]['credit'] = ks_cre
                     ks_move_lines[ks_account.code]['balance'] = ks_bln
@@ -1910,6 +1912,9 @@ class ks_dynamic_financial_base(models.Model):
                     ks_move_lines[ks_account.code]['ending_balance'] = ks_end_blns
                     ks_move_lines[ks_account.code]['ending_credit'] = ks_end_cr
                     ks_move_lines[ks_account.code]['ending_debit'] = ks_end_dr
+                    ks_move_lines[ks_account.code]['main_type'] = dict(ks_account._fields['main_group'].selection).get(ks_account.main_group) or False
+                    ks_move_lines[ks_account.code]['account_type'] = dict(ks_account._fields['account_type'].selection).get(ks_account.account_type) or False
+                    ks_move_lines[ks_account.code]['sub_type'] = ks_account.sub_sub_group_id.name
 
                     if self.env['ir.config_parameter'].sudo().get_param('ks_disable_trial_en_bal', False) and \
                             (ks_account.internal_group == 'income' or ks_account.internal_group == 'expense') and \
@@ -1940,8 +1945,12 @@ class ks_dynamic_financial_base(models.Model):
                         ks_move_lines[ks_account.code]['initial_balance'] = 0.0
                         ks_move_lines[ks_account.code]['initial_credit'] = 0.0
                         ks_move_lines[ks_account.code]['initial_debit'] = 0.0
+                        ks_move_lines[ks_account.code]['main_type'] = dict(ks_account._fields['main_group'].selection).get(ks_account.main_group) or False
+                        ks_move_lines[ks_account.code]['account_type'] = dict(ks_account._fields['account_type'].selection).get(ks_account.account_type) or False
+                        ks_move_lines[ks_account.code]['sub_type'] = ks_account.sub_sub_group_id.name
 
-                    if ks_end_blns or ks_deb != 0 or ks_cre != 0:  # debit or credit exist
+
+                    if ks_end_blns or ks_deb != 0 or ks_cre != 0:
                         ks_total_deb += ks_deb
                         ks_total_cre += ks_cre
                         ks_total_bln += ks_bln
@@ -3967,11 +3976,131 @@ class ks_dynamic_financial_base(models.Model):
             'ks_sub_lines': ks_sublines,
 
         }
+        if self.display_name == 'Profit and Loss':
+            import copy
+
+            Account = self.env['account.account']
+
+            for line in info.get('ks_report_lines', []):
+                if 'account' in line:
+                    account_id = line['account']
+                    account_rec = Account.browse(account_id)
+
+                    sub_group = account_rec.sub_sub_group_id
+                    line['sub_type_id'] = sub_group.id if sub_group else False
+                    line['sub_type_name'] = sub_group.name if sub_group else ""
+
+
+            new_id_counter = 500000
+            grouped_sub_types = {}
+            lines_to_remove = set()
+
+            OTHER_SUB_TYPE_ID = -1
+            OTHER_SUB_TYPE_NAME = "OTHER"
+            processed_accounts = set()
+
+            for line in info.get('ks_report_lines', []):
+
+                if line.get('ks_level') != 4:
+                    continue
+
+                account_id = line.get('account')
+
+                if account_id in processed_accounts:
+                    continue
+
+                processed_accounts.add(account_id)
+
+                parent_level_2_id = line.get('parent')
+
+                if line.get('sub_type_id'):
+                    sub_type_id = line['sub_type_id']
+                    sub_type_name = line['sub_type_name']
+                else:
+                    sub_type_id = OTHER_SUB_TYPE_ID
+                    sub_type_name = OTHER_SUB_TYPE_NAME
+
+                lines_to_remove.add(id(line))
+
+                if parent_level_2_id not in grouped_sub_types:
+                    grouped_sub_types[parent_level_2_id] = {}
+
+                if sub_type_id not in grouped_sub_types[parent_level_2_id]:
+                    grouped_sub_types[parent_level_2_id][sub_type_id] = {
+                        'sub_type_name': sub_type_name,
+                        'accounts': [],
+                        'balance': 0.0,
+                        'debit': 0.0,
+                        'credit': 0.0,
+                        'currency_id': line['company_currency_id'],
+                    }
+
+                group_data = grouped_sub_types[parent_level_2_id][sub_type_id]
+
+                account_copy = copy.deepcopy(line)
+                group_data['accounts'].append(account_copy)
+
+                group_data['balance'] += line.get('balance', 0.0)
+                group_data['debit'] += line.get('debit', 0.0)
+                group_data['credit'] += line.get('credit', 0.0)
+
+
+            original_lines = info.get('ks_report_lines', [])
+            new_report_lines = []
+
+            for line in original_lines:
+
+                if line.get('ks_level') == 4 and id(line) in lines_to_remove:
+                    continue
+
+                new_report_lines.append(line)
+
+                if line.get('ks_level') == 2 and line.get('self_id') in grouped_sub_types:
+                    parent_level_2_id = line['self_id']
+
+                    for sub_type_id in sorted(grouped_sub_types[parent_level_2_id].keys()):
+                        group_data = grouped_sub_types[parent_level_2_id][sub_type_id]
+
+                        new_level_3_id = new_id_counter
+                        new_id_counter += 1
+
+                        level_3_line = {
+                            'ks_name': group_data['sub_type_name'],
+                            'balance': group_data['balance'],
+                            'parent': parent_level_2_id,
+                            'self_id': new_level_3_id,
+                            'ks_df_report_account_type': 'report',
+                            'style_type': 'sub_sub_total',
+                            'precision': 2,
+                            'symbol': '₹',
+                            'position': 'before',
+                            'list_len': [0, 1, 2],
+                            'ks_level': 3,
+                            'company_currency_id': group_data['currency_id'],
+                            'account_type': 'sub_total',
+                            'balance_cmp': {},
+                            'debit': group_data.get('debit', 0.0),
+                            'credit': group_data.get('credit', 0.0),
+                            'sub_type_id': sub_type_id,
+                        }
+
+                        new_report_lines.append(level_3_line)
+
+                        for acc in group_data['accounts']:
+                            acc['parent'] = new_level_3_id
+                            acc['list_len'] = [0, 1, 2, 3]
+                            new_report_lines.append(acc)
+
+
+            info['ks_report_lines'] = new_report_lines
+
+
+
+
+
         return info
 
-    ####################################################################################
-    # Journal options
-    ####################################################################################
+
 
     # Get journal filters from model account.journal
     @api.model
@@ -4713,6 +4842,11 @@ class ks_dynamic_financial_base(models.Model):
         ks_ctx = self.env.context.copy()
         if ks_parameter and 'accountId' in ks_parameter:
             ks_active_id = ks_parameter['accountId']
+            ks_ctx.update({
+                'search_default_account_id': [ks_active_id],
+            })
+        if ks_parameter and 'bsAccountId' in ks_parameter:
+            ks_active_id = ks_parameter['bsAccountId']
             ks_ctx.update({
                 'search_default_account_id': [ks_active_id],
             })

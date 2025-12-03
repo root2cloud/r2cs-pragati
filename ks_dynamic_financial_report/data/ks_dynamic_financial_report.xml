@@ -180,7 +180,10 @@
                    (4,ref('ks_dynamic_financial_report.ks_df_expense_depreciation')),
                    (4,ref('ks_dynamic_financial_report.ks_df_expense_direct_cost')),
                    (4,ref('ks_dynamic_financial_report.ks_df_expense_direct')),
-           (4,ref('ks_dynamic_financial_report.ks_df_expense_indirect'))]"/>
+                   (4,ref('ks_dynamic_financial_report.ks_df_expense_indirect')),
+                   (4,ref('ks_dynamic_financial_report.ks_df_expense_changes_in_inventory'))]"
+            />
+
             <field name="ks_display_detail">no_detail</field>
         </record>
         <record id="ks_pnl0"

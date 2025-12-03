@@ -24,6 +24,7 @@ class KsDynamicFinancialReportAccount(models.Model):
             ("expense", "Expenses"),
             ("expense_direct", "Direct Expense"),
             ("expense_indirect", "Indirect Expense"),
+            ("expense_changes_inventory", "Changes In Inventory"),
             ("expense_depreciation", "Depreciation"),
             ("expense_direct_cost", "Cost of Revenue"),
             ("off_balance", "Off-Balance Sheet"),
