@@ -5,6 +5,7 @@ import re
 
 _logger = logging.getLogger(__name__)
 
+
 class Partner(models.Model):
     _description = 'Contact'
     _inherit = "res.partner"
@@ -13,8 +14,8 @@ class Partner(models.Model):
 
     patient_ids = fields.One2many('hms.patient', 'partner_id', string='Patients')
 
-
-    primary_physician_id = fields.Many2one('hms.physician', string='Primary Care Doctor', compute='_compute_primary_physician')
+    primary_physician_id = fields.Many2one('hms.physician', string='Primary Care Doctor',
+                                           compute='_compute_primary_physician')
 
     @api.depends('patient_ids.primary_physician_id')
     def _compute_primary_physician(self):
@@ -24,11 +25,10 @@ class Partner(models.Model):
 
             # *****************************receipt editing****************************
 
-
     taxes_id = fields.Many2many('account.tax',
-        string="TDS Taxes",
-    )
-    customer_type = fields.Selection([('vendor','Vendor'),('customer','Customer'),('ven_cus','Vendor&Customer')])
+                                string="TDS Taxes",
+                                )
+    customer_type = fields.Selection([('vendor', 'Vendor'), ('customer', 'Customer'), ('ven_cus', 'Vendor&Customer')])
 
     @api.constrains('vat', 'l10n_in_pan')
     def _check_unique_vat_l10n_in_pan(self):
@@ -47,9 +47,6 @@ class Partner(models.Model):
 class AccountMoveLine(models.Model):
     _inherit = 'account.move.line'
 
-
-
-
     igst_tax = fields.Float(string='IGST', compute='_compute_taxes', store=True)
     cgst_tax = fields.Float(string='CGST', compute='_compute_taxes', store=True)
     sgst_tax = fields.Float(string='SGST', compute='_compute_taxes', store=True)
@@ -58,34 +55,36 @@ class AccountMoveLine(models.Model):
     igst_tax_char = fields.Float(string='IGST Input', compute='_compute_taxes', store=True)
     rem_tax_char = fields.Float(string='Other Tax Input', compute='_compute_taxes', store=True)
     remaining_tax = fields.Float(string="Line Taxes", compute='_compute_taxes', store=True)
-    tax_ids = fields.Many2many('account.tax', string='Taxes', domain=['|', ('type_tax_use', '=', 'sale'), ('type_tax_use', '=', 'purchase')])
+    tax_ids = fields.Many2many('account.tax', string='Taxes',
+                               domain=['|', ('type_tax_use', '=', 'sale'), ('type_tax_use', '=', 'purchase')])
     name_of_record = fields.Char(string='Reference', related='move_id.name')
     gstin_number = fields.Char(string='GSTIN NO', related='move_id.partner_id.vat')
     l10n_in_hsn_code = fields.Char(string='HSN Code', related='product_id.l10n_in_hsn_code')
     l10n_in_gst_treatment = fields.Selection([
-            ('regular', 'Registered Business - Regular'),
-            ('composition', 'Registered Business - Composition'),
-            ('unregistered', 'Unregistered Business'),
-            ('consumer', 'Consumer'),
-            ('overseas', 'Overseas'),
-            ('special_economic_zone', 'Special Economic Zone'),
-            ('deemed_export', 'Deemed Export'),
-            ('uin_holders', 'UIN Holders'),
-        ], string="GST Treatment", related='move_id.partner_id.l10n_in_gst_treatment')
+        ('regular', 'Registered Business - Regular'),
+        ('composition', 'Registered Business - Composition'),
+        ('unregistered', 'Unregistered Business'),
+        ('consumer', 'Consumer'),
+        ('overseas', 'Overseas'),
+        ('special_economic_zone', 'Special Economic Zone'),
+        ('deemed_export', 'Deemed Export'),
+        ('uin_holders', 'UIN Holders'),
+    ], string="GST Treatment", related='move_id.partner_id.l10n_in_gst_treatment')
     state_of_rec = fields.Selection(
-            selection=[
-                ('draft', 'Draft'),
-                ('posted', 'Posted'),
-                ('cancel', 'Cancelled'),
-            ],
-            string='Status',
-            required=True,
-            readonly=True,
-            copy=False,
-            tracking=True,
-            default='draft',
-            related='move_id.state'
-        )
+        selection=[
+            ('draft', 'Draft'),
+            ('posted', 'Posted'),
+            ('cancel', 'Cancelled'),
+        ],
+        string='Status',
+        required=True,
+        readonly=True,
+        copy=False,
+        tracking=True,
+        default='draft',
+        related='move_id.state'
+    )
+
     # @api.onchange('partner_id', 'tds_apply')
     # def _onchange_partner_id_tds_apply(self):
     #     for line in self:
@@ -93,7 +92,6 @@ class AccountMoveLine(models.Model):
     #             existing_taxes = line.tax_ids.ids
     #             new_taxes = line.partner_id.taxes_id.filtered(lambda tax: tax.id not in existing_taxes)
     #             line.tax_ids = [(4, tax.id) for tax in new_taxes]
-
 
     @api.depends('tax_ids', 'price_subtotal')
     def _compute_taxes(self):
@@ -140,56 +138,76 @@ class AccountMoveLine(models.Model):
 
             # Store the remaining_tax value in the field
             line.remaining_tax = remaining_tax
-        
+
+
 class AccountMove(models.Model):
     _inherit = 'account.move'
 
     def _get_default_category_id(self):
-            domain = [('name', '=', "Account Move"),('company_id','=',self.env.company.id)]
-            category_type = self.env['approval.category'].search(domain, limit=1)
-            if category_type:
-                return category_type.id
-            return False
+        domain = [('name', '=', "Account Move"), ('company_id', '=', self.env.company.id)]
+        category_type = self.env['approval.category'].search(domain, limit=1)
+        if category_type:
+            return category_type.id
+        return False
 
-    tds_apply = fields.Selection([('yes', "Yes"), ('no', "No")], default='no', string="TDS availability", compute='_compute_tds_apply')
+    tds_apply = fields.Selection([('yes', "Yes"), ('no', "No")], default='no', string="TDS availability",
+                                 compute='_compute_tds_apply')
     stock_name = fields.Char(string='Stock_name')
     schedule_date = fields.Date(string='Schedule Date')
 
     journal_id_name = fields.Char(string="Journal Name", related="journal_id.name")
     original_bill = fields.Binary(string='Original Bill', store=True, tracking=True)
     bill_reference = fields.Char(string='MRN Bill Reference', tracking=True)
-    account_approval_id = fields.Many2one("approval.request",string="Account Approval Id")
+    account_approval_id = fields.Many2one("approval.request", string="Account Approval Id")
     account_approval_status = fields.Selection([('pending', 'Pending'), ('approve', 'Approved')],
-        string='Approval Status', default='pending', compute='_compute_approve_status')
+                                               string='Approval Status', default='pending',
+                                               compute='_compute_approve_status')
     request_owner_id = fields.Many2one('res.users', string="Request Owner",
-        check_company=True, domain="[('company_ids', 'in', company_id)]", default=lambda self: self.env.user)
-    category_id = fields.Many2one('approval.category',string='category',default=_get_default_category_id)
+                                       check_company=True, domain="[('company_ids', 'in', company_id)]",
+                                       default=lambda self: self.env.user)
+    category_id = fields.Many2one('approval.category', string='category', default=_get_default_category_id)
     approver_1 = fields.Char(string='Approver 1', compute='_compute_approvers_names', store=True)
     approver_2 = fields.Char(string='Approver 2', compute='_compute_approvers_names', store=True)
     reuse_button = fields.Boolean(default=False)
-    approval_level_1 = fields.Many2one('res.users', string='Approver Level 1', domain="[('share', '=', False)]")
-    approval_level_2 = fields.Many2one('res.users', string='Approver Level 2', domain="[('share', '=', False)]")
-    approval_level_3 = fields.Many2one('res.users', string='Approver Level 3', domain="[('share', '=', False)]")
+    department_id = fields.Many2one('hr.department', 'Department', tracking=True, required=True)
+    approval_level_1 = fields.Many2one('res.users', string='Approver Level 1', domain="[('share', '=', False)]",
+                                       readonly=True)
+    approval_level_2 = fields.Many2one('res.users', string='Approver Level 2', domain="[('share', '=', False)]",
+                                       readonly=True)
+    approval_level_3 = fields.Many2one('res.users', string='Approver Level 3', domain="[('share', '=', False)]",
+                                       readonly=True)
 
-   
+    @api.onchange('department_id')
+    def _onchange_department_id(self):
+        if self.department_id:
+            self.approval_level_1 = self.department_id.approver1.id if self.department_id.approver1 else False
+            self.approval_level_2 = self.department_id.approver2.id if self.department_id.approver2 else False
+            self.approval_level_3 = self.department_id.approver3.id if self.department_id.approver3 else False
+        else:
+            self.approval_level_1 = False
+            self.approval_level_2 = False
+            self.approval_level_3 = False
+
     @api.onchange('approval_level_1')
     def _onchange_approval_level_1(self):
         for record in self:
-            if record.approval_level_1 and (record.approval_level_1 == record.approval_level_2 or record.approval_level_1 == record.approval_level_3):
+            if record.approval_level_1 and (
+                    record.approval_level_1 == record.approval_level_2 or record.approval_level_1 == record.approval_level_3):
                 raise UserError("The same Approver is selected more than once. Please check and correct it.")
 
     @api.onchange('approval_level_2')
     def _onchange_approval_level_2(self):
         for record in self:
-            if record.approval_level_2 and (record.approval_level_2 == record.approval_level_1 or record.approval_level_2 == record.approval_level_3):
+            if record.approval_level_2 and (
+                    record.approval_level_2 == record.approval_level_1 or record.approval_level_2 == record.approval_level_3):
                 raise UserError("The same Approver is selected more than once. Please check and correct it.")
 
     @api.onchange('approval_level_3')
     def _onchange_approval_level_3(self):
         for record in self:
-            if record.approval_level_3 and (record.approval_level_3 == record.approval_level_1 or record.approval_level_3 == record.approval_level_2):
+            if record.approval_level_3 and (
+                    record.approval_level_3 == record.approval_level_1 or record.approval_level_3 == record.approval_level_2):
                 raise UserError("The same Approver is selected more than once. Please check and correct it.")
-
 
     @api.depends('partner_id', 'partner_id.taxes_id')
     def _compute_tds_apply(self):
@@ -223,7 +241,7 @@ class AccountMove(models.Model):
 
     def action_for_account_move_submit(self):
         approver_list = []
-        
+
         if self.approval_level_1:
             approver_list.append(self.approval_level_1.id)
         if self.approval_level_2:
@@ -232,7 +250,7 @@ class AccountMove(models.Model):
             approver_list.append(self.approval_level_3.id)
 
         for record in self:
-                
+
             if not record.request_owner_id or not record.category_id:
                 raise UserError("Please fill in the required fields: Purchase No, Request Owner, and Category")
             # if record.reuse_button:
@@ -247,7 +265,7 @@ class AccountMove(models.Model):
                 'request_owner_id': record.request_owner_id.id,
                 'category_id': record.category_id.id,
                 'account_move_sep_id': record.id,
-                'company_id':self.env.company.id,
+                'company_id': self.env.company.id,
             })
 
             # Update the account_approval_id with the latest approval request ID
@@ -276,18 +294,17 @@ class AccountMove(models.Model):
                 raise UserError(_('Please submit the record for approval before posting'))
             else:
                 return super(AccountMove, self).action_post()
-            
+
     def action_reset_to_draft(self):
         for record in self:
             record.write({'state': 'draft'})
         return True
 
-
-    #code for view button
+    # code for view button
     def open_pdf_viewer(self):
         return {
             'type': 'ir.actions.act_url',
             'url': '/web/content/?model=account.move&id={}&field=original_bill'.format(self.id),
             'target': 'new',
-            
+
         }

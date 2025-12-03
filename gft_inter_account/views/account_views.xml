@@ -5,7 +5,8 @@
         <field name="arch" type="xml">
             <form string="Internal Transactions">
                 <header>
-                    <button name="action_confirm" type="object" string="Confirm" class="btn-primary" attrs="{'invisible':  [('state','!=','approve')]}"/>
+                    <button name="action_confirm" type="object" string="Confirm" class="btn-primary"
+                            attrs="{'invisible':  [('state','!=','approve')]}"/>
                     <field name="is_approval_user" invisible="1"/>
                     <button name="send_for_approval" type="object" string="Submit" class="btn-primary"
                             attrs="{'invisible':  [('state','!=','draft')]}"/>
@@ -31,9 +32,10 @@
                             <field name="date"/>
                             <field name="boole" widget="radio"/>
                             <field name="amount"/>
-                            <field name="approval_level_1"/>
-                            <field name="approval_level_2"/>
-                            <field name="approval_level_3"/>
+                            <field name="department_id"/>
+                            <field name='approval_level_1' readonly="1" force_save="1"/>
+                            <field name='approval_level_2' readonly="1" force_save="1"/>
+                            <field name='approval_level_3' readonly="1" force_save="1"/>
 
                             <!-- <field name="relation_id"/> -->
                         </group>
@@ -63,7 +65,8 @@
                 <field name="boole"/>
                 <!-- <field name="patient_id"/> -->
                 <field name="date"/>
-                 <field name="state" decoration-info="state=='draft'" decoration-danger="state=='cancel'" decoration-success="state=='post'" decoration-warning="state=='confirm'" widget="badge"/>
+                <field name="state" decoration-info="state=='draft'" decoration-danger="state=='cancel'"
+                       decoration-success="state=='post'" decoration-warning="state=='confirm'" widget="badge"/>
                 <!-- <field name="company_id" groups="base.group_multi_company"/> -->
             </tree>
         </field>

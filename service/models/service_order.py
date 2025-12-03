@@ -9,79 +9,98 @@ class ServiceOrder(models.Model):
     _inherit = ["mail.thread", 'mail.activity.mixin']
     _description = 'Service Order Model'
 
-
     def _get_default_category_id(self):
-            domain = [('name', '=', "Service Order")]
-            category_type = self.env['approval.category'].search(domain, limit=1)
-            if category_type:
-                return category_type.id
-            return False
+        domain = [('name', '=', "Service Order")]
+        category_type = self.env['approval.category'].search(domain, limit=1)
+        if category_type:
+            return category_type.id
+        return False
 
     READONLYSTATES = {
-        'approve': [('readonly' , True)]
+        'approve': [('readonly', True)]
     }
 
     name = fields.Char(string='Reference', required=True, copy=False,
-                      readonly=True, tracking=True,
-                      default=lambda self: _('New'), states=READONLYSTATES)
-    partner_id = fields.Many2one("res.partner",string="Vendor", required=True, tracking=True, states=READONLYSTATES)
+                       readonly=True, tracking=True,
+                       default=lambda self: _('New'), states=READONLYSTATES)
+    partner_id = fields.Many2one("res.partner", string="Vendor", required=True, tracking=True, states=READONLYSTATES)
     vendor_refernce = fields.Char(string="Vendor Reference", tracking=True, states=READONLYSTATES)
-    order_date = fields.Date(string="Date", tracking=True, states=READONLYSTATES, default=fields.Datetime.now(), required=True)
+    order_date = fields.Date(string="Date", tracking=True, states=READONLYSTATES, default=fields.Datetime.now(),
+                             required=True)
     transport = fields.Char(string="Transportation", tracking=True, states=READONLYSTATES)
-    bill_reference=fields.Char(string="Bill Reference", tracking=True, states=READONLYSTATES)
-    payment_terms_id = fields.Many2one("account.payment.term",string="Payment Terms", tracking=True, states=READONLYSTATES)
-    service_narration=fields.Char(string="Service Narration", tracking=True, states=READONLYSTATES)
-    service_order_approval_id = fields.Many2one("approval.request",string="Service Order Approval Id", tracking=True, readonly=True)
+    bill_reference = fields.Char(string="Bill Reference", tracking=True, states=READONLYSTATES)
+    payment_terms_id = fields.Many2one("account.payment.term", string="Payment Terms", tracking=True,
+                                       states=READONLYSTATES)
+    service_narration = fields.Char(string="Service Narration", tracking=True, states=READONLYSTATES)
+    service_order_approval_id = fields.Many2one("approval.request", string="Service Order Approval Id", tracking=True,
+                                                readonly=True)
     service_approval_status = fields.Selection([('pending', 'Pending'), ('approve', 'Approved')],
-        string='Approval Status', default='pending', tracking=True)
+                                               string='Approval Status', default='pending', tracking=True)
     request_owner_id = fields.Many2one('res.users', string="Request Owner",
-        check_company=True, domain="[('company_ids', 'in', company_id)]", default=lambda self: self.env.user, tracking=True, readonly=True)
-    category_id = fields.Many2one('approval.category',string='category',default=_get_default_category_id, tracking=True)
-    original_bills = fields.Binary(string="Original Bill", attachment=True, tracking=True)    
-    expect_arrival=fields.Datetime(string="Expected Completion", tracking=True, states=READONLYSTATES, default=fields.Datetime.now())
-    ask_confirm=fields.Boolean(string="Ask Confirmation", default=False, tracking=True, states=READONLYSTATES)
-    state = fields.Selection([("draft","Draft"),("waiting1","Waiting Level1"),("waiting2","Waiting Level2"),("waiting3","Waiting Level3"),("approve","Approved"),('reject', 'Approval Rejected'),("cancel","Cancel")], default="draft", tracking=True)
+                                       check_company=True, domain="[('company_ids', 'in', company_id)]",
+                                       default=lambda self: self.env.user, tracking=True, readonly=True)
+    category_id = fields.Many2one('approval.category', string='category', default=_get_default_category_id,
+                                  tracking=True)
+    original_bills = fields.Binary(string="Original Bill", attachment=True, tracking=True)
+    expect_arrival = fields.Datetime(string="Expected Completion", tracking=True, states=READONLYSTATES,
+                                     default=fields.Datetime.now())
+    ask_confirm = fields.Boolean(string="Ask Confirmation", default=False, tracking=True, states=READONLYSTATES)
+    state = fields.Selection([("draft", "Draft"), ("waiting1", "Waiting Level1"), ("waiting2", "Waiting Level2"),
+                              ("waiting3", "Waiting Level3"), ("approve", "Approved"), ('reject', 'Approval Rejected'),
+                              ("cancel", "Cancel")], default="draft", tracking=True)
     total_amount = fields.Monetary(string='Total Amount', compute="_compute_total_amount", store=True, tracking=True)
 
     advanced_amount = fields.Float(string='Advanced Amount', compute='_compute_advanced_amount', store=True,
                                    digits=(16, 3), tracking=True)
 
-    service_line_ids = fields.One2many("service.order.line","service_id",string="Service", states=READONLYSTATES, required=True)
+    service_line_ids = fields.One2many("service.order.line", "service_id", string="Service", states=READONLYSTATES,
+                                       required=True)
     amount_in_words = fields.Char(string='Amount in Words', compute='_compute_amount_in_words', store=True)
     currency_id = fields.Many2one('res.currency', 'Currency', required=True,
-        default=lambda self: self.env.company.currency_id.id, tracking=True, readonly=True)
+                                  default=lambda self: self.env.company.currency_id.id, tracking=True, readonly=True)
     approver_1 = fields.Char(string='Approver 1', store=True)
     approver_2 = fields.Char(string='Approver 2', store=True)
     approver_3 = fields.Char(string='Approver 2', store=True)
     reuse_button = fields.Boolean(default=False, tracking=True, states=READONLYSTATES)
-    company_id = fields.Many2one('res.company', string='Company', required=True, default=lambda self: self.env.company.id,
-        help='The default company for this user.', context={'user_preference': True}, readonly=True)
-    location_id = fields.Many2one('stock.location', "Cost Center", tracking=True, states=READONLYSTATES, domain=[('is_cost_center', '=', True)])
-    department_id = fields.Many2one('hr.department','Department', tracking=True, states=READONLYSTATES)
+    company_id = fields.Many2one('res.company', string='Company', required=True,
+                                 default=lambda self: self.env.company.id,
+                                 help='The default company for this user.', context={'user_preference': True},
+                                 readonly=True)
+    location_id = fields.Many2one('stock.location', "Cost Center", tracking=True, states=READONLYSTATES,
+                                  domain=[('is_cost_center', '=', True)])
+    department_id = fields.Many2one('hr.department', 'Department', tracking=True, states=READONLYSTATES, required=True)
     igst_tax = fields.Float(string='IGST', compute='_compute_igst_amount', store=True, tracking=True)
     cgst_tax = fields.Float(string='CGST', compute='_compute_cgst_amount', store=True, tracking=True)
     sgst_tax = fields.Float(string='SGST', compute='_compute_sgst_amount', store=True, tracking=True)
-    discount_total = fields.Float(string='Discount', compute='_compute_discount_total', store=True, digits=(16, 3), tracking=True)
-    total_wo_tax = fields.Float(string='Untaxed Amount', compute='_compute_total_wo_tax', store=True, digits=(16, 3), tracking=True)
-    shipping_address_id = fields.Many2one('res.partner',string='Shipping Address', tracking=True)
-    terms = fields.Text(string = 'Terms & Conditions', tracking=True)
+    discount_total = fields.Float(string='Discount', compute='_compute_discount_total', store=True, digits=(16, 3),
+                                  tracking=True)
+    total_wo_tax = fields.Float(string='Untaxed Amount', compute='_compute_total_wo_tax', store=True, digits=(16, 3),
+                                tracking=True)
+    shipping_address_id = fields.Many2one('res.partner', string='Shipping Address', tracking=True)
+    terms = fields.Text(string='Terms & Conditions', tracking=True)
     user_id = fields.Many2one('res.users', string='Responsible user',
                               default=lambda self: self.env.user)
-    approval_level_1 = fields.Many2one('res.users', string='Approver Level 1', domain="[('share', '=', False)]")
-    approval_level_2 = fields.Many2one('res.users', string='Approver Level 2', domain="[('share', '=', False)]",)
-    approval_level_3 = fields.Many2one('res.users', string='Approver Level 3', domain="[('share', '=', False)]", states=READONLYSTATES)
-    show_approve_button = fields.Boolean(string='Show Approve Button', compute='_compute_show_approve_button', tracking=True)
-    show_reject_button =  fields.Boolean(string='Show Reject Button', compute='_compute_show_approve_button', tracking=True)
+    approval_level_1 = fields.Many2one('res.users', string='Approver Level 1', domain="[('share', '=', False)]",
+                                       readonly=True)
+    approval_level_2 = fields.Many2one('res.users', string='Approver Level 2', readonly=True,
+                                       domain="[('share', '=', False)]", )
+    approval_level_3 = fields.Many2one('res.users', string='Approver Level 3', readonly=True,
+                                       domain="[('share', '=', False)]")
+    show_approve_button = fields.Boolean(string='Show Approve Button', compute='_compute_show_approve_button',
+                                         tracking=True)
+    show_reject_button = fields.Boolean(string='Show Reject Button', compute='_compute_show_approve_button',
+                                        tracking=True)
 
     @api.onchange('department_id')
     def _onchange_department_id(self):
-
         if self.department_id:
-            self.approval_level_1 = self.department_id.approver1.id
-            self.approval_level_2 = self.department_id.approver2.id
+            self.approval_level_1 = self.department_id.approver1.id if self.department_id.approver1 else False
+            self.approval_level_2 = self.department_id.approver2.id if self.department_id.approver2 else False
+            self.approval_level_3 = self.department_id.approver3.id if self.department_id.approver3 else False
         else:
             self.approval_level_1 = False
             self.approval_level_2 = False
+            self.approval_level_3 = False
 
     @api.depends('service_line_ids.price_subtotal')
     def _compute_advanced_amount(self):
@@ -91,46 +110,47 @@ class ServiceOrder(models.Model):
     def action_reset_to_draft(self):
         for record in self:
             record.write({'state': 'draft'})
-        return True 
-        
+        return True
+
     @api.onchange('approval_level_1')
     def _onchange_approval_level_1(self):
         for record in self:
-            if record.approval_level_1 and (record.approval_level_1 == record.approval_level_2 or record.approval_level_1 == record.approval_level_3):
+            if record.approval_level_1 and (
+                    record.approval_level_1 == record.approval_level_2 or record.approval_level_1 == record.approval_level_3):
                 raise UserError("The same Approver is selected more than once. Please check and correct it.")
 
     @api.onchange('approval_level_2')
     def _onchange_approval_level_2(self):
         for record in self:
-            if record.approval_level_2 and (record.approval_level_2 == record.approval_level_1 or record.approval_level_2 == record.approval_level_3):
+            if record.approval_level_2 and (
+                    record.approval_level_2 == record.approval_level_1 or record.approval_level_2 == record.approval_level_3):
                 raise UserError("The same Approver is selected more than once. Please check and correct it.")
 
     @api.onchange('approval_level_3')
     def _onchange_approval_level_3(self):
         for record in self:
-            if record.approval_level_3 and (record.approval_level_3 == record.approval_level_1 or record.approval_level_3 == record.approval_level_2):
+            if record.approval_level_3 and (
+                    record.approval_level_3 == record.approval_level_1 or record.approval_level_3 == record.approval_level_2):
                 raise UserError("The same Approver is selected more than once. Please check and correct it.")
 
-
-
-    #Compute Total in the form based on service_line_ids
+    # Compute Total in the form based on service_line_ids
     @api.depends('service_line_ids.price_subtotal')
     def _compute_total_wo_tax(self):
         for order in self:
             order.total_wo_tax = sum(order.service_line_ids.mapped('price_subtotal'))
 
-    #Compute Total in the form based on service_line_ids
+    # Compute Total in the form based on service_line_ids
     @api.depends('service_line_ids.igst_tax')
     def _compute_igst_amount(self):
         for order in self:
             order.igst_tax = sum(order.service_line_ids.mapped('igst_tax'))
-        #Compute Total in the form based on service_line_ids
+        # Compute Total in the form based on service_line_ids
 
     @api.depends('service_line_ids.cgst_tax')
     def _compute_cgst_amount(self):
         for order in self:
             order.cgst_tax = sum(order.service_line_ids.mapped('cgst_tax'))
-        #Compute Total in the form based on service_line_ids
+        # Compute Total in the form based on service_line_ids
 
     @api.depends('service_line_ids.sgst_tax')
     def _compute_sgst_amount(self):
@@ -141,7 +161,6 @@ class ServiceOrder(models.Model):
     def _compute_discount_total(self):
         for order in self:
             order.discount_total = sum(order.service_line_ids.mapped('discounted_amount'))
-
 
     @api.model_create_multi
     def create(self, values_list):
@@ -159,13 +178,15 @@ class ServiceOrder(models.Model):
                         start_date = fiscal_year.date_from
                         end_date = fiscal_year.date_to
                         if start_date <= current_date <= end_date:
-                            sequence_number = sequence.split('/')[2] if sequence.startswith("SO/") else sequence.split('/')[0]
+                            sequence_number = sequence.split('/')[2] if sequence.startswith("SO/") else \
+                                sequence.split('/')[0]
                             year_range = "{}-{}".format(start_date.strftime('%y'), end_date.strftime('%y'))
                             record.name = "SO/{}/{}".format(year_range, sequence_number.zfill(4))
                             break
                     else:
                         # No fiscal year found for the current date, default to current year and month
-                        sequence_number = sequence.split('/')[2] if sequence.startswith("SO/") else sequence.split('/')[0]
+                        sequence_number = sequence.split('/')[2] if sequence.startswith("SO/") else sequence.split('/')[
+                            0]
                         current_year_month = current_date.strftime('%m/%Y')
                         record.name = "SO/{}/{}".format(current_year_month, sequence_number.zfill(4))
                 else:
@@ -175,7 +196,6 @@ class ServiceOrder(models.Model):
                     record.name = "SO/{}/{}".format(current_year_month, sequence_number.zfill(4))
 
         return records
-
 
     def order_cancel(self):
         self.state = 'cancel'
@@ -209,7 +229,7 @@ class ServiceOrder(models.Model):
 
     def action_for_service_order_submit(self):
         approver_list = []
-        
+
         if self.approval_level_1:
             approver_list.append(self.approval_level_1.id)
         if self.approval_level_2:
@@ -223,7 +243,7 @@ class ServiceOrder(models.Model):
 
             # if not record.request_owner_id or not record.category_id:
             #     raise UserError("Please fill in the required fields: Purchase No, Request Owner, and Category")
-            
+
             # if record.reuse_button:
             #     raise ValidationError(_("The record is already Submitted, Please check the Service Order Approval Id"))
 
@@ -260,8 +280,7 @@ class ServiceOrder(models.Model):
 
         return True
 
-
-    #................Total Amount.................
+    # ................Total Amount.................
     @api.depends('service_line_ids.price_tax_subtotal')
     def _compute_total_amount(self):
         for order in self:
@@ -283,15 +302,15 @@ class ServiceOrder(models.Model):
         return words
 
     # /new method to convert currency into indian currency words
-    #..............Amount in words..........
+    # ..............Amount in words..........
     @api.depends('total_amount', 'currency_id')
     def _compute_amount_in_words(self):
         # for order in self:
-            # if order.total_amount:
-            #     amount_words = order.currency_id.amount_to_text(order.total_amount)
-            #     order.amount_in_words = amount_words.title()  # Capitalize the first letter
-            # else:
-            #     order.amount_in_words = ""
+        # if order.total_amount:
+        #     amount_words = order.currency_id.amount_to_text(order.total_amount)
+        #     order.amount_in_words = amount_words.title()  # Capitalize the first letter
+        # else:
+        #     order.amount_in_words = ""
         # amount in words in europe format converted to Indian format
         for order in self:
             if order.total_amount:
@@ -313,7 +332,7 @@ class ServiceOrder(models.Model):
             'type': 'ir.actions.act_url',
             'url': '/web/content/?model=service.order&id={}&field=original_bills'.format(self.id),
             'target': 'new',
-            
+
         }
 
     def action_reject(self):
@@ -331,7 +350,7 @@ class ServiceOrder(models.Model):
                     record.state = 'waiting2'
                     record._create_mail_activity_to_approval(self.approval_level_2.id)
                 else:
-                    record.state = 'approve'      # Move to the next state
+                    record.state = 'approve'  # Move to the next state
             elif record.state == 'waiting2':
                 # Logic for approval by level 2 approver
                 if record.approval_level_3:
@@ -381,7 +400,7 @@ class ServiceOrder(models.Model):
             })
             return activity
         return False
-        
+
     def _get_user_approval_activities(self, user):
         domain = [
             ('res_model', '=', 'service.order'),
@@ -390,26 +409,26 @@ class ServiceOrder(models.Model):
             ('user_id', '=', user.id)
         ]
         activities = self.env['mail.activity'].search(domain)
-        print("############",activities)
-        return activities   
-        
+        print("############", activities)
+        return activities
 
 
 class ServiceOrderLine(models.Model):
-    _name = "service.order.line"   
+    _name = "service.order.line"
     _description = 'Service Order Lines'
-    service_id=fields.Many2one("service.order")
+    service_id = fields.Many2one("service.order")
 
     service_id = fields.Many2one("service.order")
-    product_id = fields.Many2one("product.product",string="Product", required=True)
-    description=fields.Text(string="Description")
+    product_id = fields.Many2one("product.product", string="Product", required=True)
+    description = fields.Text(string="Description")
     quantity = fields.Float(string="Quantity")
-    last_purchase_cost=fields.Float(string="Last Purchase Cost",compute='_compute_last_purchase_cost')
-    price_unit = fields.Float(string="Unit price", required=True, readonly=False, store=True, compute='_compute_price_unit', default=0)
-    taxes_id = fields.Many2many("account.tax",string="Taxes")
-    price_subtotal = fields.Float(string='SubTotal',compute='_compute_price_subtotal', store=True)
+    last_purchase_cost = fields.Float(string="Last Purchase Cost", compute='_compute_last_purchase_cost')
+    price_unit = fields.Float(string="Unit price", required=True, readonly=False, store=True,
+                              compute='_compute_price_unit', default=0)
+    taxes_id = fields.Many2many("account.tax", string="Taxes")
+    price_subtotal = fields.Float(string='SubTotal', compute='_compute_price_subtotal', store=True)
     price_tax_subtotal = fields.Float(string='Subtotal (with Taxes)', compute='_compute_price_subtotal', store=True)
-    currency_id=fields.Many2one("res.currency",string="Currency") 
+    currency_id = fields.Many2one("res.currency", string="Currency")
 
     discount_type = fields.Selection(
         [('fixed', 'Fixed'), ('percent', 'Percent')],
@@ -417,7 +436,7 @@ class ServiceOrderLine(models.Model):
         default="percent")
     discount_amount = fields.Float(string="Discount", default=0.0)
     discounted_amount = fields.Float(string="Total Discount", compute='_compute_discounted_amount', store=True)
-    
+
     igst_tax = fields.Float(string='IGST', compute='_compute_taxes', store=True)
     cgst_tax = fields.Float(string='CGST', compute='_compute_taxes', store=True)
     sgst_tax = fields.Float(string='SGST', compute='_compute_taxes', store=True)
@@ -428,30 +447,26 @@ class ServiceOrderLine(models.Model):
         domain="[('category_id', '=', product_uom_category_id)]")
     product_uom_category_id = fields.Many2one(related='product_id.uom_id.category_id')
     remarks = fields.Char(string='Remarks')
-    company_id = fields.Many2one('res.company', string='Company', required=True, default=lambda self: self.env.company.id,
-        help='The default company for this user.', context={'user_preference': True})
+    company_id = fields.Many2one('res.company', string='Company', required=True,
+                                 default=lambda self: self.env.company.id,
+                                 help='The default company for this user.', context={'user_preference': True})
     partner_id = fields.Many2one(related='service_id.partner_id', store=True, string='Partner')
 
-    
     @api.depends('product_id')
     def _compute_product_uom_id(self):
         for line in self:
             line.product_uom_id = line.product_id.uom_id
-    
-
-
 
     @api.onchange('product_id')
     def onchange_product_name(self):
         for rec in self:
             if rec.product_id:
-                rec.description=rec.product_id.default_code
-                rec.quantity=1.0
-               
-            else:
-               rec.description=''
-               rec.quantity=0.0
+                rec.description = rec.product_id.default_code
+                rec.quantity = 1.0
 
+            else:
+                rec.description = ''
+                rec.quantity = 0.0
 
     # ......unit price....
     @api.depends('product_id', 'partner_id')
@@ -459,8 +474,8 @@ class ServiceOrderLine(models.Model):
         for line in self:
             taxes_id = line.product_id.taxes_id
             tds_taxes = line.partner_id.taxes_id
-            line.taxes_id =  tds_taxes +taxes_id 
-            print("tacesssssssssssssssssss",line.taxes_id)
+            line.taxes_id = tds_taxes + taxes_id
+            print("tacesssssssssssssssssss", line.taxes_id)
             cost_price = line.product_id.standard_price
             line.price_unit = cost_price
 
@@ -473,8 +488,7 @@ class ServiceOrderLine(models.Model):
     #         sale_price = line.product_id.list_price
     #         line.price_unit = cost_price
 
-
-    #..........subtotal...........
+    # ..........subtotal...........
     @api.depends('price_unit', 'taxes_id', 'quantity', 'discount_type', 'discount_amount')
     def _compute_price_subtotal(self):
         for line in self:
@@ -492,14 +506,13 @@ class ServiceOrderLine(models.Model):
             taxes_total = sum(tax.amount for tax in line.taxes_id)
             line.price_tax_subtotal = line.price_subtotal * (1 + taxes_total / 100)
 
-    
     # ..........last purchase cost.......
     @api.depends('product_id')
     def _compute_last_purchase_cost(self):
         for line in self:
             purchase_invoice_lines = self.env['account.move.line'].search([
-            ('product_id', '=', line.product_id.id),
-            ('move_id.move_type', '=', 'in_invoice'),
+                ('product_id', '=', line.product_id.id),
+                ('move_id.move_type', '=', 'in_invoice'),
             ])
 
             sorted_invoice_lines = purchase_invoice_lines.sorted(key=lambda r: (r.move_id.date, r.id), reverse=True)
@@ -511,8 +524,7 @@ class ServiceOrderLine(models.Model):
             else:
                 line.last_purchase_cost = 0.0
 
-
-    #....... tax calculate.........
+    # ....... tax calculate.........
     @api.depends('taxes_id', 'price_subtotal')
     def _compute_taxes(self):
         for line in self:
@@ -540,7 +552,7 @@ class ServiceOrderLine(models.Model):
             line.sgst_tax = sgst
 
             # Store the remaining_tax value in the field
-            line.remaining_tax = remaining_tax            
+            line.remaining_tax = remaining_tax
 
     @api.depends('price_unit', 'taxes_id', 'quantity', 'discount_type', 'discount_amount')
     def _compute_discounted_amount(self):
@@ -552,9 +564,4 @@ class ServiceOrderLine(models.Model):
                 line.discounted_amount = discount_amount
             else:
                 # If neither 'fixed' nor 'percent', set discounted_amount to zero
-                line.discounted_amount = 0.0  
-    
-    
-
-   
-   
+                line.discounted_amount = 0.0
