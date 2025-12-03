@@ -739,155 +739,118 @@
 
 
     <t t-name="ks_df_gl_subsection">
-    <div class="ks_py-mline-table-div">
-        <table class="table border ks_table_2" id="general_ledger_table">
-            <thead class="ks_thead">
-                <tr>
-                    <th>Date</th>
-                    <th>JRNL</th>
-                    <th>Partner</th>
-                    <th>Ref No</th>
-                    <th>Status</th>
-                    <th>Account</th>
-                    <th>All Accounts</th>
-                    <t t-if="ks_enable_ledger_in_bal">
-                        <th>Initial Balance</th>
-                    </t>
-                    <th>Debit</th>
-                    <th>Credit</th>
-                    <th>Balance</th>
-                </tr>
-            </thead>
-            <tbody>
-                <t t-foreach="account_data" t-as="account_line">
-                    <tr class="border-bottom" t-att-data-move-id="account_line.move_id or account_line.mmove_id">
-                        <td>
-                            <t t-if="account_line.ldate">
-                                <div class="dropdown">
-                                    <a data-bs-toggle="dropdown" href="#">
-                                        <span t-att-data-bs-move-id="account_line.move_id">
-                                            <t t-esc="account_line.ldate"/>
-                                        </span>
-                                        <i class="fa fa-caret-down"/>
-                                    </a>
-                                    <ul class="dropdown-menu p-2" role="menu">
-                                        <t t-if="account_line.move_name">
-                                            <li role="presentation">
-                                                <a role="menuitem" class="ks_view-source" tabindex="-1"
-                                                   action="ks_df_show_move_line"
-                                                   t-att-data-bs-move-id="account_line.move_id">
-                                                    Move Line
-                                                </a>
-                                            </li>
-                                        </t>
-                                    </ul>
-                                </div>
-                            </t>
-                        </td>
-                        <td><t t-esc="account_line.lcode"/></td>
-                        <td><t t-esc="account_line.partner_name"/></td>
-                        <td><t t-esc="account_line.move_name"/></td>
-                        <td><t t-esc="account_line.move_state"/></td>
-                        <td><t t-esc="account_line.lname"/></td>
-                        <td class="all-accounts-cell text-muted small">Loading...</td>
+        <div class="ks_py-mline-table-div">
+            <table class="table border ks_table_2">
+                <thead class="ks_thead">
+                    <tr>
+                        <th>Date</th>
+                        <th>JRNL</th>
+                        <th>Partner</th>
+                        <th>Ref No</th> <!-- ✅ Renamed -->
+                        <th>Status</th>
+                        <th>Narration</th> <!-- ✅ Renamed -->
                         <t t-if="ks_enable_ledger_in_bal">
-                            <td class="ks_amt"><t t-raw="account_line.initial_balance"/></td>
+                            <th>Initial Balance</th>
                         </t>
-                        <td class="ks_amt"><t t-raw="account_line.debit"/></td>
-                        <td class="ks_amt"><t t-raw="account_line.credit"/></td>
-                        <td class="ks_amt"><t t-raw="account_line.balance"/></td>
+                        <th>Debit</th>
+                        <th>Credit</th>
+                        <th>Balance</th>
+                        <!--                    <th>Company</th> &lt;!&ndash; ✅ Added &ndash;&gt;-->
                     </tr>
-                </t>
-            </tbody>
-        </table>
+                </thead>
+                <tbody>
+                    <t t-foreach="account_data" t-as="account_line">
+                        <t t-set="style" t-value="''"/>
+                        <t t-if="account_line.move_name == 'Initial Balance'">
+                            <t t-set="style" t-value="'font-style: italic;'"/>
+                        </t>
+                        <t t-if="account_line.move_name == 'Ending Balance'">
+                            <t t-set="style" t-value="'font-style: italic;'"/>
+                        </t>
+                        <tr class="border-bottom">
+                            <!-- Date with dropdown -->
+                            <td t-att-data-bs-move-id="account_line.move_id">
+                                <t t-if="account_line.ldate">
+                                    <div class="dropdown">
+                                        <a data-bs-toggle="dropdown" href="#">
+                                            <span t-att-data-bs-move-id="account_line.move_id">
+                                                <t t-esc="account_line.ldate"/>
+                                            </span>
+                                            <i class="fa fa-caret-down" role="img" aria-label="Unfolded"
+                                               title="Unfolded"/>
+                                        </a>
+                                        <ul class="dropdown-menu p-2" role="menu">
+                                            <t t-if="account_line.move_name">
+                                                <li role="presentation">
+                                                    <a role="menuitem" class="ks_view-source" tabindex="-1"
+                                                       action="ks_df_show_move_line"
+                                                       t-att-data-bs-move-id="account_line.move_id">
+                                                        Move Line
+                                                    </a>
+                                                </li>
+                                            </t>
+                                        </ul>
+                                    </div>
+                                </t>
+                            </td>
 
-        <script type="text/javascript">
-            $(document).ready(function() {
-                setTimeout(function() {
-                    var moveIds = [];
-                    var rows = [];
+                            <!-- Journal -->
+                            <td>
+                                <t t-esc="account_line.lcode"/>
+                            </td>
 
-                    $('#general_ledger_table tbody tr').each(function() {
-                        var moveId = $(this).data('move-id');
-                        if (moveId) {
-                            moveIds.push(moveId);
-                            rows.push({row: $(this), moveId: moveId});
-                        }
-                    });
+                            <!-- Partner -->
+                            <td>
+                                <t t-esc="account_line.partner_name"/>
+                            </td>
 
-                    if (moveIds.length === 0) return;
+                            <!-- Ref No -->
+                            <td t-att-style="style">
+                                <t t-esc="account_line.move_name"/>
+                            </td>
+                            <td t-att-style="style">
+                                <t t-esc="account_line.move_state"/>
+                            </td>
 
-                    $.ajax({
-                        url: '/web/dataset/call_kw',
-                        type: 'POST',
-                        contentType: 'application/json',
-                        data: JSON.stringify({
-                            jsonrpc: '2.0',
-                            method: 'call',
-                            params: {
-                                model: 'account.move.line',
-                                method: 'search_read',
-                                args: [[['move_id', 'in', moveIds]]],
-                                kwargs: {fields: ['move_id', 'account_id', 'debit', 'credit']}
-                            }
-                        }),
-                        success: function(result) {
-                            if (result.result) {
-                                var accountsByMove = {};
-                                result.result.forEach(function(line) {
-                                    // ✅ CHECK if account_id exists
-                                    if (!line.account_id || !line.account_id[1]) return;
+                            <!-- Narration -->
+                            <td t-att-style="style">
+                                <t t-esc="account_line.lname"/>
+                            </td>
 
-                                    var mid = line.move_id[0];
-                                    if (!accountsByMove[mid]) accountsByMove[mid] = [];
+                            <!-- Initial Balance -->
+                            <t t-if="ks_enable_ledger_in_bal">
+                                <td t-att-style="style" class="ks_amt">
+                                    <t t-raw="account_line.initial_balance"/>
+                                </td>
+                            </t>
 
-                                    var accountName = line.account_id[1]; // "100133 Cash Sparsh"
-                                    var debit = line.debit || 0;
-                                    var credit = line.credit || 0;
+                            <!-- Debit -->
+                            <td t-att-style="style" class="ks_amt">
+                                <t t-raw="account_line.debit"/>
+                            </td>
 
-                                    // Format with amounts
-                                    var accountInfo = accountName;
-                                    if (debit > 0) {
-                                        accountInfo += ' (Dr: ₹ ' + debit.toLocaleString('en-IN', {minimumFractionDigits: 2, maximumFractionDigits: 2}) + ')';
-                                    } else if (credit > 0) {
-                                        accountInfo += ' (Cr: ₹ ' + credit.toLocaleString('en-IN', {minimumFractionDigits: 2, maximumFractionDigits: 2}) + ')';
-                                    }
+                            <!-- Credit -->
+                            <td t-att-style="style" class="ks_amt">
+                                <t t-raw="account_line.credit"/>
+                            </td>
 
-                                    // ✅ SAFE split with check
-                                    var accountCode = accountName.indexOf(' ') > -1 ? accountName.split(' ')[0] : accountName;
+                            <!-- Balance -->
+                            <td t-att-style="style" class="ks_amt">
+                                <t t-raw="account_line.balance"/>
+                            </td>
 
-                                    accountsByMove[mid].push({
-                                        name: accountName,
-                                        info: accountInfo,
-                                        code: accountCode
-                                    });
-                                });
+                            <!-- Company -->
+                            <!--                        <td t-att-style="style">-->
+                            <!--                            <t t-esc="account_line.company_name"/>-->
+                            <!--                        </td>-->
+                        </tr>
+                    </t>
+                </tbody>
+            </table>
+        </div>
+    </t>
 
-                                rows.forEach(function(item) {
-                                    var accounts = accountsByMove[item.moveId] || [];
 
-                                    // Sort by account code
-                                    accounts.sort(function(a, b) {
-                                        return a.code.localeCompare(b.code);
-                                    });
-
-                                    var accountsStr = accounts.map(function(acc) {
-                                        return acc.info;
-                                    }).join(', ');
-
-                                    item.row.find('.all-accounts-cell').text(accountsStr);
-                                });
-                            }
-                        },
-                        error: function(xhr, status, error) {
-                            console.error('Error fetching accounts:', error);
-                        }
-                    });
-                }, 500);
-            });
-        </script>
-    </div>
-</t>
 
     <t t-name="ks_df_rec0">
         <div class="container-fluid  my-4">
@@ -1089,30 +1052,34 @@
                             t-attf-data-bs-id=".a{{account_data[account]['id']}}">
                             <td class="bld ks_color_td_1" t-att-data-bs-account-id="account_data[account]['id']">
                                 <div class="dropdown">
-                                    <a href="#" data-bs-toggle="dropdown"
-                                       style="text-decoration: none; color: inherit;">
-                                        <t t-esc="account_data[account]['code']"/>
-                                        -
-                                        <t t-esc="account_data[account]['name']"/>
-                                        <i class="fa fa-caret-down" style="margin-left: 5px;"/>
+                                    <a data-bs-toggle="dropdown" href="#">
+                                        <span t-att-data-bs-account-id="account_data[account]['id']">
+                                            <t t-esc="account_data[account]['code']"/>
+                                            -
+                                            <t t-esc="account_data[account]['name']"/>
+                                        </span>
+                                        <i class="fa fa-angle-down" role="img" aria-label="Unfolded"
+                                           title="Unfolded"></i>
+
                                     </a>
-                                    <ul class="dropdown-menu">
-                                        <li>
-                                            <a href="#"
-                                               class="dropdown-item ks_view-source"
-                                               action="ks_show_df_journal_items"
-                                               t-att-data-bs-account-id="account_data[account]['id']">
-                                                Journal Items
-                                            </a>
-                                        </li>
-                                        <li>
-                                            <a href="#"
-                                               class="dropdown-item ks_view-source"
-                                               action="ks_show_df_general_ledger"
-                                               t-att-data-bs-account-id="account_data[account]['id']">
-                                                General Ledger
-                                            </a>
-                                        </li>
+                                    <span t-att-data-bs-account-id="account_data[account]['id']"></span>
+                                    <ul class="dropdown-menu p-2" role="menu">
+                                        <t t-if="account_data[account]['id']">
+                                            <li role="presentation">
+                                                <a role="menuitem" class="ks_view-source" tabindex="-1"
+                                                   action="ks_show_df_journal_items"
+                                                   t-att-data-bs-account-id="account_data[account]['id']">
+                                                    Journal Items
+                                                </a>
+                                            </li>
+                                            <li role="presentation">
+                                                <a role="menuitem" class="ks_view-source" tabindex="1"
+                                                   action="ks_show_df_general_ledger"
+                                                   t-att-data-bs-account-id="account_data[account]['id']">
+                                                    General Ledger
+                                                </a>
+                                            </li>
+                                        </t>
                                     </ul>
                                 </div>
                             </td>
