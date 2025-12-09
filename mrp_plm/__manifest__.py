@@ -6,6 +6,7 @@
     'sequence': 155,
     'summary': """Manage engineering change orders on products, bills of material""",
     'website': 'https://www.odoo.com/app/plm',
+    'license': 'LGPL-3',
     'depends': ['mrp'],
     'description': """
 Product Life Management
