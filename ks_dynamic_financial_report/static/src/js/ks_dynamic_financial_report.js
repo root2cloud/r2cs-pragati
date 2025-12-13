@@ -1405,30 +1405,37 @@ self.$('.ks_total_init_debit, .ks_total_init_credit, .ks_total_init_balance, .ks
         /**
          * @method to render report body and currency conversion
         */
-        ksGetAction: function (e) {
-            e.stopPropagation();
-            var self = this;
-            var action = $(e.target).attr('action');
-            var id = $(e.target).parents('td').data('bsAccountId') || $(e.target).parents('td').data('bsMoveId');
-            var params = $(e.target).data();
-            var context = new Context(this.ks_df_context, params.actionContext || {}, {
-                active_id: id
+ksGetAction: function (e) {
+    e.stopPropagation();
+    var self = this;
+    var action = $(e.target).attr('action');
+    var moveId = $(e.target).parents('td').data('bsMoveId');  // For move lines
+    var accountId = $(e.target).closest('a').attr('data-bs-account-id');  // Explicitly get from data-bs-account-id
+    if (!accountId) {
+        accountId = $(e.target).parents('td').data('bsAccountId');  // Fallback to normalized data
+    }
+    var params = $(e.target).data();
+    params.accountId = parseInt(accountId) || 0;  // Ensure integer and set as accountId for Python
+    if (moveId) {
+        params.bsMoveId = moveId;  // For move actions
+    }
+    var context = new Context(this.ks_df_context, params.actionContext || {}, {
+        active_id: accountId || moveId
+    });
+
+    params = _.omit(params, 'actionContext');
+    if (action) {
+        return this._rpc({
+                model: this.ks_dyn_fin_model,
+                method: action,
+                args: [this.ks_report_id, this.ks_df_report_opt, params],
+                context: context.eval(),
+            })
+            .then(function (result) {
+                return self.do_action(result);
             });
-
-            params = _.omit(params, 'actionContext');
-            if (action) {
-                return this._rpc({
-                        model: this.ks_dyn_fin_model,
-                        method: action,
-                        args: [this.ks_report_id, this.ks_df_report_opt, params],
-                        context: context.eval(),
-                    })
-                    .then(function (result) {
-                        return self.do_action(result);
-                    });
-            }
-        },
-
+    }
+},
         /**
          * @method to format currnecy with amount
          */
