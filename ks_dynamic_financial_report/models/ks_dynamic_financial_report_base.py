@@ -913,9 +913,29 @@ class ks_dynamic_financial_base(models.Model):
         if ks_df_informations.get('account_tag_ids', []):
             ks_df_account_company_domain.append(('tag_ids', 'in', ks_df_informations.get('analytic_tags', [])))
 
-        if ks_df_informations.get('account_ids', []):
-            if not any(len(account_id) == 0 for account_id in ks_df_informations.get('account_ids')):
-                ks_df_account_company_domain.append(('id', 'in', ks_df_informations.get('account_ids', [])))
+        # --- robust handling of account_ids ---
+        raw_account_ids = ks_df_informations.get('account_ids', [])
+        # normalize single int/str to list
+        if isinstance(raw_account_ids, (int, str)):
+            account_ids = [raw_account_ids]
+        else:
+            # ensure we have a list (handles None, tuples, generators, etc.)
+            account_ids = list(raw_account_ids) if raw_account_ids else []
+
+        # convert digit-strings to ints (if any) and filter-out empty values
+        cleaned_ids = []
+        for aid in account_ids:
+            if aid is None or aid == '':
+                continue
+            if isinstance(aid, str) and aid.isdigit():
+                cleaned_ids.append(int(aid))
+            else:
+                cleaned_ids.append(aid)
+
+        # only add domain if there are valid ids left
+        if cleaned_ids:
+            ks_df_account_company_domain.append(('id', 'in', cleaned_ids))
+
         return WHERE, ks_df_account_company_domain
 
     def ks_executive_where(self, ks_df_informations):
@@ -1813,8 +1833,11 @@ class ks_dynamic_financial_base(models.Model):
                                            'code': ks_account_type_id.code,
                                            'id': ks_account_type_id.id,
                                            'group': ks_account_type_id,
-                                           'main_type': dict(ks_account_type_id._fields['main_group'].selection).get(ks_account_type_id.main_group) or False,
-                                           'account_type': dict(ks_account_type_id._fields['account_type'].selection).get(ks_account_type_id.account_type) or False,
+                                           'main_type': dict(ks_account_type_id._fields['main_group'].selection).get(
+                                               ks_account_type_id.main_group) or False,
+                                           'account_type': dict(
+                                               ks_account_type_id._fields['account_type'].selection).get(
+                                               ks_account_type_id.account_type) or False,
                                            'sub_type': ks_account_type_id.sub_sub_group_id.name,
                                            'initial_debit': 0.0,
                                            'initial_credit': 0.0,
@@ -1912,8 +1935,10 @@ class ks_dynamic_financial_base(models.Model):
                     ks_move_lines[ks_account.code]['ending_balance'] = ks_end_blns
                     ks_move_lines[ks_account.code]['ending_credit'] = ks_end_cr
                     ks_move_lines[ks_account.code]['ending_debit'] = ks_end_dr
-                    ks_move_lines[ks_account.code]['main_type'] = dict(ks_account._fields['main_group'].selection).get(ks_account.main_group) or False
-                    ks_move_lines[ks_account.code]['account_type'] = dict(ks_account._fields['account_type'].selection).get(ks_account.account_type) or False
+                    ks_move_lines[ks_account.code]['main_type'] = dict(ks_account._fields['main_group'].selection).get(
+                        ks_account.main_group) or False
+                    ks_move_lines[ks_account.code]['account_type'] = dict(
+                        ks_account._fields['account_type'].selection).get(ks_account.account_type) or False
                     ks_move_lines[ks_account.code]['sub_type'] = ks_account.sub_sub_group_id.name
 
                     if self.env['ir.config_parameter'].sudo().get_param('ks_disable_trial_en_bal', False) and \
@@ -1945,10 +1970,11 @@ class ks_dynamic_financial_base(models.Model):
                         ks_move_lines[ks_account.code]['initial_balance'] = 0.0
                         ks_move_lines[ks_account.code]['initial_credit'] = 0.0
                         ks_move_lines[ks_account.code]['initial_debit'] = 0.0
-                        ks_move_lines[ks_account.code]['main_type'] = dict(ks_account._fields['main_group'].selection).get(ks_account.main_group) or False
-                        ks_move_lines[ks_account.code]['account_type'] = dict(ks_account._fields['account_type'].selection).get(ks_account.account_type) or False
+                        ks_move_lines[ks_account.code]['main_type'] = dict(
+                            ks_account._fields['main_group'].selection).get(ks_account.main_group) or False
+                        ks_move_lines[ks_account.code]['account_type'] = dict(
+                            ks_account._fields['account_type'].selection).get(ks_account.account_type) or False
                         ks_move_lines[ks_account.code]['sub_type'] = ks_account.sub_sub_group_id.name
-
 
                     if ks_end_blns or ks_deb != 0 or ks_cre != 0:
                         ks_total_deb += ks_deb
@@ -3990,7 +4016,6 @@ class ks_dynamic_financial_base(models.Model):
                     line['sub_type_id'] = sub_group.id if sub_group else False
                     line['sub_type_name'] = sub_group.name if sub_group else ""
 
-
             new_id_counter = 500000
             grouped_sub_types = {}
             lines_to_remove = set()
@@ -4044,7 +4069,6 @@ class ks_dynamic_financial_base(models.Model):
                 group_data['debit'] += line.get('debit', 0.0)
                 group_data['credit'] += line.get('credit', 0.0)
 
-
             original_lines = info.get('ks_report_lines', [])
             new_report_lines = []
 
@@ -4091,16 +4115,9 @@ class ks_dynamic_financial_base(models.Model):
                             acc['list_len'] = [0, 1, 2, 3]
                             new_report_lines.append(acc)
 
-
             info['ks_report_lines'] = new_report_lines
 
-
-
-
-
         return info
-
-
 
     # Get journal filters from model account.journal
     @api.model
@@ -4819,18 +4836,46 @@ class ks_dynamic_financial_base(models.Model):
 
     def ks_show_df_general_ledger(self, ks_df_informations, ks_parameter=None):
         if not ks_parameter:
-            params = {}
+            ks_parameter = {}
         ks_ctx = self.env.context.copy()
         ks_ctx.pop('id', '')
-        ks_ctx['default_filter_accounts'] = self.env['account.account'].browse(ks_parameter.get('id', 0)).code or ''
+
+        account_id_raw = (
+                ks_parameter.get('accountId')
+                or ks_parameter.get('data-bs-account-id')
+                or ks_parameter.get('id')
+                or ks_parameter.get('account_id')
+                or ''
+        )
+
+        account_id = 0
+        try:
+            if account_id_raw is None or account_id_raw == '':
+                account_id = 0
+            elif isinstance(account_id_raw, (int, float)):
+                account_id = int(account_id_raw)
+            elif isinstance(account_id_raw, str):
+                account_id = int(account_id_raw.strip())
+            elif isinstance(account_id_raw, (list, tuple)) and len(account_id_raw) > 0:
+                account_id = int(account_id_raw[0])
+            else:
+                account_id = int(account_id_raw)
+        except (ValueError, TypeError):
+            account_id = 0
+
+        if account_id:
+            ks_df_informations['account_ids'] = [account_id]
+            account_rec = self.env['account.account'].browse(account_id)
+            ks_ctx['default_filter_accounts'] = account_rec.code or ''
+            ks_ctx['search_default_account_id'] = [account_id]
+        else:
+            ks_df_informations['account_ids'] = []
+
         ks_action = self.env["ir.actions.actions"]._for_xml_id("ks_dynamic_financial_report.ks_df_gl_action")
         ks_action_ctx = ast.literal_eval(ustr(ks_action.get('context')))
         ks_ctx.update(ks_action_ctx)
 
-        ks_df_informations['account_ids'] = [ks_parameter.get('accountId', '')]
-        if 'date' in ks_df_informations and ks_df_informations['date']['ks_process'] == 'single':
-            # If we are coming from a report with a single date, we need to change the options to ranged
-            # ks_df_informations['date']['ks_process'] = 'range'
+        if 'date' in ks_df_informations and ks_df_informations['date'].get('ks_process') == 'single':
             ks_df_informations['date']['ks_interval_type'] = 'fiscalyear'
 
         ks_action.update({'ks_df_informations': ks_df_informations, 'context': ks_ctx, 'ignore_session': 'read'})
