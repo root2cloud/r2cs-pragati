@@ -1,9 +1,13 @@
-<?xml version="1.0" encoding="UTF-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <odoo>
-    <template id="quantity_restrict" inherit_id="website.assets_frontend">
-        <xpath expr="." position="inside">
-            <script type="text/javascript"
-                    src="/agriculture_management_odoo/static/src/js/website_sale_custom.js"/>
-        </xpath>
-    </template>
+    <data>
+        <template id="quantity_restrict"
+                  name="quantity_restrict"
+                  inherit_id="website.assets_frontend">
+            <xpath expr="." position="inside">
+                <script type="text/javascript"
+                        src="/agriculture_management_odoo/static/src/js/webiste_sale_custom.js"/>
+            </xpath>
+        </template>
+    </data>
 </odoo>
