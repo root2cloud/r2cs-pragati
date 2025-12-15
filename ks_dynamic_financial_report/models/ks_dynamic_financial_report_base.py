@@ -690,6 +690,13 @@ class ks_dynamic_financial_base(models.Model):
         '''
         cr = self.env.cr
         WHERE, account_domain = self.ks_df_where_clause(ks_df_informations)
+
+        # Partner filter for GL summary
+        if ks_df_informations and ks_df_informations.get('ks_partner_ids'):
+            partner_ids = [int(p) for p in ks_df_informations.get('ks_partner_ids', [])]
+            if partner_ids:
+                WHERE += " AND p.id IN (%s)" % ",".join(map(str, partner_ids))
+
         ks_account_ids = self.env['account.account'].sudo().search(account_domain)
 
         # Pre-fetch currency and company info for efficiency outside the loop
@@ -2491,6 +2498,12 @@ class ks_dynamic_financial_base(models.Model):
         ks_currency_id = ks_company_id.currency_id
 
         WHERE = self.ks_df_build_where_clause(ks_df_informations)
+        # Apply partner filter for detailed GL lines
+        if ks_df_informations.get('ks_partner_ids'):
+            partner_ids = [int(p) for p in ks_df_informations.get('ks_partner_ids', [])]
+            if partner_ids:
+                WHERE += " AND p.id IN (%s)" % ",".join(map(str, partner_ids))
+
         KSINITWHERE = WHERE
         KS_WHERE_INIT = WHERE
         if ks_df_informations['date']['ks_process'] == 'range':
@@ -3211,6 +3224,12 @@ class ks_dynamic_financial_base(models.Model):
         currency_id = company_id.currency_id
 
         WHERE = self.ks_build_where_clause(ks_df_informations, partner_ledger=True if partner_ledger else False)
+        # Partner filter for GL detailed move lines
+        if ks_df_informations and ks_df_informations.get('ks_partner_ids'):
+            partner_ids = [int(p) for p in ks_df_informations.get('ks_partner_ids', [])]
+            if partner_ids:
+                WHERE += " AND p.id IN (%s)" % ",".join(map(str, partner_ids))
+
         KSINITWHERE = WHERE
         KS_WHERE_INIT = WHERE + " AND l.date < '%s'" % ks_df_informations['date'].get('ks_start_date')
         KS_WHERE_INIT += " AND l.partner_id = %s" % partner
