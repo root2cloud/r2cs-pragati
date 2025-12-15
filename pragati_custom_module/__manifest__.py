@@ -11,7 +11,7 @@
     'license': 'LGPL-3',
     'depends': [
         'base', 'sale', 'hr', 'mail', 'stock', 'product', 'approvals', 'base_accounting_kit', 'account', 'purchase',
-        'website_sale', 'purchase_requisition',
+        'website_sale', 'purchase_requisition','website'
         'service', 'l10n_in', 'material_and_pr_requistion', 'bfa_and_pa_requests', 'mrp', 'gft_inter_account',
         'point_of_sale'
     ],
