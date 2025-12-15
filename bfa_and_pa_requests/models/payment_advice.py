@@ -699,16 +699,22 @@ class PaymentAdvice(models.Model):
     @api.onchange('partner_id')
     def _onchange_partner_id(self):
         self.payment_advice_line_ids = [(5, 0, 0)]
+
         if not self.partner_id:
+            self.partner_balance_amount = 0.0
             return
 
+        # Partner balance
         self.partner_balance_amount = self.partner_id.credit - self.partner_id.debit
 
-        # Get past approved amounts (approve_amount)
+        # ------------------------------
+        # 1️⃣ Collect previously approved amounts
+        # ------------------------------
         past_lines = self.env['payment.advice.line'].search([
             ('advice_id.partner_id', '=', self.partner_id.id),
             ('advice_id.state', 'in', ['approve', 'payment']),
         ])
+
         ref_data = {}
         for pl in past_lines:
             ref = pl.reference
@@ -718,13 +724,21 @@ class PaymentAdvice(models.Model):
 
         lines = []
 
+        # Utility function to add missing entries
         def add_line(ref, total, date, model_balance=None, bill_ref=""):
-            paid_accounting = (total - (model_balance or 0.0)) if model_balance is not None else 0.0
-            past_approve = ref_data.get(ref, 0.0)
-            combined_paid = paid_accounting + past_approve
-            balance = max(0.0, total - combined_paid)
+            # Paid via accounting (already in Odoo invoice residual)
+            paid_from_residual = 0.0
+            if model_balance is not None:
+                paid_from_residual = total - model_balance
 
-            # ✅ HIDE IF balance = 0
+            # Paid via previous payment advice
+            paid_from_advice = ref_data.get(ref, 0.0)
+
+            # Combine both paid amounts
+            combined_paid = paid_from_residual + paid_from_advice
+            balance = max(total - combined_paid, 0.0)
+
+            # Skip fully paid items
             if balance <= 0:
                 return
 
@@ -738,20 +752,32 @@ class PaymentAdvice(models.Model):
                 'date': date,
             }))
 
-        # SERVICE ORDERS (SO)
-        so_orders = self.env['service.order'].search([
+        # ------------------------------
+        # 2️⃣ SERVICE ORDERS
+        # ------------------------------
+        completed_so_names = self.env['service.completion'].search([]).mapped('service_order_id.name')
+
+        service_orders = self.env['service.order'].search([
             ('partner_id', '=', self.partner_id.id),
             ('state', '=', 'approve')
         ])
-        completed_so_names = self.env['service.completion'].search([]).mapped('service_order_id.name')
-        for so in so_orders:
-            if so.name not in completed_so_names:
-                add_line(so.name, so.total_amount, so.order_date)
 
+        for so in service_orders:
+            if so.name not in completed_so_names:
+                add_line(
+                    so.name,
+                    so.total_amount,
+                    so.order_date
+                )
+
+        # ------------------------------
+        # 3️⃣ BILL APPROVAL (BFA)
+        # ------------------------------
         bfas = self.env['bills.approval'].search([
             ('partner_id', '=', self.partner_id.id),
             ('state', '=', 'approve'),
         ])
+
         for bill in bfas:
             add_line(
                 bill.name,
@@ -760,27 +786,45 @@ class PaymentAdvice(models.Model):
                 bill_ref=bill.bill_reference if hasattr(bill, 'bill_reference') else ""
             )
 
-        # PURCHASE ORDERS (PO)
-        pos = self.env['purchase.order'].search([
+        # ------------------------------
+        # 4️⃣ PURCHASE ORDERS (ONLY IF INVOICE NOT CREATED)
+        # ------------------------------
+        purchase_orders = self.env['purchase.order'].search([
             ('partner_id', '=', self.partner_id.id),
             ('state', 'in', ['purchase', 'done'])
         ])
-        for po in pos:
+
+        for po in purchase_orders:
+            # skip PO if invoice exists
             if po.invoice_ids.filtered(lambda inv: inv.state != 'cancel'):
                 continue
 
-            add_line(po.name, po.amount_total, po.date_order)
+            add_line(
+                po.name,
+                po.amount_total,
+                po.date_order
+            )
 
-        # INVOICES (INV, BILL, SEREX, EXP, RESO, HO etc.)
+        # ------------------------------
+        # 5️⃣ INVOICES (IN/OUT)
+        # ------------------------------
         invoices = self.env['account.move'].search([
             ('partner_id', '=', self.partner_id.id),
             ('move_type', 'in', ['in_invoice', 'out_invoice']),
-            ('state', '=', 'posted')
+            ('state', '=', 'posted'),
         ])
+
         for inv in invoices:
             total = abs(inv.amount_total_signed)
-            add_line(inv.name, total, inv.invoice_date, model_balance=inv.balance_amount, bill_ref=inv.ref or "")
+            add_line(
+                inv.name,
+                total,
+                inv.invoice_date,
+                model_balance=inv.amount_residual,  # RESIDUAL gives balance
+                bill_ref=inv.ref or ""
+            )
 
+        # Final assignment
         self.payment_advice_line_ids = lines
 
 
