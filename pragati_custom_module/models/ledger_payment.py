@@ -1,5 +1,6 @@
-from odoo import models, fields, api,_
+from odoo import models, fields, api, _
 from odoo.exceptions import UserError, ValidationError
+from decimal import Decimal
 
 READONLY_STATES = {
     'post': [('readonly', True)],
@@ -7,8 +8,9 @@ READONLY_STATES = {
     'cancel': [('readonly', True)],
 }
 
+
 class LedgerPayment(models.Model):
-    _inherit="ledger.payment"
+    _inherit = "ledger.payment"
 
     def _get_default_category_id(self):
         domain = [('name', '=', "Bank Receipt")]
@@ -30,18 +32,18 @@ class LedgerPayment(models.Model):
         return False
 
     def _get_default_user_id(self):
-        domain = [('name', '=', "Managing Director"),('login', '=', 'ajay@pragatigroup.com')]
+        domain = [('name', '=', "Managing Director"), ('login', '=', 'ajay@pragatigroup.com')]
         user_type = self.env['res.users'].search(domain, limit=1)
         if user_type:
             return user_type.id
 
     approval_level_1 = fields.Many2one('res.users', string='Approver Level 1', domain="[('share', '=', False)]",
-                                       default=_get_default_user_id,states=READONLY_STATES)
+                                       default=_get_default_user_id, states=READONLY_STATES)
     approval_level_2 = fields.Many2one('res.users', string='Approver Level 2', domain="[('share', '=', False)]",
                                        states=READONLY_STATES)
     approval_level_3 = fields.Many2one('res.users', string='Approver Level 3', domain="[('share', '=', False)]",
                                        states=READONLY_STATES, )
-    approval_id = fields.Many2one('approval.request',string='Approval ID')
+    approval_id = fields.Many2one('approval.request', string='Approval ID')
 
     request_owner_id = fields.Many2one('res.users', string="Request Owner",
                                        check_company=True, domain="[('company_ids', 'in', company_id)]",
@@ -50,7 +52,7 @@ class LedgerPayment(models.Model):
     approve_status = fields.Selection([('pending', 'Pending'), ('approve', 'Approved')],
                                       string='Approval Status', default='pending')
 
-    is_approval_user = fields.Boolean('res.users',compute="_compute_is_approval_user")
+    is_approval_user = fields.Boolean('res.users', compute="_compute_is_approval_user")
 
     def _compute_is_approval_user(self):
         for lp in self:
@@ -68,10 +70,10 @@ class LedgerPayment(models.Model):
                 lp.is_approval_user = False
 
     def approve_bank_receipt(self):
-        self.write({'state':'approve'})
+        self.write({'state': 'approve'})
 
     def send_for_approval(self):
-        self.write({'state':'submit'})
+        self.write({'state': 'submit'})
         approver_list = []
 
         if self.approval_level_1:
@@ -121,3 +123,26 @@ class LedgerPayment(models.Model):
                 order.amount_in_words = amount_words.title()  # Capitalize the first letter
             else:
                 order.amount_in_words = ""
+
+    @api.constrains("amount", "source_acc")
+    def _check_source_account_balance(self):
+
+        for record in self:
+            if record.source_acc and record.amount:
+                AccountMoveLine = self.env['account.move.line']
+                domain = [
+                    ('account_id', '=', record.source_acc.id),
+                    ('parent_state', '=', 'posted'),
+                ]
+                # SUM(debit) - SUM(credit) for this account
+                results = AccountMoveLine.read_group(domain, ['debit', 'credit'], [])
+                debit = Decimal(results[0]['debit']) if results and results[0]['debit'] else Decimal(0)
+                credit = Decimal(results[0]['credit']) if results and results[0]['credit'] else Decimal(0)
+                balance = debit - credit
+                amount = Decimal(str(record.amount))
+
+                if balance < amount:
+                    raise ValidationError(
+                        f"Insufficient balance in source account '{record.source_acc.name}'.\n\n"
+                        f"Current Balance: {balance:,.2f}\n"
+                        f"Requested Transfer: {amount:,.2f}")

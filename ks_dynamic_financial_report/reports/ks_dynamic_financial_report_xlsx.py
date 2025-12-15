@@ -17,6 +17,126 @@ class KsDynamicFinancialXlsxAR(models.Model):
                                                                                                  print_mode=True,
                                                                                                  prefetch_fields=False).ks_fetch_report_account_lines(
                 ks_df_informations)
+            if self.display_name == 'Profit and Loss':
+                info = {'ks_report_lines': lines}
+
+                import copy
+
+                Account = self.env['account.account']
+
+                for line in info.get('ks_report_lines', []):
+                    if 'account' in line:
+                        account_id = line['account']
+                        account_rec = Account.browse(account_id)
+
+                        sub_group = account_rec.sub_sub_group_id
+                        line['sub_type_id'] = sub_group.id if sub_group else False
+                        line['sub_type_name'] = sub_group.name if sub_group else ""
+
+
+                new_id_counter = 500000
+                grouped_sub_types = {}
+                lines_to_remove = set()
+
+                OTHER_SUB_TYPE_ID = -1
+                OTHER_SUB_TYPE_NAME = "OTHER"
+                processed_accounts = set()
+
+                for line in info.get('ks_report_lines', []):
+
+                    if line.get('ks_level') != 4:
+                        continue
+
+                    account_id = line.get('account')
+
+                    if account_id in processed_accounts:
+                        continue
+
+                    processed_accounts.add(account_id)
+
+                    parent_level_2_id = line.get('parent')
+
+                    # Determine subgroup (real or OTHER)
+                    if line.get('sub_type_id'):
+                        sub_type_id = line['sub_type_id']
+                        sub_type_name = line['sub_type_name']
+                    else:
+                        sub_type_id = OTHER_SUB_TYPE_ID
+                        sub_type_name = OTHER_SUB_TYPE_NAME
+
+                    lines_to_remove.add(id(line))
+
+                    if parent_level_2_id not in grouped_sub_types:
+                        grouped_sub_types[parent_level_2_id] = {}
+
+                    if sub_type_id not in grouped_sub_types[parent_level_2_id]:
+                        grouped_sub_types[parent_level_2_id][sub_type_id] = {
+                            'sub_type_name': sub_type_name,
+                            'accounts': [],
+                            'balance': 0.0,
+                            'debit': 0.0,
+                            'credit': 0.0,
+                            'currency_id': line['company_currency_id'],
+                        }
+
+                    group_data = grouped_sub_types[parent_level_2_id][sub_type_id]
+
+                    account_copy = copy.deepcopy(line)
+                    group_data['accounts'].append(account_copy)
+
+                    group_data['balance'] += line.get('balance', 0.0)
+                    group_data['debit'] += line.get('debit', 0.0)
+                    group_data['credit'] += line.get('credit', 0.0)
+
+
+                original_lines = info.get('ks_report_lines', [])
+                new_report_lines = []
+
+                for line in original_lines:
+
+                    if line.get('ks_level') == 4 and id(line) in lines_to_remove:
+                        continue
+
+                    new_report_lines.append(line)
+
+                    if line.get('ks_level') == 2 and line.get('self_id') in grouped_sub_types:
+                        parent_level_2_id = line['self_id']
+
+                        for sub_type_id in sorted(grouped_sub_types[parent_level_2_id].keys()):
+                            group_data = grouped_sub_types[parent_level_2_id][sub_type_id]
+
+                            new_level_3_id = new_id_counter
+                            new_id_counter += 1
+
+                            level_3_line = {
+                                'ks_name': group_data['sub_type_name'],
+                                'balance': group_data['balance'],
+                                'parent': parent_level_2_id,
+                                'self_id': new_level_3_id,
+                                'ks_df_report_account_type': 'report',
+                                'style_type': 'sub_sub_total',
+                                'precision': 2,
+                                'symbol': '₹',
+                                'position': 'before',
+                                'list_len': [0, 1, 2],
+                                'ks_level': 3,
+                                'company_currency_id': group_data['currency_id'],
+                                'account_type': 'sub_total',
+                                'balance_cmp': {},
+                                'debit': group_data.get('debit', 0.0),
+                                'credit': group_data.get('credit', 0.0),
+                                'sub_type_id': sub_type_id,
+                            }
+
+                            new_report_lines.append(level_3_line)
+
+                            for acc in group_data['accounts']:
+                                acc['parent'] = new_level_3_id
+                                acc['list_len'] = [0, 1, 2, 3]
+                                new_report_lines.append(acc)
+
+                lines = new_report_lines
+
         else:
             lines = self.ks_process_executive_summary(ks_df_informations)
         if self.display_name == self.env.ref(
@@ -195,20 +315,30 @@ class KsDynamicFinancialXlsxAR(models.Model):
                                    format_header)
 
                 for a in lines:
-                    if a['ks_level'] == 2:
-                        row_pos += 1
-                    row_pos += 1
-                    if a.get('account', False):
-                        tmp_style_str = line_header_string
-                        tmp_style_num = line_header
-                    else:
+                    row_pos += 1  # increment for every line
+
+                    # Determine styles
+                    if a.get('ks_level') == 3:  # Level 3 (sub-type total)
                         tmp_style_str = line_header_string_bold
                         tmp_style_num = line_header_bold
-                    sheet.write_string(row_pos, 0, '   ' * len(a.get('list_len', [])) + a.get('ks_name'),
+                    elif a.get('account', False):  # L4 accounts
+                        tmp_style_str = line_header_string
+                        tmp_style_num = line_header
+                    else:  # L2 lines
+                        tmp_style_str = line_header_string_bold
+                        tmp_style_num = line_header_bold
+
+                    # Write data
+                    sheet.write_string(row_pos, 0, '   ' * len(a.get('list_len', [])) + a.get('ks_name', ''),
                                        tmp_style_str)
-                    sheet.write_number(row_pos, 1, float(a.get('debit', 0.0)), tmp_style_num)
-                    sheet.write_number(row_pos, 2, float(a.get('credit', 0.0)), tmp_style_num)
-                    sheet.write_number(row_pos, 3, float(a.get('balance', 0.0)), tmp_style_num)
+
+                    # Only write numbers if keys exist
+                    if 'debit' in a:
+                        sheet.write_number(row_pos, 1, float(a.get('debit', 0.0)), tmp_style_num)
+                    if 'credit' in a:
+                        sheet.write_number(row_pos, 2, float(a.get('credit', 0.0)), tmp_style_num)
+                    if 'balance' in a:
+                        sheet.write_number(row_pos, 3, float(a.get('balance', 0.0)), tmp_style_num)
 
             if not ks_df_informations['ks_diff_filter']['ks_debit_credit_visibility']:
                 sheet.set_column(0, 0, 105)

@@ -690,6 +690,13 @@ class ks_dynamic_financial_base(models.Model):
         '''
         cr = self.env.cr
         WHERE, account_domain = self.ks_df_where_clause(ks_df_informations)
+
+        # Partner filter for GL summary
+        if ks_df_informations and ks_df_informations.get('ks_partner_ids'):
+            partner_ids = [int(p) for p in ks_df_informations.get('ks_partner_ids', [])]
+            if partner_ids:
+                WHERE += " AND p.id IN (%s)" % ",".join(map(str, partner_ids))
+
         ks_account_ids = self.env['account.account'].sudo().search(account_domain)
 
         # Pre-fetch currency and company info for efficiency outside the loop
@@ -913,9 +920,29 @@ class ks_dynamic_financial_base(models.Model):
         if ks_df_informations.get('account_tag_ids', []):
             ks_df_account_company_domain.append(('tag_ids', 'in', ks_df_informations.get('analytic_tags', [])))
 
-        if ks_df_informations.get('account_ids', []):
-            if not any(len(account_id) == 0 for account_id in ks_df_informations.get('account_ids')):
-                ks_df_account_company_domain.append(('id', 'in', ks_df_informations.get('account_ids', [])))
+        # --- robust handling of account_ids ---
+        raw_account_ids = ks_df_informations.get('account_ids', [])
+        # normalize single int/str to list
+        if isinstance(raw_account_ids, (int, str)):
+            account_ids = [raw_account_ids]
+        else:
+            # ensure we have a list (handles None, tuples, generators, etc.)
+            account_ids = list(raw_account_ids) if raw_account_ids else []
+
+        # convert digit-strings to ints (if any) and filter-out empty values
+        cleaned_ids = []
+        for aid in account_ids:
+            if aid is None or aid == '':
+                continue
+            if isinstance(aid, str) and aid.isdigit():
+                cleaned_ids.append(int(aid))
+            else:
+                cleaned_ids.append(aid)
+
+        # only add domain if there are valid ids left
+        if cleaned_ids:
+            ks_df_account_company_domain.append(('id', 'in', cleaned_ids))
+
         return WHERE, ks_df_account_company_domain
 
     def ks_executive_where(self, ks_df_informations):
@@ -1813,6 +1840,12 @@ class ks_dynamic_financial_base(models.Model):
                                            'code': ks_account_type_id.code,
                                            'id': ks_account_type_id.id,
                                            'group': ks_account_type_id,
+                                           'main_type': dict(ks_account_type_id._fields['main_group'].selection).get(
+                                               ks_account_type_id.main_group) or False,
+                                           'account_type': dict(
+                                               ks_account_type_id._fields['account_type'].selection).get(
+                                               ks_account_type_id.account_type) or False,
+                                           'sub_type': ks_account_type_id.sub_sub_group_id.name,
                                            'initial_debit': 0.0,
                                            'initial_credit': 0.0,
                                            'initial_balance': 0.0,
@@ -1898,7 +1931,6 @@ class ks_dynamic_financial_base(models.Model):
                     ks_deb = ks_op['debit']
                     ks_cre = ks_op['credit']
                     ks_bln = ks_op['balance']
-                    print()
                     ks_move_lines[ks_account.code]['debit'] = ks_deb
                     ks_move_lines[ks_account.code]['credit'] = ks_cre
                     ks_move_lines[ks_account.code]['balance'] = ks_bln
@@ -1910,6 +1942,11 @@ class ks_dynamic_financial_base(models.Model):
                     ks_move_lines[ks_account.code]['ending_balance'] = ks_end_blns
                     ks_move_lines[ks_account.code]['ending_credit'] = ks_end_cr
                     ks_move_lines[ks_account.code]['ending_debit'] = ks_end_dr
+                    ks_move_lines[ks_account.code]['main_type'] = dict(ks_account._fields['main_group'].selection).get(
+                        ks_account.main_group) or False
+                    ks_move_lines[ks_account.code]['account_type'] = dict(
+                        ks_account._fields['account_type'].selection).get(ks_account.account_type) or False
+                    ks_move_lines[ks_account.code]['sub_type'] = ks_account.sub_sub_group_id.name
 
                     if self.env['ir.config_parameter'].sudo().get_param('ks_disable_trial_en_bal', False) and \
                             (ks_account.internal_group == 'income' or ks_account.internal_group == 'expense') and \
@@ -1940,8 +1977,13 @@ class ks_dynamic_financial_base(models.Model):
                         ks_move_lines[ks_account.code]['initial_balance'] = 0.0
                         ks_move_lines[ks_account.code]['initial_credit'] = 0.0
                         ks_move_lines[ks_account.code]['initial_debit'] = 0.0
+                        ks_move_lines[ks_account.code]['main_type'] = dict(
+                            ks_account._fields['main_group'].selection).get(ks_account.main_group) or False
+                        ks_move_lines[ks_account.code]['account_type'] = dict(
+                            ks_account._fields['account_type'].selection).get(ks_account.account_type) or False
+                        ks_move_lines[ks_account.code]['sub_type'] = ks_account.sub_sub_group_id.name
 
-                    if ks_end_blns or ks_deb != 0 or ks_cre != 0:  # debit or credit exist
+                    if ks_end_blns or ks_deb != 0 or ks_cre != 0:
                         ks_total_deb += ks_deb
                         ks_total_cre += ks_cre
                         ks_total_bln += ks_bln
@@ -2456,6 +2498,12 @@ class ks_dynamic_financial_base(models.Model):
         ks_currency_id = ks_company_id.currency_id
 
         WHERE = self.ks_df_build_where_clause(ks_df_informations)
+        # Apply partner filter for detailed GL lines
+        if ks_df_informations.get('ks_partner_ids'):
+            partner_ids = [int(p) for p in ks_df_informations.get('ks_partner_ids', [])]
+            if partner_ids:
+                WHERE += " AND p.id IN (%s)" % ",".join(map(str, partner_ids))
+
         KSINITWHERE = WHERE
         KS_WHERE_INIT = WHERE
         if ks_df_informations['date']['ks_process'] == 'range':
@@ -3176,6 +3224,12 @@ class ks_dynamic_financial_base(models.Model):
         currency_id = company_id.currency_id
 
         WHERE = self.ks_build_where_clause(ks_df_informations, partner_ledger=True if partner_ledger else False)
+        # Partner filter for GL detailed move lines
+        if ks_df_informations and ks_df_informations.get('ks_partner_ids'):
+            partner_ids = [int(p) for p in ks_df_informations.get('ks_partner_ids', [])]
+            if partner_ids:
+                WHERE += " AND p.id IN (%s)" % ",".join(map(str, partner_ids))
+
         KSINITWHERE = WHERE
         KS_WHERE_INIT = WHERE + " AND l.date < '%s'" % ks_df_informations['date'].get('ks_start_date')
         KS_WHERE_INIT += " AND l.partner_id = %s" % partner
@@ -3967,11 +4021,122 @@ class ks_dynamic_financial_base(models.Model):
             'ks_sub_lines': ks_sublines,
 
         }
-        return info
+        if self.display_name == 'Profit and Loss':
+            import copy
 
-    ####################################################################################
-    # Journal options
-    ####################################################################################
+            Account = self.env['account.account']
+
+            for line in info.get('ks_report_lines', []):
+                if 'account' in line:
+                    account_id = line['account']
+                    account_rec = Account.browse(account_id)
+
+                    sub_group = account_rec.sub_sub_group_id
+                    line['sub_type_id'] = sub_group.id if sub_group else False
+                    line['sub_type_name'] = sub_group.name if sub_group else ""
+
+            new_id_counter = 500000
+            grouped_sub_types = {}
+            lines_to_remove = set()
+
+            OTHER_SUB_TYPE_ID = -1
+            OTHER_SUB_TYPE_NAME = "OTHER"
+            processed_accounts = set()
+
+            for line in info.get('ks_report_lines', []):
+
+                if line.get('ks_level') != 4:
+                    continue
+
+                account_id = line.get('account')
+
+                if account_id in processed_accounts:
+                    continue
+
+                processed_accounts.add(account_id)
+
+                parent_level_2_id = line.get('parent')
+
+                if line.get('sub_type_id'):
+                    sub_type_id = line['sub_type_id']
+                    sub_type_name = line['sub_type_name']
+                else:
+                    sub_type_id = OTHER_SUB_TYPE_ID
+                    sub_type_name = OTHER_SUB_TYPE_NAME
+
+                lines_to_remove.add(id(line))
+
+                if parent_level_2_id not in grouped_sub_types:
+                    grouped_sub_types[parent_level_2_id] = {}
+
+                if sub_type_id not in grouped_sub_types[parent_level_2_id]:
+                    grouped_sub_types[parent_level_2_id][sub_type_id] = {
+                        'sub_type_name': sub_type_name,
+                        'accounts': [],
+                        'balance': 0.0,
+                        'debit': 0.0,
+                        'credit': 0.0,
+                        'currency_id': line['company_currency_id'],
+                    }
+
+                group_data = grouped_sub_types[parent_level_2_id][sub_type_id]
+
+                account_copy = copy.deepcopy(line)
+                group_data['accounts'].append(account_copy)
+
+                group_data['balance'] += line.get('balance', 0.0)
+                group_data['debit'] += line.get('debit', 0.0)
+                group_data['credit'] += line.get('credit', 0.0)
+
+            original_lines = info.get('ks_report_lines', [])
+            new_report_lines = []
+
+            for line in original_lines:
+
+                if line.get('ks_level') == 4 and id(line) in lines_to_remove:
+                    continue
+
+                new_report_lines.append(line)
+
+                if line.get('ks_level') == 2 and line.get('self_id') in grouped_sub_types:
+                    parent_level_2_id = line['self_id']
+
+                    for sub_type_id in sorted(grouped_sub_types[parent_level_2_id].keys()):
+                        group_data = grouped_sub_types[parent_level_2_id][sub_type_id]
+
+                        new_level_3_id = new_id_counter
+                        new_id_counter += 1
+
+                        level_3_line = {
+                            'ks_name': group_data['sub_type_name'],
+                            'balance': group_data['balance'],
+                            'parent': parent_level_2_id,
+                            'self_id': new_level_3_id,
+                            'ks_df_report_account_type': 'report',
+                            'style_type': 'sub_sub_total',
+                            'precision': 2,
+                            'symbol': '₹',
+                            'position': 'before',
+                            'list_len': [0, 1, 2],
+                            'ks_level': 3,
+                            'company_currency_id': group_data['currency_id'],
+                            'account_type': 'sub_total',
+                            'balance_cmp': {},
+                            'debit': group_data.get('debit', 0.0),
+                            'credit': group_data.get('credit', 0.0),
+                            'sub_type_id': sub_type_id,
+                        }
+
+                        new_report_lines.append(level_3_line)
+
+                        for acc in group_data['accounts']:
+                            acc['parent'] = new_level_3_id
+                            acc['list_len'] = [0, 1, 2, 3]
+                            new_report_lines.append(acc)
+
+            info['ks_report_lines'] = new_report_lines
+
+        return info
 
     # Get journal filters from model account.journal
     @api.model
@@ -4690,18 +4855,46 @@ class ks_dynamic_financial_base(models.Model):
 
     def ks_show_df_general_ledger(self, ks_df_informations, ks_parameter=None):
         if not ks_parameter:
-            params = {}
+            ks_parameter = {}
         ks_ctx = self.env.context.copy()
         ks_ctx.pop('id', '')
-        ks_ctx['default_filter_accounts'] = self.env['account.account'].browse(ks_parameter.get('id', 0)).code or ''
+
+        account_id_raw = (
+                ks_parameter.get('accountId')
+                or ks_parameter.get('data-bs-account-id')
+                or ks_parameter.get('id')
+                or ks_parameter.get('account_id')
+                or ''
+        )
+
+        account_id = 0
+        try:
+            if account_id_raw is None or account_id_raw == '':
+                account_id = 0
+            elif isinstance(account_id_raw, (int, float)):
+                account_id = int(account_id_raw)
+            elif isinstance(account_id_raw, str):
+                account_id = int(account_id_raw.strip())
+            elif isinstance(account_id_raw, (list, tuple)) and len(account_id_raw) > 0:
+                account_id = int(account_id_raw[0])
+            else:
+                account_id = int(account_id_raw)
+        except (ValueError, TypeError):
+            account_id = 0
+
+        if account_id:
+            ks_df_informations['account_ids'] = [account_id]
+            account_rec = self.env['account.account'].browse(account_id)
+            ks_ctx['default_filter_accounts'] = account_rec.code or ''
+            ks_ctx['search_default_account_id'] = [account_id]
+        else:
+            ks_df_informations['account_ids'] = []
+
         ks_action = self.env["ir.actions.actions"]._for_xml_id("ks_dynamic_financial_report.ks_df_gl_action")
         ks_action_ctx = ast.literal_eval(ustr(ks_action.get('context')))
         ks_ctx.update(ks_action_ctx)
 
-        ks_df_informations['account_ids'] = [ks_parameter.get('accountId', '')]
-        if 'date' in ks_df_informations and ks_df_informations['date']['ks_process'] == 'single':
-            # If we are coming from a report with a single date, we need to change the options to ranged
-            # ks_df_informations['date']['ks_process'] = 'range'
+        if 'date' in ks_df_informations and ks_df_informations['date'].get('ks_process') == 'single':
             ks_df_informations['date']['ks_interval_type'] = 'fiscalyear'
 
         ks_action.update({'ks_df_informations': ks_df_informations, 'context': ks_ctx, 'ignore_session': 'read'})
@@ -4713,6 +4906,11 @@ class ks_dynamic_financial_base(models.Model):
         ks_ctx = self.env.context.copy()
         if ks_parameter and 'accountId' in ks_parameter:
             ks_active_id = ks_parameter['accountId']
+            ks_ctx.update({
+                'search_default_account_id': [ks_active_id],
+            })
+        if ks_parameter and 'bsAccountId' in ks_parameter:
+            ks_active_id = ks_parameter['bsAccountId']
             ks_ctx.update({
                 'search_default_account_id': [ks_active_id],
             })

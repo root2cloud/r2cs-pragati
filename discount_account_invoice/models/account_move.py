@@ -14,24 +14,27 @@ import functools
 from contextlib import ExitStack, contextmanager
 from odoo.exceptions import AccessError, UserError, ValidationError
 
-
 _logger = logging.getLogger(__name__)
+
 
 class AccountTax(models.Model):
     _inherit = "account.tax"
 
     @api.model
-    def _compute_taxes_for_single_line(self, base_line, handle_price_include=True, include_caba_tags=False, early_pay_discount_computation=None, early_pay_discount_percentage=None):
+    def _compute_taxes_for_single_line(self, base_line, handle_price_include=True, include_caba_tags=False,
+                                       early_pay_discount_computation=None, early_pay_discount_percentage=None):
         line = base_line['record']
         if line and line._name == "account.move.line":
             orig_price_unit_after_discount = base_line['price_unit'] * (1 - (base_line['discount'] / 100.0))
             if line.discount_type and line.discount_type == 'fixed':
-                orig_price_unit_after_discount = base_line['price_unit'] - base_line['discount']/base_line['quantity']
+                orig_price_unit_after_discount = base_line['price_unit'] - base_line['discount'] / base_line['quantity']
             if line.global_discount_percent:
                 if line.global_discount_amount:
-                    orig_price_unit_after_discount = orig_price_unit_after_discount -line.global_discount_amount/base_line['quantity']
+                    orig_price_unit_after_discount = orig_price_unit_after_discount - line.global_discount_amount / \
+                                                     base_line['quantity']
                 else:
-                    orig_price_unit_after_discount = orig_price_unit_after_discount*(1-float(line.global_discount_percent))
+                    orig_price_unit_after_discount = orig_price_unit_after_discount * (
+                                1 - float(line.global_discount_percent))
             price_unit_after_discount = orig_price_unit_after_discount
             taxes = base_line['taxes']._origin
             currency = base_line['currency'] or self.env.company.currency_id
@@ -106,17 +109,16 @@ class AccountTax(models.Model):
                 tax_values_list = []
 
             return to_update_vals, tax_values_list
-        return super(AccountTax, self)._compute_taxes_for_single_line(base_line, handle_price_include=True, include_caba_tags=False, early_pay_discount_computation=None, early_pay_discount_percentage=None)
-
-
-
-
+        return super(AccountTax, self)._compute_taxes_for_single_line(base_line, handle_price_include=True,
+                                                                      include_caba_tags=False,
+                                                                      early_pay_discount_computation=None,
+                                                                      early_pay_discount_percentage=None)
 
 
 class AccountMove(models.Model):
     _inherit = "account.move"
 
-    master_total_amount = fields.Monetary("Total Invoice Amount",compute="_compute_master_total")
+    master_total_amount = fields.Monetary("Total Invoice Amount", compute="_compute_master_total")
 
     def _compute_master_total(self):
         for rec in self:
@@ -126,7 +128,7 @@ class AccountMove(models.Model):
         if self.invoice_line_ids:
             self.invoice_line_ids.write({
                 'global_discount_percent': '',
-                'global_discount_amount':0
+                'global_discount_amount': 0
             })
             self.is_global_discount_applied = False
             self.global_order_discount = 0
@@ -139,15 +141,15 @@ class AccountMove(models.Model):
             if not self.global_order_discount:
                 self.invoice_line_ids.write({
                     'global_discount_percent': '',
-                    'global_discount_amount':0
+                    'global_discount_amount': 0
                 })
                 self.is_global_discount_applied = False
             elif self.global_discount_type == 'percent':
-                if self.global_order_discount >100 or self.global_order_discount <0:
+                if self.global_order_discount > 100 or self.global_order_discount < 0:
                     raise ValidationError("Please enter the valid discount")
                 self.invoice_line_ids.write({
-                    'global_discount_percent':str(self.global_order_discount/100),
-                    'global_discount_amount':0
+                    'global_discount_percent': str(self.global_order_discount / 100),
+                    'global_discount_amount': 0
 
                 })
                 self.is_global_discount_applied = True
@@ -164,19 +166,18 @@ class AccountMove(models.Model):
                         quantity = 1.0
                     else:
                         line_discount_price_unit = line.price_unit * (1 - (line.discount / 100.0))
-                    total_amount += line_discount_price_unit*quantity
+                    total_amount += line_discount_price_unit * quantity
                 if total_amount < self.global_order_discount:
                     raise ValidationError("Discount can't be greater than the invoice total amount")
                 self.is_global_discount_applied = True
                 self.invoice_line_ids.write({
-                    'global_discount_percent': str(self.global_order_discount/total_amount),
-                    'global_discount_amount':0
+                    'global_discount_percent': str(self.global_order_discount / total_amount),
+                    'global_discount_amount': 0
                 })
             self.invoice_line_ids._compute_totals()
             self._compute_amount()
             self._compute_tax_totals()
             self._recompute_cash_rounding_lines()
-
 
     @api.depends(
         'invoice_line_ids.currency_rate',
@@ -256,7 +257,6 @@ class AccountMove(models.Model):
                 # Non-invoice moves don't support that field (because of multicurrency: all lines of the invoice share the same currency)
                 move.tax_totals = None
 
-
     @api.depends('line_ids.matched_debit_ids.debit_move_id.move_id.payment_id.is_matched',
                  'line_ids.matched_debit_ids.debit_move_id.move_id.line_ids.amount_residual',
                  'line_ids.matched_debit_ids.debit_move_id.move_id.line_ids.amount_residual_currency',
@@ -270,7 +270,7 @@ class AccountMove(models.Model):
                  'line_ids.amount_residual',
                  'line_ids.amount_residual_currency',
                  'line_ids.payment_id.state',
-                 'line_ids.full_reconcile_id',)
+                 'line_ids.full_reconcile_id', )
     def _compute_amount(self):
         res = super(AccountMove, self)._compute_amount()
         for move in self:
@@ -300,9 +300,9 @@ class AccountMove(models.Model):
         return res
 
     total_global_discount = fields.Monetary(string='Total Global Discount',
-        store=True, default=0, compute='_compute_amount')
+                                            store=True, default=0, compute='_compute_amount')
     total_discount = fields.Monetary(string='Total Discount', store=True,
-        default=0, compute='_compute_amount', tracking=True)
+                                     default=0, compute='_compute_amount', tracking=True)
     global_discount_type = fields.Selection([('fixed', 'Fixed'),
                                              ('percent', 'Percent')],
                                             string="Discount Type", default="percent", tracking=True)
@@ -319,34 +319,21 @@ class AccountMoveLine(models.Model):
                                       ('percent', 'Percent')],
                                      string="Discount Type", default="percent")
     is_global_line = fields.Boolean(string='Global Discount Line',
-        help="This field is used to separate global discount line.")
+                                    help="This field is used to separate global discount line.")
 
     display_type = fields.Selection(
-        selection=[
-            ('product', 'Product'),
-            ('cogs', 'Cost of Goods Sold'),
-            ('tax', 'Tax'),
-            ('rounding', "Rounding"),
-            ('payment_term', 'Payment Term'),
-            ('line_section', 'Section'),
-            ('line_note', 'Note'),
-            ('epd', 'Early Payment Discount'),
-            ('gd', 'Global Discount')
-        ],
-        compute='_compute_display_type', store=True, readonly=False, precompute=True,
-        required=True,
+        selection_add=[('gd', 'Global Discount')],
+        ondelete={'gd': lambda records: records.write({'display_type': 'product'})},
     )
 
-    @api.onchange('discount_type','discount')
+    @api.onchange('discount_type', 'discount')
     def onchange_discount_validation(self):
         for line in self:
             if line.discount_type and line.discount:
-                if line.discount_type == 'percent' and line.discount>100:
+                if line.discount_type == 'percent' and line.discount > 100:
                     raise ValidationError("Discount can be greater than 100 percent")
                 elif line.discount_type == 'fixed' and line.discount > line.price_subtotal:
                     raise ValidationError("Discount can be greater than line subtotal price")
-
-
 
     @api.depends('quantity', 'discount', 'price_unit', 'tax_ids', 'currency_id')
     def _compute_totals(self):
@@ -357,13 +344,14 @@ class AccountMoveLine(models.Model):
             # line.global_discount_amount = 0
             line_discount_price_unit = line.price_unit * (1 - (line.discount / 100.0))
             if line.discount_type and line.discount_type == 'fixed':
-                line_discount_price_unit = line.price_unit - line.discount/line.quantity
+                line_discount_price_unit = line.price_unit - line.discount / line.quantity
             if line.global_discount_percent:
                 if line.global_discount_amount:
-                    line_discount_price_unit = line_discount_price_unit - line.global_discount_amount/line.quantity
+                    line_discount_price_unit = line_discount_price_unit - line.global_discount_amount / line.quantity
                 else:
-                    line.global_discount_amount = line_discount_price_unit *float(line.global_discount_percent) * line.quantity
-                    line_discount_price_unit = line_discount_price_unit*(1-float(line.global_discount_percent))
+                    line.global_discount_amount = line_discount_price_unit * float(
+                        line.global_discount_percent) * line.quantity
+                    line_discount_price_unit = line_discount_price_unit * (1 - float(line.global_discount_percent))
             subtotal = line.quantity * line_discount_price_unit
 
             # Compute 'price_total'.
@@ -381,7 +369,8 @@ class AccountMoveLine(models.Model):
             else:
                 line.price_total = line.price_subtotal = subtotal
 
-    @api.depends('tax_ids', 'currency_id', 'partner_id', 'analytic_distribution', 'balance', 'partner_id', 'move_id.partner_id', 'price_unit')
+    @api.depends('tax_ids', 'currency_id', 'partner_id', 'analytic_distribution', 'balance', 'partner_id',
+                 'move_id.partner_id', 'price_unit')
     def _compute_all_tax(self):
         for line in self:
             sign = line.move_id.direction_sign
@@ -390,14 +379,14 @@ class AccountMoveLine(models.Model):
                 line.compute_all_tax_dirty = False
                 continue
             if line.display_type == 'product' and line.move_id.is_invoice(True):
-                amount_currency =  line.price_unit * (1 - line.discount / 100)
+                amount_currency = line.price_unit * (1 - line.discount / 100)
                 if line.discount_type and line.discount_type == 'fixed':
-                    amount_currency = (line.price_unit - line.discount/line.quantity)
+                    amount_currency = (line.price_unit - line.discount / line.quantity)
                 if line.global_discount_percent:
                     if line.global_discount_amount:
-                        amount_currency = amount_currency - line.global_discount_amount/line.quantity
+                        amount_currency = amount_currency - line.global_discount_amount / line.quantity
                     else:
-                        amount_currency = amount_currency*(1- float(line.global_discount_percent))
+                        amount_currency = amount_currency * (1 - float(line.global_discount_percent))
                 amount_currency = sign * amount_currency
                 handle_price_include = True
                 quantity = line.quantity
@@ -424,7 +413,8 @@ class AccountMoveLine(models.Model):
                     'group_tax_id': tax['group'] and tax['group'].id or False,
                     'account_id': tax['account_id'] or line.account_id.id,
                     'currency_id': line.currency_id.id,
-                    'analytic_distribution': (tax['analytic'] or not tax['use_in_tax_closing']) and line.analytic_distribution,
+                    'analytic_distribution': (tax['analytic'] or not tax[
+                        'use_in_tax_closing']) and line.analytic_distribution,
                     'tax_ids': [(6, 0, tax['tax_ids'])],
                     'tax_tag_ids': [(6, 0, tax['tag_ids'])],
                     'partner_id': line.move_id.partner_id.id or line.partner_id.id,

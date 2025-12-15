@@ -4,10 +4,8 @@ from num2words import num2words
 from collections import defaultdict
 
 
-
 class PurchaseOrder(models.Model):
     _inherit = "purchase.order"
-
 
     READONLY_STATES = {
         'purchase': [('readonly', True)],
@@ -41,27 +39,29 @@ class PurchaseOrder(models.Model):
             return category_type.id
         return False
 
-    def _get_default_user_id(self):
-        domain = [('name', '=', "Managing Director"),('login', '=', 'ajay@pragatigroup.com')]
-        user_type = self.env['res.users'].search(domain, limit=1)
-        if user_type:
-            return user_type.id
-        return False
-            
+    # def _get_default_user_id(self):
+    #     domain = [('name', '=', "Managing Director"), ('login', '=', 'ajay@pragatigroup.com')]
+    #     user_type = self.env['res.users'].search(domain, limit=1)
+    #     if user_type:
+    #         return user_type.id
+    #     return False
+
     transport = fields.Char(string="Transportation")
     transport_bill = fields.Char(string="Bill Reference")
-    delivery_terms_id = fields.Many2one('delivery.terms',string='Delivery Terms')
-    approval_submit_id = fields.Many2one('approval.request',string='PO Approval ID')
+    delivery_terms_id = fields.Many2one('delivery.terms', string='Delivery Terms')
+    approval_submit_id = fields.Many2one('approval.request', string='PO Approval ID')
     request_owner_id = fields.Many2one('res.users', string="Request Owner",
-        check_company=True, domain="[('company_ids', 'in', company_id)]", default=lambda self: self.env.user)
-    category_id = fields.Many2one('approval.category',string='category',default=_get_default_category_id)
+                                       check_company=True, domain="[('company_ids', 'in', company_id)]",
+                                       default=lambda self: self.env.user)
+    category_id = fields.Many2one('approval.category', string='category', default=_get_default_category_id)
     approve_status = fields.Selection([('pending', 'Pending'), ('approve', 'Approved')],
-        string='Approval Status', default='pending')
-    date_order = fields.Datetime('PO date', required=True, states=READONLY_STATES, index=True, copy=False, default=fields.Datetime.now,
-        help="Depicts the date within which the Quotation should be confirmed and converted into a purchase order.")
-    reuse_button = fields.Boolean(default=False, tracking=True, states=READONLY_STATES,)
+                                      string='Approval Status', default='pending')
+    date_order = fields.Datetime('PO date', required=True, states=READONLY_STATES, index=True, copy=False,
+                                 default=fields.Datetime.now,
+                                 help="Depicts the date within which the Quotation should be confirmed and converted into a purchase order.")
+    reuse_button = fields.Boolean(default=False, tracking=True, states=READONLY_STATES, )
     pr_completion = fields.Boolean(string='PR Completion?', default=False, tracking=True)
-    narration = fields.Char(string= ' PO Narration',)
+    narration = fields.Char(string=' PO Narration', )
     approver_1 = fields.Char(string='Approver 1', store=True)
     approver_2 = fields.Char(string='Approver 2', store=True)
     approver_3 = fields.Char(string='Approver 2', store=True)
@@ -69,34 +69,36 @@ class PurchaseOrder(models.Model):
     cgst_tax = fields.Float(string='CGST', compute='_compute_cgst_amount', store=True)
     sgst_tax = fields.Float(string='SGST', compute='_compute_sgst_amount', store=True)
     amount_in_words = fields.Char(string='Amount in Words', compute='_compute_amount_in_words', store=True)
-    warranty = fields.Char(string= 'Warranty') 
+    warranty = fields.Char(string='Warranty')
     original_bill = fields.Binary(string='Original Bill', store=True, tracking=True)
-    approval_level_1 = fields.Many2one('res.users', string='Approver Level 1', domain="[('share', '=', False)]", states=READONLY_STATES)
-    approval_level_2 = fields.Many2one('res.users', string='Approver Level 2', domain="[('share', '=', False)]", default=_get_default_user_id, states=READONLY_STATES)
-    approval_level_3 = fields.Many2one('res.users', string='Approver Level 3', domain="[('share', '=', False)]", states=READONLY_STATES,)
-    original_bills = fields.Binary(string="Original Bill", attachment=True, tracking=True)    
-    state = fields.Selection(selection_add=[('draft', 'RFQ / Draft PO'),("waiting1","Waiting Level1"),("waiting2","Waiting Level2"),("waiting3","Waiting Level3"),("approve","Approved"),('reject', 'Rejected'),('sent',)])
+    approval_level_1 = fields.Many2one('res.users', string='Approver Level 1', domain="[('share', '=', False)]",
+                                       readonly=True)
+    approval_level_2 = fields.Many2one('res.users', string='Approver Level 2', domain="[('share', '=', False)]",
+                                       readonly=True)
+    approval_level_3 = fields.Many2one('res.users', string='Approver Level 3', domain="[('share', '=', False)]",
+                                       readonly=True, )
+    original_bills = fields.Binary(string="Original Bill", attachment=True, tracking=True)
+    state = fields.Selection(
+        selection_add=[('draft', 'RFQ / Draft PO'), ("waiting1", "Waiting Level1"), ("waiting2", "Waiting Level2"),
+                       ("waiting3", "Waiting Level3"), ("approve", "Approved"), ('reject', 'Rejected'), ('sent',)])
 
-    department_id = fields.Many2one('hr.department', 'Department', tracking=True, states=READONLY_STATES)
+    department_id = fields.Many2one('hr.department', 'Department', tracking=True, states=READONLY_STATES, required=True)
 
-    
-    show_approve_button = fields.Boolean(string='Show Approve Button', compute='_compute_show_approve_button', tracking=True)
-    show_reject_button =  fields.Boolean(string='Show Approve Button', compute='_compute_show_approve_button', tracking=True)
+    show_approve_button = fields.Boolean(string='Show Approve Button', compute='_compute_show_approve_button',
+                                         tracking=True)
+    show_reject_button = fields.Boolean(string='Show Approve Button', compute='_compute_show_approve_button',
+                                        tracking=True)
 
     @api.onchange('department_id')
     def _onchange_department_id(self):
-        """Update approval levels dynamically when selecting a department."""
         if self.department_id:
-            self.approval_level_1 = self.department_id.approver1.id
-            self.approval_level_2 = self.department_id.approver2.id
+            self.approval_level_1 = self.department_id.approver1.id if self.department_id.approver1 else False
+            self.approval_level_2 = self.department_id.approver2.id if self.department_id.approver2 else False
+            self.approval_level_3 = self.department_id.approver3.id if self.department_id.approver3 else False
         else:
             self.approval_level_1 = False
             self.approval_level_2 = False
-
-
-
-
-
+            self.approval_level_3 = False
 
     # @api.model
     # def create(self, vals):
@@ -113,37 +115,31 @@ class PurchaseOrder(models.Model):
     #         self.env['purchase.request'].browse(pr_ids).write({'is_used': True})
     #     return res
 
-
-
-
-
-
-
-
     def action_reset_to_draft(self):
         for record in self:
             record.write({'state': 'draft'})
         return True
-    
+
     @api.onchange('approval_level_1')
     def _onchange_approval_level_1(self):
         for record in self:
-            if record.approval_level_1 and (record.approval_level_1 == record.approval_level_2 or record.approval_level_1 == record.approval_level_3):
+            if record.approval_level_1 and (
+                    record.approval_level_1 == record.approval_level_2 or record.approval_level_1 == record.approval_level_3):
                 raise UserError("The same Approver is selected more than once. Please check and correct it.")
 
     @api.onchange('approval_level_2')
     def _onchange_approval_level_2(self):
         for record in self:
-            if record.approval_level_2 and (record.approval_level_2 == record.approval_level_1 or record.approval_level_2 == record.approval_level_3):
+            if record.approval_level_2 and (
+                    record.approval_level_2 == record.approval_level_1 or record.approval_level_2 == record.approval_level_3):
                 raise UserError("The same Approver is selected more than once. Please check and correct it.")
 
     @api.onchange('approval_level_3')
     def _onchange_approval_level_3(self):
         for record in self:
-            if record.approval_level_3 and (record.approval_level_3 == record.approval_level_1 or record.approval_level_3 == record.approval_level_2):
+            if record.approval_level_3 and (
+                    record.approval_level_3 == record.approval_level_1 or record.approval_level_3 == record.approval_level_2):
                 raise UserError("The same Approver is selected more than once. Please check and correct it.")
-
-
 
     @api.depends('amount_total')
     def _compute_amount_in_words(self):
@@ -154,31 +150,29 @@ class PurchaseOrder(models.Model):
             else:
                 order.amount_in_words = ""
 
-    #Compute Total in the form based on order_line
+    # Compute Total in the form based on order_line
     @api.depends('order_line.remaining_tax')
     def _compute_remaining_tax_total(self):
         for order in self:
             order.remaining_tax_total = sum(order.order_line.mapped('remaining_tax'))
 
-
-    #Compute Total in the form based on order_line
+    # Compute Total in the form based on order_line
     @api.depends('order_line.igst_tax')
     def _compute_igst_amount(self):
         for order in self:
             order.igst_tax = sum(order.order_line.mapped('igst_tax'))
-        #Compute Total in the form based on order_line
+        # Compute Total in the form based on order_line
 
     @api.depends('order_line.cgst_tax')
     def _compute_cgst_amount(self):
         for order in self:
             order.cgst_tax = sum(order.order_line.mapped('cgst_tax'))
-        #Compute Total in the form based on order_line
+        # Compute Total in the form based on order_line
 
     @api.depends('order_line.sgst_tax')
     def _compute_sgst_amount(self):
         for order in self:
             order.sgst_tax = sum(order.order_line.mapped('sgst_tax'))
-
 
     # @api.depends('approval_submit_id.approver_ids.status', 'approval_submit_id.approver_ids')
     # def _compute_approvers_names(self):
@@ -194,16 +188,14 @@ class PurchaseOrder(models.Model):
     #         record.approver_1 = approver_1_name
     #         record.approver_2 = approver_2_name
 
-
-
-    # craetinga a function for the stcok_name and schedule_date 
+    # craetinga a function for the stcok_name and schedule_date
     def action_create_invoice(self):
         res = super(PurchaseOrder, self).action_create_invoice()
-        
+
         for invoice in self.invoice_ids:
             # if invoice.invoice_origin:
-                # purchase_orders = self.env['purchase.order'].search([('name', '=', invoice.invoice_origin)])
-                # for purchase_order in purchase_orders:
+            # purchase_orders = self.env['purchase.order'].search([('name', '=', invoice.invoice_origin)])
+            # for purchase_order in purchase_orders:
             invoice.write({
                 'stock_name': self.picking_ids[0].name if self.picking_ids else '',
                 'schedule_date': self.picking_ids[0].scheduled_date if self.picking_ids else '',
@@ -214,10 +206,9 @@ class PurchaseOrder(models.Model):
 
         return res
 
-
     def call_approval_request_submit(self):
         approver_list = []
-        
+
         if self.approval_level_1:
             approver_list.append(self.approval_level_1.id)
         if self.approval_level_2:
@@ -230,7 +221,7 @@ class PurchaseOrder(models.Model):
 
         # if self.reuse_button:
         #     raise ValidationError(_("The record is already Submitted, Please check the PO Approval ID"))
-        
+
         if not approver_list:
             raise UserError("Please assign at least one approver for approval.")
 
@@ -243,7 +234,7 @@ class PurchaseOrder(models.Model):
 
         # # Update the approval_submit_id with the latest approval request ID
         # self.write({'approval_submit_id': approval_request.id})
-        
+
         # # Create approval approver records based on purchase order lines
         # approver_values = []
         # for line in approver_list:
@@ -268,7 +259,6 @@ class PurchaseOrder(models.Model):
 
         return True
 
-
     # @api.depends('approval_submit_id.request_status')
     # def _compute_approve_status(self):
     #     for record in self:
@@ -277,17 +267,13 @@ class PurchaseOrder(models.Model):
     #         else:
     #             record.approve_status = 'pending'
 
-
-    
-    
-    
     # def button_confirm(self):
     #     res = super(PurchaseOrder, self).button_confirm()
     #     for record in self:
     #         if record.pr_request_id:
     #             for po_order in record.order_line:
     #                 main_qty = po_order.product_qty
-                 
+
     #                 product_qtys_list = []
     #                 for pr_rec in record.pr_request_id:                        
     #                     for line in pr_rec.pr_request_line_ids:
@@ -295,7 +281,6 @@ class PurchaseOrder(models.Model):
     #                         if line.product_id.id == po_order.product_id.id:
     #                             product_qtys_list.append({'product_name':line.product_id.id,'pro_qty':line.quantity,'line_details':line})
     #                 sorted_product_qtys_list = sorted(product_qtys_list, key=lambda x: x['pro_qty'])
-
 
     #                 for each_product in sorted_product_qtys_list:
     #                     for each_line in each_product['line_details']:
@@ -307,7 +292,6 @@ class PurchaseOrder(models.Model):
     #                             # main_qty = each_line.quantity-main_qty
     #                             each_line.purchased_qty = main_qty
     #                             each_line.quantity =  each_line.quantity - each_line.purchased_qty
-
 
     #         return res
 
@@ -323,7 +307,9 @@ class PurchaseOrder(models.Model):
                         for pr_rec in record.pr_request_ids:
                             for line in pr_rec.pr_request_line_ids:
                                 if line.product_id.id == po_order.product_id.id:
-                                    product_qtys_list.append({'product_name':line.product_id.id,'pro_qty':line.quantity,'line_details':line})
+                                    product_qtys_list.append(
+                                        {'product_name': line.product_id.id, 'pro_qty': line.quantity,
+                                         'line_details': line})
                         sorted_product_qtys_list = sorted(product_qtys_list, key=lambda x: x['pro_qty'])
 
                         for each_product in sorted_product_qtys_list:
@@ -347,8 +333,6 @@ class PurchaseOrder(models.Model):
                     record.message_subscribe([record.partner_id.id])
         return True
 
-
-    
     def action_open_product_selection_wizard(self):
         # self.state = 'cancel'
         return {
@@ -366,9 +350,8 @@ class PurchaseOrder(models.Model):
             'type': 'ir.actions.act_url',
             'url': '/web/content/?model=purchase.order&id={}&field=original_bills'.format(self.id),
             'target': 'new',
-            
-        }
 
+        }
 
     def action_approve(self):
 
@@ -401,7 +384,7 @@ class PurchaseOrder(models.Model):
             record.state = 'reject'
             # record._create_mail_activity_for_reject()
         self.sudo()._get_user_approval_activities(user=self.env.user).action_done()
-        return True    
+        return True
 
     @api.depends('state', 'approval_level_1', 'approval_level_2', 'approval_level_3')
     def _compute_show_approve_button(self):
@@ -437,7 +420,7 @@ class PurchaseOrder(models.Model):
             })
             return activity
         return False
-    
+
     def _get_user_approval_activities(self, user):
         domain = [
             ('res_model', '=', 'purchase.order'),
@@ -446,9 +429,8 @@ class PurchaseOrder(models.Model):
             ('user_id', '=', user.id)
         ]
         activities = self.env['mail.activity'].search(domain)
-        print("############",activities)
+        print("############", activities)
         return activities
-
 
     def action_rfq_send(self):
         '''
@@ -510,16 +492,16 @@ class PurchaseOrder(models.Model):
             'context': ctx,
         }
 
+
 class PurchaseOrderLine(models.Model):
     _inherit = 'purchase.order.line'
 
-    
     @api.depends('product_id')
     def _compute_last_purchase_cost(self):
         for line in self:
             purchase_invoice_lines = self.env['account.move.line'].search([
-            ('product_id', '=', line.product_id.id),
-            ('move_id.move_type', '=', 'in_invoice'),
+                ('product_id', '=', line.product_id.id),
+                ('move_id.move_type', '=', 'in_invoice'),
             ])
 
             sorted_invoice_lines = purchase_invoice_lines.sorted(key=lambda r: (r.move_id.date, r.id), reverse=True)

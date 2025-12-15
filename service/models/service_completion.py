@@ -76,7 +76,7 @@ class ServiceCompletion(models.Model):
     service_order_id = fields.Many2one('service.order', string='Service Order Id', states=READONLYSTATES)
     location_id = fields.Many2one('stock.location', "Cost Center", tracking=True, states=READONLYSTATES,
                                   domain=[('is_cost_center', '=', True)])
-    department_id = fields.Many2one('hr.department', 'Department', tracking=True, states=READONLYSTATES)
+    department_id = fields.Many2one('hr.department', 'Department', tracking=True, states=READONLYSTATES, required=True)
     journal_id = fields.Many2one('account.journal', string='Journal type', default=_get_default_journal_id,
                                  readonly=True, tracking=True)
     account_move_id = fields.Many2one('account.move', string='Invoice', readonly=True, copy=False,
@@ -95,15 +95,16 @@ class ServiceCompletion(models.Model):
     approval_level_1 = fields.Many2one(
         'res.users',
         string='Approver Level 1',
-        domain="[('share', '=', False)]"
+        domain="[('share', '=', False)]", readonly=True
     )
     approval_level_2 = fields.Many2one(
         'res.users',
         string='Approver Level 2',
-        domain="[('share', '=', False)]"
+        domain="[('share', '=', False)]", readonly=True
     )
     approval_level_3 = fields.Many2one('res.users', string='Approver Level 3', domain="[('share', '=', False)]",
-                                       states=READONLYSTATES)
+                                       readonly=True
+                                       )
     show_approve_button = fields.Boolean(string='Show Approve Button', compute='_compute_show_approve_button',
                                          tracking=True)
     show_reject_button = fields.Boolean(string='Show Reject Button', compute='_compute_show_approve_button',
@@ -116,13 +117,14 @@ class ServiceCompletion(models.Model):
 
     @api.onchange('department_id')
     def _onchange_department_id(self):
-
         if self.department_id:
-            self.approval_level_1 = self.department_id.approver1.id
-            self.approval_level_2 = self.department_id.approver2.id
+            self.approval_level_1 = self.department_id.approver1.id if self.department_id.approver1 else False
+            self.approval_level_2 = self.department_id.approver2.id if self.department_id.approver2 else False
+            self.approval_level_3 = self.department_id.approver3.id if self.department_id.approver3 else False
         else:
             self.approval_level_1 = False
             self.approval_level_2 = False
+            self.approval_level_3 = False
 
     @api.onchange('approval_level_1')
     def _onchange_approval_level_1(self):

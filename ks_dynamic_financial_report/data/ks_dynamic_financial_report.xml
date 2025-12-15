@@ -180,7 +180,10 @@
                    (4,ref('ks_dynamic_financial_report.ks_df_expense_depreciation')),
                    (4,ref('ks_dynamic_financial_report.ks_df_expense_direct_cost')),
                    (4,ref('ks_dynamic_financial_report.ks_df_expense_direct')),
-           (4,ref('ks_dynamic_financial_report.ks_df_expense_indirect'))]"/>
+                   (4,ref('ks_dynamic_financial_report.ks_df_expense_indirect')),
+                   (4,ref('ks_dynamic_financial_report.ks_df_expense_changes_in_inventory'))]"
+            />
+
             <field name="ks_display_detail">no_detail</field>
         </record>
         <record id="ks_pnl0"
@@ -588,7 +591,7 @@
             <field name="ks_analytic_account_visibility" eval="True"/>
             <field name="ks_hide_default_reports" eval="True"/>
             <field name="ks_partner_account_type_filter" eval="False"/>
-            <field name="ks_partner_filter" eval="False"/>
+            <field name="ks_partner_filter" eval="True"/>
             <field name="ks_df_report_account_type">accounts</field>
         </record>
 

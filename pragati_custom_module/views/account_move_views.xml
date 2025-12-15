@@ -46,11 +46,11 @@
                 <!--                <button name="action_reset_to_draft" string="Reset to Draft" type="object" class="btn-warning"/>-->
             </xpath>
             <xpath expr="//form/sheet/group" position="inside">
-                <group string='Select Approvers Here'
-                       attrs="{'invisible': ['|',('move_type', '!=', 'in_invoice'),('state', '!=', 'draft')]}">
-                    <field name='approval_level_1'/>
-                    <field name='approval_level_2'/>
-                    <field name='approval_level_3'/>
+                <group string='Select Approvers Here'>
+                    <field name="department_id"/>
+                    <field name='approval_level_1' readonly="1" force_save="1"/>
+                    <field name='approval_level_2' readonly="1" force_save="1"/>
+                    <field name='approval_level_3' readonly="1" force_save="1"/>
                 </group>
             </xpath>
         </field>

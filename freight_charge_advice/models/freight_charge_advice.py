@@ -49,8 +49,8 @@ class FreightChargeAdvice(models.Model):
                                        default=lambda self: self.env.user, tracking=True)
     department_id = fields.Many2one(
         'hr.department',
-        string='Department',
-        help='Select the department'
+        string='Department', states=READONLY_STATES,
+        help='Select the department', tracking=True, required=True
     )
     company_id = fields.Many2one('res.company', string='Company', required=True,
                                  default=lambda self: self.env.company.id,
@@ -71,13 +71,13 @@ class FreightChargeAdvice(models.Model):
     )
 
     approval_level_1 = fields.Many2one('res.users', string='Approver Level 1', domain="[('share', '=', False)]",
-                                       states=READONLY_STATES, tracking=True)
+                                       readonly=True, tracking=True)
 
     approval_level_2 = fields.Many2one(
         'res.users',
         string='Approval Level 2',
         domain="[('share', '=', False)]",
-        states=READONLY_STATES,
+        readonly=True,
         tracking=True,
         help='Second level approver'
     )
@@ -85,7 +85,7 @@ class FreightChargeAdvice(models.Model):
         'res.users',
         string='Approval Level 3',
         domain="[('share', '=', False)]",
-        states=READONLY_STATES,
+        readonly=True,
         tracking=True,
         help='Third level approver'
     )
@@ -110,6 +110,7 @@ class FreightChargeAdvice(models.Model):
     payments_count = fields.Integer(string='Payments Count', compute='_compute_payment_count')
 
     amount_in_word = fields.Char(compute="_compute_amount_in_word")
+
     # invoice_id = fields.Many2one('account.move', string='Transport Invoice',
     #                              domain=[('invoice_line_ids.product_id', '=', 'Transport Charges')], readonly=False)
     # invoice_ids = fields.Many2many(
@@ -127,7 +128,7 @@ class FreightChargeAdvice(models.Model):
         if self.department_id:
             self.approval_level_1 = self.department_id.approver1.id if self.department_id.approver1 else False
             self.approval_level_2 = self.department_id.approver2.id if self.department_id.approver2 else False
-            self.approval_level_3 = False
+            self.approval_level_3 = self.department_id.approver3.id if self.department_id.approver3 else False
         else:
             self.approval_level_1 = False
             self.approval_level_2 = False

@@ -4,6 +4,7 @@ from odoo.exceptions import ValidationError, UserError
 
 class LedgerPayment(models.Model):
     _name = 'ledger.payment'
+    _description = 'Ledger Payment'
 
     # Define fields
     date = fields.Date(string="Date", default=fields.datetime.now())

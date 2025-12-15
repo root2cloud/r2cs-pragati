@@ -80,11 +80,9 @@
                             <field name="department_id"/>
                         </group>
                         <group string='Select Approvers Here'>
-                            <field name='approval_level_1' attrs="{'readonly': [('approval_level_1', '!=', False)]}"
-                                   force_save="1"/>
-                            <field name='approval_level_2' attrs="{'readonly': [('approval_level_2', '!=', False)]}"
-                                   force_save="1"/>
-                            <field name='approval_level_3'/>
+                            <field name='approval_level_1' readonly="1" force_save="1"/>
+                            <field name='approval_level_2' readonly="1" force_save="1"/>
+                            <field name='approval_level_3' readonly="1" force_save="1"/>
                         </group>
                     </group>
                     <notebook>
