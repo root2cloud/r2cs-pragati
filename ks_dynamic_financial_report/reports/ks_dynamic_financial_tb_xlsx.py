@@ -119,6 +119,7 @@ class KsDynamicFinancialXlsxTB(models.Model):
             hierarchy.setdefault(main, {})
             hierarchy[main].setdefault(acc, {})
             hierarchy[main][acc].setdefault(sub, [])
+            hierarchy[main][acc][sub].append(line)
 
         def sum_group(lines):
             return (
@@ -134,6 +135,7 @@ class KsDynamicFinancialXlsxTB(models.Model):
         for main, acc_types in hierarchy.items():
 
             main_lines = [l for a in acc_types.values() for s in a.values() for l in s]
+            print(main_lines)
             m1, m2, m3, m4, m5, m6 = sum_group(main_lines)
 
             sheet.write(row_pos, 0, f"{main}", total_left)
