@@ -82,7 +82,7 @@ class PurchaseOrder(models.Model):
         selection_add=[('draft', 'RFQ / Draft PO'), ("waiting1", "Waiting Level1"), ("waiting2", "Waiting Level2"),
                        ("waiting3", "Waiting Level3"), ("approve", "Approved"), ('reject', 'Rejected'), ('sent',)])
 
-    department_id = fields.Many2one('hr.department', 'Department', tracking=True, states=READONLY_STATES, required=True)
+    department_id = fields.Many2one('hr.department', 'Department', tracking=True, states=READONLY_STATES)
 
     show_approve_button = fields.Boolean(string='Show Approve Button', compute='_compute_show_approve_button',
                                          tracking=True)
