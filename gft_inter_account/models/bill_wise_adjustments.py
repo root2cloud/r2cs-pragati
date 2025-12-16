@@ -4,6 +4,7 @@ from odoo.exceptions import ValidationError, UserError
 
 class LedgerPaymentBillWiseAdjustments(models.Model):
     _name = 'ledger.payment.bill.wise.adjustments'
+    _description = 'Ledger Payment Bill Wise Adjustments'
 
     # Define fields
 

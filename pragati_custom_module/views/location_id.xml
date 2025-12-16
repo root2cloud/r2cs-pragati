@@ -21,16 +21,14 @@
                 <!-- Add Sales Price -->
                 <field name="avg_cost" position="before">
                     <field name="lst_price" string="Sales Price"/>
-                </field>
-
-                <!-- Add SGST -->
-                <field name="avg_cost" position="before">
-                    <field name="sgst_value" string="SGST (%)"/>
-                </field>
-
-                <!-- Add CGST -->
-                <field name="avg_cost" position="before">
-                    <field name="cgst_value" string="CGST (%)"/>
+                    <!-- Add SGST Value (₹) -->
+                    <field name="sgst_value" string="SGST"/>
+                    <!-- Add CGST Value (₹) -->
+                    <field name="cgst_value" string="CGST"/>
+                    <!-- Add IGST Value (₹) -->
+                    <field name="igst_value" string="IGST"/>
+                    <!-- Add Total Tax Value (₹) -->
+                    <field name="total_tax_value" string="Total Tax"/>
                 </field>
             </field>
         </record>

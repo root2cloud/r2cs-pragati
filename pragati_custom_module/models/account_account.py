@@ -41,7 +41,7 @@ class AccountAccount(models.Model):
 
             ("off_balance", "Off-Balance Sheet"),
         ],
-        string='Type',
+        string='Sub Group',
         required=True,
         help='Account type used for reports and fiscal year closure'
     )
