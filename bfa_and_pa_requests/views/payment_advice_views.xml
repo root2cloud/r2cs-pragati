@@ -94,12 +94,14 @@
                             <field name="payments_value"/>
                             <field name="journal_id"/>
                             <field name="advice_id" invisible="1"/>
-                            <field name="department_id" string="Department"/>
+                            <field name="department_id" string="Department" invisible="1"/>
                         </group>
                         <group string='Select Approvers Here'>
-                            <field name='approval_level_1' readonly="1" force_save="1"/>
-                            <field name='approval_level_2' readonly="1" force_save="1"/>
-                            <field name='approval_level_3' readonly="1" force_save="1"/>
+                            <field name='approval_level_1'
+                                   />
+                            <field name='approval_level_2'
+                                   />
+                            <field name='approval_level_3'/>
                         </group>
                     </group>
                     <notebook>
