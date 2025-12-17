@@ -32,42 +32,42 @@ class AccountPayment(models.Model):
             else:
                 order.amount_in_words = ""
 
-    @api.constrains("amount", "journal_id")
-    def _check_journal_balance(self):
-        for rec in self:
-            if rec.journal_id and rec.amount:
-
-                # Get the account used by the journal
-                account = rec.journal_id.default_account_id
-                if not account:
-                    continue  # no account → skip validation
-
-                # Compute balance from move lines (posted only)
-                AccountMoveLine = self.env['account.move.line']
-                domain = [
-                    ('account_id', '=', account.id),
-                    ('parent_state', '=', 'posted'),
-                ]
-
-                grouped = AccountMoveLine.read_group(
-                    domain,
-                    ['debit', 'credit'],
-                    []
-                )
-
-                debit = Decimal(grouped[0]['debit']) if grouped and grouped[0]['debit'] else Decimal(0)
-                credit = Decimal(grouped[0]['credit']) if grouped and grouped[0]['credit'] else Decimal(0)
-
-                # Actual account balance
-                balance = debit - credit  # Odoo sign convention
-
-                requested = Decimal(str(rec.amount))
-
-                # Check if user entered more than available balance
-                if requested > balance:
-                    raise ValidationError(_(
-                        f"Insufficient balance in the selected Journal '{rec.journal_id.name}'.\n\n"
-                        f"Account: {account.name}\n"
-                        f"Available Balance: {balance:,.2f}\n"
-                        f"Requested Amount: {requested:,.2f}"
-                    ))
+    # @api.constrains("amount", "journal_id")
+    # def _check_journal_balance(self):
+    #     for rec in self:
+    #         if rec.journal_id and rec.amount:
+    #
+    #             # Get the account used by the journal
+    #             account = rec.journal_id.default_account_id
+    #             if not account:
+    #                 continue  # no account → skip validation
+    #
+    #             # Compute balance from move lines (posted only)
+    #             AccountMoveLine = self.env['account.move.line']
+    #             domain = [
+    #                 ('account_id', '=', account.id),
+    #                 ('parent_state', '=', 'posted'),
+    #             ]
+    #
+    #             grouped = AccountMoveLine.read_group(
+    #                 domain,
+    #                 ['debit', 'credit'],
+    #                 []
+    #             )
+    #
+    #             debit = Decimal(grouped[0]['debit']) if grouped and grouped[0]['debit'] else Decimal(0)
+    #             credit = Decimal(grouped[0]['credit']) if grouped and grouped[0]['credit'] else Decimal(0)
+    #
+    #             # Actual account balance
+    #             balance = debit - credit  # Odoo sign convention
+    #
+    #             requested = Decimal(str(rec.amount))
+    #
+    #             # Check if user entered more than available balance
+    #             if requested > balance:
+    #                 raise ValidationError(_(
+    #                     f"Insufficient balance in the selected Journal '{rec.journal_id.name}'.\n\n"
+    #                     f"Account: {account.name}\n"
+    #                     f"Available Balance: {balance:,.2f}\n"
+    #                     f"Requested Amount: {requested:,.2f}"
+    #                 ))
