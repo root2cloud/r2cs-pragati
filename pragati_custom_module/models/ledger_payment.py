@@ -124,25 +124,25 @@ class LedgerPayment(models.Model):
             else:
                 order.amount_in_words = ""
 
-    # @api.constrains("amount", "source_acc")
-    # def _check_source_account_balance(self):
-    #
-    #     for record in self:
-    #         if record.source_acc and record.amount:
-    #             AccountMoveLine = self.env['account.move.line']
-    #             domain = [
-    #                 ('account_id', '=', record.source_acc.id),
-    #                 ('parent_state', '=', 'posted'),
-    #             ]
-    #             # SUM(debit) - SUM(credit) for this account
-    #             results = AccountMoveLine.read_group(domain, ['debit', 'credit'], [])
-    #             debit = Decimal(results[0]['debit']) if results and results[0]['debit'] else Decimal(0)
-    #             credit = Decimal(results[0]['credit']) if results and results[0]['credit'] else Decimal(0)
-    #             balance = debit - credit
-    #             amount = Decimal(str(record.amount))
-    #
-    #             if balance < amount:
-    #                 raise ValidationError(
-    #                     f"Insufficient balance in source account '{record.source_acc.name}'.\n\n"
-    #                     f"Current Balance: {balance:,.2f}\n"
-    #                     f"Requested Transfer: {amount:,.2f}")
+    @api.constrains("amount", "source_acc")
+    def _check_source_account_balance(self):
+
+        for record in self:
+            if record.source_acc and record.amount:
+                AccountMoveLine = self.env['account.move.line']
+                domain = [
+                    ('account_id', '=', record.source_acc.id),
+                    ('parent_state', '=', 'posted'),
+                ]
+                # SUM(debit) - SUM(credit) for this account
+                results = AccountMoveLine.read_group(domain, ['debit', 'credit'], [])
+                debit = Decimal(results[0]['debit']) if results and results[0]['debit'] else Decimal(0)
+                credit = Decimal(results[0]['credit']) if results and results[0]['credit'] else Decimal(0)
+                balance = debit - credit
+                amount = Decimal(str(record.amount))
+
+                if balance < amount:
+                    raise ValidationError(
+                        f"Insufficient balance in source account '{record.source_acc.name}'.\n\n"
+                        f"Current Balance: {balance:,.2f}\n"
+                        f"Requested Transfer: {amount:,.2f}")
