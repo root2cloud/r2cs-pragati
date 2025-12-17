@@ -96,9 +96,9 @@ class PaymentAdvice(models.Model):
                                           store=True, states=READONLY_STATES)
     payment_id = fields.Many2one('account.payment', string='Payment Id')
     approval_level_1 = fields.Many2one('res.users', string='Approver Level 1', domain="[('share', '=', False)]",
-                                       readonly=True, tracking=True)
+                                       default=lambda self: self._get_default_user_id(),readonly=True, tracking=True)
     approval_level_2 = fields.Many2one('res.users', string='Approver Level 2', domain="[('share', '=', False)]",
-                                       readonly=True, tracking=True)
+                                       default=lambda self: self._get_default_user_id_1(), readonly=True, tracking=True)
     approval_level_3 = fields.Many2one('res.users', string='Approver Level 3', domain="[('share', '=', False)]",
                                        readonly=True)
     payments_count = fields.Integer(string='Payments Count', compute='_compute_payment_count')
