@@ -61,9 +61,9 @@
                             <field name="partner_id" widget="many2one_tags"/>
                             <field name="balance_amount" invisible="1"/>
                             <field name="partner_balance_amount"/>
-                            <field name="rec_amount"/>
-                            <field name="approve_amount"/>
-                            <field name="vendor_refernce"/>
+                            <field name="rec_amount" invisible="1"/>
+                            <field name="approve_amount" invisible="1"/>
+                            <field name="vendor_refernce" invisible="1"/>
                             <field name="currency_id" widget="many2one_tags"/>
                             <field name="narration"/>
                             <field name="amount_in_words"/>
@@ -88,19 +88,19 @@
                             <field name="original_bills_filename" invisible="1"/>
 
                             <field name="company_id"/>
-                            <field name="shipping_address_id" widget="many2one_tags"/>
+                            <field name="shipping_address_id" widget="many2one_tags" invisible="1"/>
                             <field name="payment_id" invisible="1"/>
                             <field name="reference_amount" invisible="1"/>
-                            <field name="payments_value"/>
-                            <field name="journal_id"/>
+                            <field name="payments_value" invisible="1"/>
+                            <field name="journal_id" invisible="1"/>
                             <field name="advice_id" invisible="1"/>
                             <field name="department_id" string="Department" invisible="1"/>
                         </group>
                         <group string='Select Approvers Here'>
                             <field name='approval_level_1'
-                                   />
+                                  readonly="1" force_save="1"/>
                             <field name='approval_level_2'
-                                   />
+                                 readonly="1" force_save="1"/>
                             <field name='approval_level_3'/>
                         </group>
                     </group>
