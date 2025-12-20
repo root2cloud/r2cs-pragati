@@ -181,7 +181,7 @@
                    (4,ref('ks_dynamic_financial_report.ks_df_expense_direct_cost')),
                    (4,ref('ks_dynamic_financial_report.ks_df_expense_direct')),
                    (4,ref('ks_dynamic_financial_report.ks_df_expense_indirect')),
-                   (4,ref('ks_dynamic_financial_report.ks_df_expense_changes_in_inventory'))]"
+                   (4,ref('ks_dynamic_financial_report.ks_df_expense_changes_inventory'))]"
             />
 
             <field name="ks_display_detail">no_detail</field>
@@ -655,6 +655,8 @@
                                 <field name="ks_name"/>
                                 <field name="ks_sequence"/>
                                 <field name="ks_report_line_sign"/>
+                                 <field name="ks_display_detail"/>
+
                             </group>
                             <group>
                                 <field name="ks_report_menu_id" attrs="{'invisible': [('ks_parent_id', '!=', False)]}"/>
@@ -718,7 +720,7 @@
             <field name="type">ir.actions.act_window</field>
             <field name="res_model">ks.dynamic.financial.reports</field>
             <field name="view_mode">tree,form</field>
-            <field name="domain">[('ks_hide_default_reports', '=', False)]</field>
+            <field name="domain">[]</field>
             <field name="view_id" ref="ks_df_tree_view"/>
         </record>
         <record id="ks_df_receivable0"

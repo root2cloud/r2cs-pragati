@@ -4136,6 +4136,161 @@ class ks_dynamic_financial_base(models.Model):
 
             info['ks_report_lines'] = new_report_lines
 
+
+
+
+        if self.display_name == 'Balance Sheet':
+            import copy
+            Account = self.env['account.account']
+
+            def _sort_key(val):
+                return (val == 'OTHER', val or '')
+
+            def _get_selection_label(model, field_name, value):
+                field = model._fields.get(field_name)
+                if field and field.selection:
+                    return dict(field.selection).get(value, value)
+                return value
+
+            def _round(val):
+                return round(val or 0.0, 2)
+
+
+            report_lines = info.get('ks_report_lines', [])
+            if not report_lines:
+                return
+
+            report_label_line = report_lines[0]
+
+            account_lines = [
+                line for line in report_lines
+                if line.get('account')
+            ]
+
+            # ------------------------------------------------------------------
+            # 1️⃣ Group with aggregation + deduplication
+            # ------------------------------------------------------------------
+            grouped = {}
+            seen_keys = set()
+
+            for line in account_lines:
+                account = Account.browse(line['account'])
+
+                main_group = account.main_group or 'OTHER'
+                account_type = account.account_type or 'OTHER'
+                sub_group = account.sub_sub_group_id.name if account.sub_sub_group_id else 'OTHER'
+
+                dedup_key = (account.id, main_group, account_type, sub_group)
+                if dedup_key in seen_keys:
+                    continue
+                seen_keys.add(dedup_key)
+
+                grouped.setdefault(main_group, {})
+                grouped[main_group].setdefault(account_type, {})
+                grouped[main_group][account_type].setdefault(sub_group, {
+                    'accounts': [],
+                    'debit': 0.0,
+                    'credit': 0.0,
+                    'balance': 0.0,
+                    'currency_id': line.get('company_currency_id'),
+                })
+
+                grp = grouped[main_group][account_type][sub_group]
+                grp['accounts'].append(line)
+                grp['debit'] += line.get('debit', 0.0)
+                grp['credit'] += line.get('credit', 0.0)
+                grp['balance'] += line.get('balance', 0.0)
+
+            # ------------------------------------------------------------------
+            # 2️⃣ Build final report with totals
+            # ------------------------------------------------------------------
+            new_lines = [report_label_line]
+            new_id = 100000
+
+            for main_group in sorted(grouped.keys(), key=_sort_key):
+                main_group_id = new_id
+                new_id += 1
+
+                main_group_label = _get_selection_label(Account, 'main_group', main_group)
+
+                main_debit = main_credit = main_balance = 0.0
+
+                for at in grouped[main_group].values():
+                    for sg in at.values():
+                        main_debit += sg['debit']
+                        main_credit += sg['credit']
+                        main_balance += sg['balance']
+
+                # Level 1 – Main Group (WITH TOTAL)
+                new_lines.append({
+                    'ks_name': main_group_label,
+                    'self_id': main_group_id,
+                    'parent': report_label_line.get('self_id'),
+                    'list_len': [0],
+                    'ks_level': 1,
+                    'account_type': 'group',
+                    'debit': _round(main_debit),
+                    'credit': _round(main_credit),
+                    'balance': _round(main_balance),
+                })
+
+                for account_type in sorted(grouped[main_group].keys(), key=_sort_key):
+                    account_type_id = new_id
+                    new_id += 1
+
+                    account_type_label = _get_selection_label(Account, 'account_type', account_type)
+
+                    at_debit = at_credit = at_balance = 0.0
+
+                    for sg in grouped[main_group][account_type].values():
+                        at_debit += sg['debit']
+                        at_credit += sg['credit']
+                        at_balance += sg['balance']
+
+                    # Level 2 – Account Type (WITH TOTAL)
+                    new_lines.append({
+                        'ks_name': account_type_label,
+                        'self_id': account_type_id,
+                        'parent': main_group_id,
+                        'list_len': [0, 1],
+                        'ks_level': 2,
+                        'account_type': 'group',
+                        'debit': _round(at_debit),
+                        'credit': _round(at_credit),
+                        'balance': _round(at_balance),
+                    })
+
+                    for sub_group in sorted(grouped[main_group][account_type].keys(), key=_sort_key):
+                        sub_group_id = new_id
+                        new_id += 1
+
+                        sg = grouped[main_group][account_type][sub_group]
+
+                        # Level 3 – Sub Sub Group (WITH TOTAL)
+                        new_lines.append({
+                            'ks_name': sub_group,
+                            'self_id': sub_group_id,
+                            'parent': account_type_id,
+                            'list_len': [0, 1, 2],
+                            'ks_level': 3,
+                            'account_type': 'group',
+                            'debit': _round(sg['debit']),
+                            'credit': _round(sg['credit']),
+                            'balance': _round(sg['balance']),
+                        })
+
+                        # Level 4 – Accounts
+                        for acc_line in sg['accounts']:
+                            acc = copy.deepcopy(acc_line)
+                            acc.update({
+                                'parent': sub_group_id,
+                                'ks_level': 4,
+                                'list_len': [0, 1, 2, 3],
+                            })
+                            new_lines.append(acc)
+
+            info['ks_report_lines'] = new_lines
+
         return info
 
     # Get journal filters from model account.journal

@@ -46,6 +46,13 @@ class ResPartner(models.Model):
     # ============================================
     # CREATE METHOD - ALL WORKFLOW HERE
     # ============================================
+    @api.model
+    def default_get(self, fields_list):
+        vals = super().default_get(fields_list)
+        if 'property_account_payable_id' in fields_list:
+            if not self.env.context.get('default_property_account_payable_id'):
+                vals['property_account_payable_id'] = False
+        return vals
 
     @api.model_create_multi
     def create(self, vals_list):
