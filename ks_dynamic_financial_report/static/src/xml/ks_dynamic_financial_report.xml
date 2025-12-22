@@ -747,7 +747,7 @@
                     <th>Partner</th>
                     <th>Ref No</th>
                     <th>Status</th>
-                    <th>Account</th>
+                    <th>Narration</th>
                     <th>Opposite Accounts</th>
                     <t t-if="ks_enable_ledger_in_bal">
                         <th>Initial Balance</th>
