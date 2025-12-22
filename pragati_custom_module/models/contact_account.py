@@ -96,47 +96,38 @@ class AccountMoveLine(models.Model):
     @api.depends('tax_ids', 'price_subtotal')
     def _compute_taxes(self):
         for line in self:
-            igst = cgst = sgst = gst = remaining_tax = 0.0
-            igst_char = cgst_char = sgst_char = rem_char = 0.0  # Separate variables for character fields
+            igst = cgst = sgst = remaining_tax = 0.0
+            igst_p = cgst_p = sgst_p = rem_p = 0.0
 
-            for tax in line.tax_ids:
-                # Use regular expression to extract numeric value
-                match = re.search(r'(\d+(\.\d+)?)%', tax.name)
-                tax_amount = float(match.group(1)) if match else 0.0
+            for tax in line.tax_ids.flatten_taxes_hierarchy():
+                if tax.amount_type != 'percent':
+                    tax_amount = tax.amount
+                    remaining_tax += tax_amount
+                    continue
 
-                if 'IGST' in tax.name.upper():
-                    igst += line.price_subtotal * tax.amount / 100
-                    igst_char += tax_amount
-                elif 'CGST' in tax.name.upper():
-                    cgst += line.price_subtotal * tax.amount / 100
-                    cgst_char += tax_amount
-                elif 'SGST' in tax.name.upper():
-                    sgst += line.price_subtotal * tax.amount / 100
-                    sgst_char += tax_amount
-                elif 'GST' in tax.name.upper():
-                    gst += line.price_subtotal * tax.amount / 100
-                    sgst_char += tax_amount / 2
-                    cgst_char += tax_amount / 2
+                tax_amount = line.price_subtotal * tax.amount / 100.0
+                upper = (tax.name or '').upper()
+
+                if 'IGST' in upper:
+                    igst += tax_amount
+                    igst_p += tax.amount
+                elif 'CGST' in upper:
+                    cgst += tax_amount
+                    cgst_p += tax.amount
+                elif 'SGST' in upper:
+                    sgst += tax_amount
+                    sgst_p += tax.amount
                 else:
-                    # Handle remaining taxes here
-                    remaining_tax += line.price_subtotal * tax.amount / 100
-                    rem_char += tax_amount
-
-            gst_split = gst / 2
-            cgst += gst_split
-            sgst += gst_split
+                    remaining_tax += tax_amount
+                    rem_p += tax.amount
 
             line.igst_tax = igst
             line.cgst_tax = cgst
             line.sgst_tax = sgst
-
-            # Store the character fields
-            line.igst_tax_char = igst_char
-            line.cgst_tax_char = cgst_char
-            line.sgst_tax_char = sgst_char
-            line.rem_tax_char = rem_char
-
-            # Store the remaining_tax value in the field
+            line.igst_tax_char = igst_p
+            line.cgst_tax_char = cgst_p
+            line.sgst_tax_char = sgst_p
+            line.rem_tax_char = rem_p
             line.remaining_tax = remaining_tax
 
 
