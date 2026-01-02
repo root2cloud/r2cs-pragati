@@ -4208,6 +4208,9 @@ class ks_dynamic_financial_base(models.Model):
             new_id = 100000
 
             for main_group in sorted(grouped.keys(), key=_sort_key):
+                # Hide Income & Expense ONLY in Balance Sheet (presentation layer)
+                if self.display_name == 'Balance Sheet' and main_group in ('income', 'expense'):
+                    continue
                 main_group_id = new_id
                 new_id += 1
 

@@ -387,6 +387,18 @@
             <field name="ks_hide_default_reports" eval="True"/>
             <field name="ks_display_detail">detail_with_hierarchy</field>
         </record>
+        <!-- Equity : Capital Accounts -->
+        <record id="ks_dynamic_financial_balancesheet_equity_capital"
+                model="ks.dynamic.financial.reports">
+            <field name="ks_name">Capital Accounts</field>
+            <field name="ks_parent_id" ref="ks_dynamic_financial_balancesheet_equity"/>
+            <field name="ks_df_report_account_type">ks_coa_type</field>
+            <field name="ks_hide_default_reports" eval="True"/>
+            <field name="ks_display_detail">detail_with_hierarchy</field>
+            <field name="ks_dfr_account_type_ids"
+                   eval="[(4, ref('ks_dynamic_financial_report.ks_df_equity_capital_accounts'))]"/>
+        </record>
+
         <record id="ks_df_bs_ret_ear" model="ks.dynamic.financial.reports">
             <field name="ks_name">Retained Earnings</field>
             <field name="ks_dfr_account_type_ids" eval="[(4,ref('ks_dynamic_financial_report.ks_df_equity'))]"/>
@@ -655,7 +667,7 @@
                                 <field name="ks_name"/>
                                 <field name="ks_sequence"/>
                                 <field name="ks_report_line_sign"/>
-                                 <field name="ks_display_detail"/>
+                                <field name="ks_display_detail"/>
 
                             </group>
                             <group>
