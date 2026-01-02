@@ -11,8 +11,8 @@ class InternalTransactions(models.Model):
                        default=lambda self: _('New'))
     date = fields.Date(string="Date", required=True)
     boole = fields.Selection([('send', 'Send'), ('receive', 'Receive')], string="Payment Type", default='send')
-    source_acc = fields.Many2one('account.account', string="From Account", domain=[('account_type', '=', 'asset_cash')])
-    dest_acc = fields.Many2one('account.account', string="To Account", domain=[('account_type', '=', 'asset_cash')])
+    source_acc = fields.Many2one('account.account', string="From Account")
+    dest_acc = fields.Many2one('account.account', string="To Account")
     amount = fields.Float(string="Amount", required=True)
     # invoiced_amount = fields.Float(string="Reconciled Amount")
     journal_id = fields.Many2one(
