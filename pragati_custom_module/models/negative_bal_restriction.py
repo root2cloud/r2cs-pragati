@@ -8,23 +8,37 @@ class InternalTransactionInherit(models.Model):
 
     @api.constrains("amount", "source_acc")
     def _check_source_account_balance(self):
-
         for record in self:
-            if record.source_acc and record.amount:
-                AccountMoveLine = self.env['account.move.line']
-                domain = [
-                    ('account_id', '=', record.source_acc.id),
-                    ('parent_state', '=', 'posted'),
-                ]
-                # Get balance using the Odoo sign convention (debit-credit)
-                lines = AccountMoveLine.read_group(domain, ['debit', 'credit'], [])
-                debit = Decimal(lines[0]['debit']) if lines and lines[0]['debit'] else Decimal(0)
-                credit = Decimal(lines[0]['credit']) if lines and lines[0]['credit'] else Decimal(0)
-                balance = debit - credit
-                amount = Decimal(str(record.amount))
+            # Safety check
+            if not record.source_acc or not record.amount:
+                continue
 
-                if balance < amount:
-                    raise ValidationError(
-                        f"Insufficient balance in source account '{record.source_acc.name}'.\n\n"
-                        f"Current Balance: {balance:,.2f}\n"
-                        f"Requested Transfer: {amount:,.2f}")
+            # Identify CASH account using related journal type
+            is_cash_account = self.env['account.journal'].search_count([
+                ('default_account_id', '=', record.source_acc.id),
+                ('type', '=', 'cash')
+            ]) > 0
+
+            # Apply negative balance restriction ONLY for cash accounts
+            if not is_cash_account:
+                continue
+
+            AccountMoveLine = self.env['account.move.line']
+            domain = [
+                ('account_id', '=', record.source_acc.id),
+                ('parent_state', '=', 'posted'),
+            ]
+
+            # Calculate balance: SUM(debit) - SUM(credit)
+            lines = AccountMoveLine.read_group(domain, ['debit', 'credit'], [])
+            debit = Decimal(lines[0]['debit']) if lines and lines[0]['debit'] else Decimal(0)
+            credit = Decimal(lines[0]['credit']) if lines and lines[0]['credit'] else Decimal(0)
+            balance = debit - credit
+            amount = Decimal(str(record.amount))
+
+            if balance < amount:
+                raise ValidationError(
+                    f"Insufficient balance in CASH account '{record.source_acc.name}'.\n\n"
+                    f"Current Balance: {balance:,.2f}\n"
+                    f"Requested Transfer: {amount:,.2f}"
+                )
