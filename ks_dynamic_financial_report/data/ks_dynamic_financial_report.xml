@@ -83,7 +83,7 @@
         <!-- Total Expenses-->
         <record id="ks_dynamic_financial_report_expense0"
                 model="ks.dynamic.financial.reports">
-            <field name="ks_name">Expense Details</field>
+            <field name="ks_name">Expenses</field>
             <field name="ks_parent_id" ref="ks_df_pnl0"/>
             <field name="ks_df_report_account_type">total</field>
             <field name="ks_hide_default_reports" eval="True"/>
