@@ -83,16 +83,13 @@
         <!-- Total Expenses-->
         <record id="ks_dynamic_financial_report_expense0"
                 model="ks.dynamic.financial.reports">
-            <field name="ks_name">Expense</field>
-            <field name="ks_parent_id"
-                   ref="ks_df_pnl0"/>
+            <field name="ks_name">Expense Details</field>
+            <field name="ks_parent_id" ref="ks_df_pnl0"/>
             <field name="ks_df_report_account_type">total</field>
             <field name="ks_hide_default_reports" eval="True"/>
-            <field name="ks_dfr_account_type_ids"
-                   eval="[(4,ref('ks_dynamic_financial_report.ks_df_expense')),
-                   (4,ref('ks_dynamic_financial_report.ks_df_expense_depreciation'))]"/>
             <field name="ks_display_detail">no_detail</field>
         </record>
+
 
         <!-- Direct Expense -->
         <record id="ks_df_expense_direct0" model="ks.dynamic.financial.reports">
@@ -126,17 +123,18 @@
 
         </record>
 
-        <!--        <record id="ks_df_expense_data"-->
-        <!--                model="ks.dynamic.financial.reports">-->
-        <!--            <field name="ks_name">Expense</field>-->
-        <!--            <field name="ks_parent_id"-->
-        <!--                   ref="ks_dynamic_financial_report_expense0"/>-->
-        <!--            <field name="ks_df_report_account_type">ks_coa_type</field>-->
-        <!--            <field name="ks_hide_default_reports" eval="True"/>-->
-        <!--            <field name="ks_display_detail">detail_with_hierarchy</field>-->
-        <!--            <field name="ks_dfr_account_type_ids"-->
-        <!--                   eval="[(4,ref('ks_dynamic_financial_report.ks_df_expense'))]"/>-->
-        <!--        </record>-->
+        <record id="ks_df_expense_data"
+                model="ks.dynamic.financial.reports">
+            <field name="ks_name">Expense</field>
+            <field name="ks_parent_id"
+                   ref="ks_dynamic_financial_report_expense0"/>
+            <field name="ks_df_report_account_type">ks_coa_type</field>
+            <field name="ks_hide_default_reports" eval="True"/>
+            <field name="ks_display_detail">detail_with_hierarchy</field>
+            <field name="ks_dfr_account_type_ids"
+                   eval="[(4,ref('ks_dynamic_financial_report.ks_df_expense'))]"/>
+        </record>
+
         <record id="ks_df_report_depriciation0" model="ks.dynamic.financial.reports">
             <field name="ks_name">Depreciation</field>
             <field name="ks_parent_id" ref='ks_dynamic_financial_report_expense0'/>
@@ -147,13 +145,22 @@
             <field name="ks_dfr_account_type_ids"
                    eval="[(4,ref('ks_dynamic_financial_report.ks_df_expense_depreciation'))]"/>
         </record>
+        <record id="ks_df_expense_inventory0" model="ks.dynamic.financial.reports">
+            <field name="ks_name">Changes in Inventory</field>
+            <field name="ks_parent_id" ref="ks_dynamic_financial_report_expense0"/>
+            <field name="ks_sequence" eval="6"/>
+            <field name="ks_df_report_account_type">ks_coa_type</field>
+            <field name="ks_dfr_account_type_ids"
+                   eval="[(4,ref('ks_dynamic_financial_report.ks_df_expense_changes_inventory'))]"/>
+            <field name="ks_display_detail">detail_with_hierarchy</field>
+        </record>
 
 
         <!--  Net Profit-->
         <record id="ks_df_net_profit0" model="ks.dynamic.financial.reports">
             <field name="ks_name">Net Profit</field>
             <field name="ks_parent_id" ref='ks_df_pnl0'/>
-            <field name="ks_df_report_account_type">subtract</field>
+            <field name="ks_df_report_account_type">total</field>
             <field name="ks_hide_default_reports" eval="True"/>
             <field name="ks_display_detail">detail_with_hierarchy</field>
             <field name="ks_sequence" eval="4"/>
@@ -171,20 +178,19 @@
         <record id="ks_dynamic_financial_report_expense2"
                 model="ks.dynamic.financial.reports">
             <field name="ks_name">Expense</field>
-            <field name="ks_parent_id"
-                   ref="ks_df_net_profit0"/>
+            <field name="ks_parent_id" ref="ks_df_net_profit0"/>
             <field name="ks_df_report_account_type">ks_coa_type</field>
             <field name="ks_hide_default_reports" eval="True"/>
-            <field name="ks_dfr_account_type_ids"
-                   eval="[(4,ref('ks_dynamic_financial_report.ks_df_expense')),
-                   (4,ref('ks_dynamic_financial_report.ks_df_expense_depreciation')),
-                   (4,ref('ks_dynamic_financial_report.ks_df_expense_direct_cost')),
-                   (4,ref('ks_dynamic_financial_report.ks_df_expense_direct')),
-                   (4,ref('ks_dynamic_financial_report.ks_df_expense_indirect')),
-                   (4,ref('ks_dynamic_financial_report.ks_df_expense_changes_inventory'))]"
-            />
-
             <field name="ks_display_detail">no_detail</field>
+            <field name="ks_dfr_account_type_ids"
+                   eval="[
+             (4,ref('ks_dynamic_financial_report.ks_df_expense')),
+             (4,ref('ks_dynamic_financial_report.ks_df_expense_depreciation')),
+             (4,ref('ks_dynamic_financial_report.ks_df_expense_direct_cost')),
+             (4,ref('ks_dynamic_financial_report.ks_df_expense_direct')),
+             (4,ref('ks_dynamic_financial_report.ks_df_expense_indirect')),
+             (4,ref('ks_dynamic_financial_report.ks_df_expense_changes_inventory'))
+           ]"/>
         </record>
         <record id="ks_pnl0"
                 model="ir.actions.client">
