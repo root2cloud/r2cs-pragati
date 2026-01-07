@@ -8,6 +8,155 @@ import datetime
 class KsDynamicFinancialXlsxAR(models.Model):
     _inherit = 'ks.dynamic.financial.base'
 
+    def _rebuild_balance_sheet_lines_excel(self, report_lines, company_id):
+        """
+        Balance Sheet hierarchy rebuild for Excel export.
+        COPIED from UI logic intentionally (UI must not be modified).
+        """
+        if not report_lines:
+            return report_lines
+
+        import copy
+        Account = self.env['account.account'].sudo()
+
+        def _sort_key(val):
+            return (val == 'OTHER', val or '')
+
+        def _get_selection_label(model, field_name, value):
+            field = model._fields.get(field_name)
+            return dict(field.selection).get(value, value) if field and field.selection else value
+
+        def _round(val):
+            return round(val or 0.0, 2)
+
+        report_label_line = report_lines[0]
+        account_lines = []
+
+        for line in report_lines:
+            if line.get('account'):
+                acc = Account.browse(line['account'])
+                if acc.company_id.id == company_id:
+                    account_lines.append(line)
+
+        grouped = {}
+        seen_keys = set()
+
+        for line in account_lines:
+            account = Account.browse(line['account'])
+            main_group = account.main_group or 'OTHER'
+            account_type = account.account_type or 'OTHER'
+            sub_group = account.sub_sub_group_id.name if account.sub_sub_group_id else 'OTHER'
+
+            dedup_key = (account.id, main_group, account_type, sub_group)
+            if dedup_key in seen_keys:
+                continue
+            seen_keys.add(dedup_key)
+
+            grouped.setdefault(main_group, {}).setdefault(account_type, {}).setdefault(sub_group, {
+                'accounts': [], 'debit': 0.0, 'credit': 0.0,
+                'balance': 0.0, 'initial_balance': 0.0,
+                'currency_id': line.get('company_currency_id'),
+            })
+
+            grp = grouped[main_group][account_type][sub_group]
+            grp['accounts'].append(line)
+            grp['debit'] += line.get('debit', 0.0)
+            grp['credit'] += line.get('credit', 0.0)
+            grp['balance'] += line.get('balance', 0.0)
+            grp['initial_balance'] += line.get('initial_balance', 0.0)
+
+        new_lines = [report_label_line]
+        new_id = 100000
+
+        for main_group in sorted(grouped.keys(), key=_sort_key):
+            if main_group in ('income', 'expense'):
+                continue
+
+            main_group_id = new_id
+            new_id += 1
+
+            main_group_label = _get_selection_label(Account, 'main_group', main_group)
+
+            main_debit = main_credit = main_balance = main_initial = 0.0
+            for at in grouped[main_group].values():
+                for sg in at.values():
+                    main_debit += sg['debit']
+                    main_credit += sg['credit']
+                    main_balance += sg['balance']
+                    main_initial += sg['initial_balance']
+
+            new_lines.append({
+                'ks_name': main_group_label,
+                'self_id': main_group_id,
+                'parent': report_label_line.get('self_id'),
+                'list_len': [0],
+                'ks_level': 1,
+                'account_type': 'group',
+                'is_bs': True,
+                'debit': _round(main_debit),
+                'credit': _round(main_credit),
+                'balance': _round(main_balance),
+                'initial_balance': _round(main_initial),
+            })
+
+            for account_type in sorted(grouped[main_group].keys(), key=_sort_key):
+                account_type_id = new_id
+                new_id += 1
+
+                account_type_label = _get_selection_label(Account, 'account_type', account_type)
+
+                at_debit = at_credit = at_balance = at_initial = 0.0
+                for sg in grouped[main_group][account_type].values():
+                    at_debit += sg['debit']
+                    at_credit += sg['credit']
+                    at_balance += sg['balance']
+                    at_initial += sg['initial_balance']
+
+                new_lines.append({
+                    'ks_name': account_type_label,
+                    'self_id': account_type_id,
+                    'parent': main_group_id,
+                    'list_len': [0, 1],
+                    'ks_level': 2,
+                    'account_type': 'group',
+                    'is_bs': True,
+                    'debit': _round(at_debit),
+                    'credit': _round(at_credit),
+                    'balance': _round(at_balance),
+                    'initial_balance': _round(at_initial),
+                })
+
+                for sub_group in sorted(grouped[main_group][account_type].keys(), key=_sort_key):
+                    sub_group_id = new_id
+                    new_id += 1
+                    sg = grouped[main_group][account_type][sub_group]
+
+                    new_lines.append({
+                        'ks_name': sub_group,
+                        'self_id': sub_group_id,
+                        'parent': account_type_id,
+                        'list_len': [0, 1, 2],
+                        'ks_level': 3,
+                        'account_type': 'group',
+                        'is_bs': True,
+                        'debit': _round(sg['debit']),
+                        'credit': _round(sg['credit']),
+                        'balance': _round(sg['balance']),
+                        'initial_balance': _round(sg['initial_balance']),
+                    })
+
+                    for acc_line in sg['accounts']:
+                        acc = copy.deepcopy(acc_line)
+                        acc.update({
+                            'parent': sub_group_id,
+                            'ks_level': 4,
+                            'list_len': [0, 1, 2, 3],
+                            'is_bs': True
+                        })
+                        new_lines.append(acc)
+
+        return new_lines
+
     def get_xlsx(self, ks_df_informations, response=None):
         output = io.BytesIO()
         workbook = xlsxwriter.Workbook(output, {'in_memory': True})
@@ -17,6 +166,12 @@ class KsDynamicFinancialXlsxAR(models.Model):
                                                                                                  print_mode=True,
                                                                                                  prefetch_fields=False).ks_fetch_report_account_lines(
                 ks_df_informations)
+            if self.display_name == 'Balance Sheet':
+                lines = self._rebuild_balance_sheet_lines_excel(
+                    lines,
+                    ks_df_informations.get('company_id')
+                )
+
             if self.display_name == 'Profit and Loss':
                 info = {'ks_report_lines': lines}
 
@@ -139,18 +294,18 @@ class KsDynamicFinancialXlsxAR(models.Model):
 
         else:
             lines = self.ks_process_executive_summary(ks_df_informations)
-        if self.display_name == self.env.ref(
-                'ks_dynamic_financial_report.ks_dynamic_financial_balancesheet').display_name:
-            ks_bal_sum = 0
-            for line in lines:
-
-                # if line.get('ks_name') == 'LIABILITIES' or line.get('ks_name') == 'EQUITY':
-                #     ks_bal_sum += line.get('balance', 0)
-
-                if line.get('ks_name') == 'Previous Years Unallocated Earnings' and \
-                        ks_df_informations['date']['ks_process'] == 'range':
-                    ks_bal_sum -= line.get('balance', 0)
-            lines[len(lines) - 1]['balance'] = ks_bal_sum
+        # if self.display_name == self.env.ref(
+        #         'ks_dynamic_financial_report.ks_dynamic_financial_balancesheet').display_name:
+        #     ks_bal_sum = 0
+        #     for line in lines:
+        #
+        #         # if line.get('ks_name') == 'LIABILITIES' or line.get('ks_name') == 'EQUITY':
+        #         #     ks_bal_sum += line.get('balance', 0)
+        #
+        #         if line.get('ks_name') == 'Previous Years Unallocated Earnings' and \
+        #                 ks_df_informations['date']['ks_process'] == 'range':
+        #             ks_bal_sum -= line.get('balance', 0)
+        #     lines[len(lines) - 1]['balance'] = ks_bal_sum
 
         ks_company_id = self.env['res.company'].sudo().browse(ks_df_informations.get('company_id'))
 
@@ -305,14 +460,17 @@ class KsDynamicFinancialXlsxAR(models.Model):
                 sheet.set_column(2, 3, 15)
                 sheet.set_column(3, 3, 15)
 
-                sheet.write_string(row_pos, 0, _('Name'),
-                                   format_header)
-                sheet.write_string(row_pos, 1, _('Debit'),
-                                   format_header)
-                sheet.write_string(row_pos, 2, _('Credit'),
-                                   format_header)
-                sheet.write_string(row_pos, 3, _('Balance'),
-                                   format_header)
+                sheet.write_string(row_pos, 0, _('Name'), format_header)
+
+                if self.display_name == 'Balance Sheet':
+                    sheet.write_string(row_pos, 1, _('Initial Balance'), format_header)
+                    sheet.write_string(row_pos, 2, _('Debit'), format_header)
+                    sheet.write_string(row_pos, 3, _('Credit'), format_header)
+                    sheet.write_string(row_pos, 4, _('Balance'), format_header)
+                else:
+                    sheet.write_string(row_pos, 1, _('Debit'), format_header)
+                    sheet.write_string(row_pos, 2, _('Credit'), format_header)
+                    sheet.write_string(row_pos, 3, _('Balance'), format_header)
 
                 for a in lines:
                     row_pos += 1  # increment for every line
@@ -333,11 +491,14 @@ class KsDynamicFinancialXlsxAR(models.Model):
                                        tmp_style_str)
 
                     # Only write numbers if keys exist
-                    if 'debit' in a:
+                    if self.display_name == 'Balance Sheet':
+                        sheet.write_number(row_pos, 1, float(a.get('initial_balance', 0.0)), tmp_style_num)
+                        sheet.write_number(row_pos, 2, float(a.get('debit', 0.0)), tmp_style_num)
+                        sheet.write_number(row_pos, 3, float(a.get('credit', 0.0)), tmp_style_num)
+                        sheet.write_number(row_pos, 4, float(a.get('balance', 0.0)), tmp_style_num)
+                    else:
                         sheet.write_number(row_pos, 1, float(a.get('debit', 0.0)), tmp_style_num)
-                    if 'credit' in a:
                         sheet.write_number(row_pos, 2, float(a.get('credit', 0.0)), tmp_style_num)
-                    if 'balance' in a:
                         sheet.write_number(row_pos, 3, float(a.get('balance', 0.0)), tmp_style_num)
 
             if not ks_df_informations['ks_diff_filter']['ks_debit_credit_visibility']:
@@ -429,14 +590,17 @@ class KsDynamicFinancialXlsxAR(models.Model):
                 sheet.set_column(2, 3, 15)
                 sheet.set_column(3, 3, 15)
 
-                sheet.write_string(row_pos, 0, _('Name'),
-                                   format_header)
-                sheet.write_string(row_pos, 1, _('Debit'),
-                                   format_header)
-                sheet.write_string(row_pos, 2, _('Credit'),
-                                   format_header)
-                sheet.write_string(row_pos, 3, _('Balance'),
-                                   format_header)
+                sheet.write_string(row_pos, 0, _('Name'), format_header)
+
+                if self.display_name == 'Balance Sheet':
+                    sheet.write_string(row_pos, 1, _('Initial Balance'), format_header)
+                    sheet.write_string(row_pos, 2, _('Debit'), format_header)
+                    sheet.write_string(row_pos, 3, _('Credit'), format_header)
+                    sheet.write_string(row_pos, 4, _('Balance'), format_header)
+                else:
+                    sheet.write_string(row_pos, 1, _('Debit'), format_header)
+                    sheet.write_string(row_pos, 2, _('Credit'), format_header)
+                    sheet.write_string(row_pos, 3, _('Balance'), format_header)
 
                 for a in lines:
                     if a['ks_level'] == 2:
@@ -450,15 +614,15 @@ class KsDynamicFinancialXlsxAR(models.Model):
                         tmp_style_num = line_header_bold
                     sheet.write_string(row_pos, 0, '   ' * len(a.get('list_len', [])) + a.get('ks_name'),
                                        tmp_style_str)
-                    if a.get('debit'):
-                        for i in a.get('debit'):
-                            sheet.write_number(row_pos, 1, float(a.get('debit', 0.0)[i]), tmp_style_num)
-                    if a.get('credit'):
-                        for i in a.get('credit'):
-                            sheet.write_number(row_pos, 2, float(a.get('credit', 0.0)[i]), tmp_style_num)
-                    if a.get('balance'):
-                        for i in a.get('balance'):
-                            sheet.write_number(row_pos, 3, float(a.get('balance', 0.0)[i]), tmp_style_num)
+                    if self.display_name == 'Balance Sheet':
+                        sheet.write_number(row_pos, 1, float(a.get('initial_balance', 0.0)), tmp_style_num)
+                        sheet.write_number(row_pos, 2, float(a.get('debit', 0.0)), tmp_style_num)
+                        sheet.write_number(row_pos, 3, float(a.get('credit', 0.0)), tmp_style_num)
+                        sheet.write_number(row_pos, 4, float(a.get('balance', 0.0)), tmp_style_num)
+                    else:
+                        sheet.write_number(row_pos, 1, float(a.get('debit', 0.0)), tmp_style_num)
+                        sheet.write_number(row_pos, 2, float(a.get('credit', 0.0)), tmp_style_num)
+                        sheet.write_number(row_pos, 3, float(a.get('balance', 0.0)), tmp_style_num)
 
             if not ks_df_informations['ks_diff_filter']['ks_debit_credit_visibility']:
 
