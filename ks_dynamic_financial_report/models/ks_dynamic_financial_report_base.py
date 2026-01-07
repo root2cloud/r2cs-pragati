@@ -460,12 +460,24 @@ class ks_dynamic_financial_base(models.Model):
         ks_initial_balance = 0.0
         ks_current_balance = 0.0
         ks_ending_balance = 0.0
-        if self.display_name == 'Balance Sheet' \
-                and self.env['ir.config_parameter'].sudo().get_param('ks_disable_bs_sign', False):
+
+        # Check if this is Balance Sheet
+        is_balance_sheet = False
+        report_name = self.display_name.lower() if self.display_name else ""
+        if 'balance sheet' in report_name or (
+                self.ks_report_menu_id and 'balance sheet' in self.ks_report_menu_id.name.lower()):
+            is_balance_sheet = True
+
+        # Production code: Default BS Sign logic
+        if self.display_name == 'Balance Sheet' and self.env['ir.config_parameter'].sudo().get_param(
+                'ks_disable_bs_sign', False):
             return self.ks_compute_balance_line(ks_child_reports, ks_df_informations, res, ks_main_res)
+
         for report in ks_child_reports:
             company_id = self.env['res.company'].sudo().browse(ks_df_informations.get('company_id'))
             currency_id = company_id.currency_id
+
+            # Production Header Values
             ks_vals = {
                 'ks_name': report.ks_name,
                 'balance': res[report.id]['balance'] * int(report.ks_report_line_sign) or 0.0,
@@ -481,25 +493,29 @@ class ks_dynamic_financial_base(models.Model):
                 'ks_level': report.ks_level,
                 'company_currency_id': company_id.currency_id.id,
                 'account_type': report.ks_df_report_account_type or False,
-                # used to underline the financial report balances
+                'is_bs': is_balance_sheet,
+                'initial_balance': 0.0,
+                'initial_balance_formatted': '',  # ✅ ADD THIS
             }
+
             if hasattr(ks_df_informations, 'debit_credit') and ks_df_informations['debit_credit']:
                 ks_vals['debit'] = res[report.id]['debit']
                 ks_vals['credit'] = res[report.id]['credit']
 
             if self.ks_differentiation:
                 ks_vals['balance_cmp'] = {id: ks_main_res[id][report.id][id] * int(report.ks_report_line_sign) for
-                                          (id, ks_value)
-                                          in
-                                          ks_main_res.items()}
+                                          (id, ks_value) in ks_main_res.items()}
+
+            # Net Profit/Loss logic
             if report.ks_name == 'Net Profit':
                 if ks_vals['balance'] <= 0:
                     ks_vals['ks_name'] = 'Net Loss'
-                    ks_vals['balance'] = (ks_vals['balance'])
+                    ks_vals['balance'] = ks_vals['balance']
                 else:
                     ks_vals['ks_name'] = 'Net Profit'
 
             ks_lines.append(ks_vals)
+
             if report.ks_display_detail == 'no_detail':
                 continue
 
@@ -508,38 +524,81 @@ class ks_dynamic_financial_base(models.Model):
                 for account_id, ks_value in res[report.id]['account'].items():
                     flag = False
                     account = self.env['account.account'].sudo().browse(account_id)
+
+                    # --- Initial Balance SQL Logic (BS only) ---
+                    initial_bal = 0.0
+                    if is_balance_sheet:
+                        date_from = ks_df_informations.get('ks_filter_context', {}).get('date_from')
+                        if date_from:
+                            query = """
+                                SELECT COALESCE(SUM(aml.debit - aml.credit), 0.0) 
+                                FROM account_move_line aml
+                                JOIN account_move am ON am.id = aml.move_id
+                                WHERE aml.account_id = %s 
+                                AND aml.date < %s 
+                                AND am.state = 'posted'
+                                AND aml.company_id = %s
+                            """
+                            self.env.cr.execute(query, (account.id, date_from, company_id.id))
+                            sql_res = self.env.cr.fetchone()
+                            initial_bal = sql_res[0] if sql_res and sql_res[0] else 0.0
+                            initial_bal = initial_bal * int(report.ks_report_line_sign)
+
+                    # ✅ Format Initial Balance using Odoo's currency formatting
+                    initial_balance_formatted = ''
+                    if is_balance_sheet and initial_bal != 0:
+                        if currency_id.position == 'before':
+                            initial_balance_formatted = f"{currency_id.symbol}&nbsp;{initial_bal:,.2f}"
+                        else:
+                            initial_balance_formatted = f"{initial_bal:,.2f}&nbsp;{currency_id.symbol}"
+                    elif is_balance_sheet:
+                        initial_balance_formatted = '0.00'
+
+                    # Production formatting preservation for account lines
                     ks_vals = {
                         'account': account.id,
                         'ks_name': account.code + ' ' + account.name,
-                        'balance': ks_value['balance'] * int(report.ks_report_line_sign) or 0.0,
+                        'balance': (ks_value['balance'] * int(report.ks_report_line_sign)) + initial_bal,
+                        'initial_balance': initial_bal,
+                        'initial_balance_formatted': initial_balance_formatted,  # ✅ ADD THIS
+                        'is_bs': is_balance_sheet,  # ✅ Important
                         'ks_df_report_account_type': 'account',
-                        'parent': report.id if report.ks_df_report_account_type in ['accounts', 'ks_coa_type'] else 0,
+                        'parent': report.id if report.ks_parent_id.ks_df_report_account_type in ['accounts',
+                                                                                                 'ks_coa_type'] else report.id,
                         'self_id': 50,
                         'style_type': 'sub',
                         'precision': currency_id.decimal_places,
                         'symbol': currency_id.symbol,
                         'position': currency_id.position,
-                        'list_len': [a for a in range(0, report.ks_display_detail == 'detail_with_hierarchy' and 4)],
+                        'list_len': [a for a in
+                                     range(0, report.ks_display_detail == 'detail_with_hierarchy' and 4 or 4)],
                         'ks_level': 4,
                         'company_currency_id': company_id.currency_id.id,
                         'account_type': account.account_type,
                     }
+
                     if self.ks_differentiation:
                         ks_vals['balance_cmp'] = {}
                         if len(ks_df_informations['ks_differ']['ks_intervals']):
                             for rec_inter in ks_df_informations['ks_differ']['ks_intervals']:
-                                ks_vals['balance_cmp']['comp_bal_' + rec_inter['ks_string']] = \
-                                    ks_value['comp_bal_' + rec_inter['ks_string']]
+                                ks_vals['balance_cmp']['comp_bal_' + rec_inter['ks_string']] = ks_value[
+                                    'comp_bal_' + rec_inter['ks_string']]
+
                     if ks_df_informations:
                         ks_vals['debit'] = ks_value['debit']
                         ks_vals['credit'] = ks_value['credit']
                         if not currency_id.is_zero(ks_vals['debit']) or not currency_id.is_zero(ks_vals['credit']):
                             flag = True
-                    if not currency_id.is_zero(ks_vals['balance']):
+
+                    if not currency_id.is_zero(ks_vals['balance']) or (
+                            is_balance_sheet and not currency_id.is_zero(ks_vals.get('initial_balance', 0.0))):
                         flag = True
+
                     if flag:
                         sub_lines.append(ks_vals)
+
                 ks_lines += sorted(sub_lines, key=lambda sub_line: sub_line['ks_name'])
+
         return ks_lines, ks_initial_balance, ks_current_balance, ks_ending_balance
 
     def ks_compute_balance_line(self, ks_child_reports, ks_df_informations, res, ks_main_res):
@@ -3960,6 +4019,9 @@ class ks_dynamic_financial_base(models.Model):
         return ks_sum_balance
 
     def ks_get_dynamic_fin_info(self, ks_df_informations):
+        # Meeru develop chesina Multi-company & Sudo logic
+        current_company_id = self.env.company.id
+        self = self.sudo()
 
         ks_df_informations = self._ks_get_df_informations(ks_df_informations)
 
@@ -3972,11 +4034,13 @@ class ks_dynamic_financial_base(models.Model):
         self.ks_df_report_account_report_ids = self
 
         ks_df_informations['ks_filter_context'] = self.ks_filter_context(ks_df_informations)
+        # Filter context update
+        ks_df_informations['ks_filter_context'].update({'company_id': current_company_id})
+
         if self.id == self.env.ref('ks_dynamic_financial_report.ks_df_tb0').id:
             ks_report_lines, ks_retained, ks_subtotal = self.ks_process_trial_balance(ks_df_informations)
         elif self.id == self.env.ref('ks_dynamic_financial_report.ks_df_receivable0').id:
             ks_period_dict, ks_partner_dict = self.ks_partner_aging_process_data(ks_df_informations)
-
             ks_period_list = [ks_period_dict[a]['name'] for a in ks_period_dict]
         elif self.id == self.env.ref('ks_dynamic_financial_report.ks_df_payable0').id:
             ks_period_dict, ks_partner_dict = self.ks_partner_aging_process_data(ks_df_informations)
@@ -3992,6 +4056,7 @@ class ks_dynamic_financial_base(models.Model):
         else:
             ks_report_lines, ks_initial_balance, ks_current_balance, ks_ending_balance = self.ks_fetch_report_account_lines(
                 ks_df_informations)
+
         company_id = self.env.company
 
         ks_searchview_dict = {'ks_df_informations': ks_df_informations, 'context': self.env.context,
@@ -4003,9 +4068,8 @@ class ks_dynamic_financial_base(models.Model):
                                                                                         False),
             'ks_df_informations': ks_df_informations,
             'context': self.env.context,
-            'ks_searchview_html': self.env['ir.ui.view']._render_template('ks_dynamic_financial_report'
-                                                                          '.ks_searchview_filters',
-                                                                          values=ks_searchview_dict),
+            'ks_searchview_html': self.env['ir.ui.view']._render_template(
+                'ks_dynamic_financial_report.ks_searchview_filters', values=ks_searchview_dict),
             'ks_buttons': self.env['ir.ui.view']._render_template('ks_dynamic_financial_report.ks_repport_buttons'),
             'ks_currency': company_id.currency_id.id,
             'ks_report_lines': ks_report_lines,
@@ -4019,18 +4083,20 @@ class ks_dynamic_financial_base(models.Model):
             'ks_period_dict': ks_period_dict or False,
             'ks_month_lines': ks_month_lines,
             'ks_sub_lines': ks_sublines,
-
         }
+
+        # --------------------------- PROFIT AND LOSS (100% Production Logic) ---------------------------
         if self.display_name == 'Profit and Loss':
             import copy
-
-            Account = self.env['account.account']
+            Account = self.env['account.account'].sudo()
 
             for line in info.get('ks_report_lines', []):
                 if 'account' in line:
                     account_id = line['account']
                     account_rec = Account.browse(account_id)
-
+                    # Multi-company filter
+                    if account_rec.company_id.id != current_company_id:
+                        continue
                     sub_group = account_rec.sub_sub_group_id
                     line['sub_type_id'] = sub_group.id if sub_group else False
                     line['sub_type_name'] = sub_group.name if sub_group else ""
@@ -4038,52 +4104,30 @@ class ks_dynamic_financial_base(models.Model):
             new_id_counter = 500000
             grouped_sub_types = {}
             lines_to_remove = set()
-
-            OTHER_SUB_TYPE_ID = -1
-            OTHER_SUB_TYPE_NAME = "OTHER"
             processed_accounts = set()
 
             for line in info.get('ks_report_lines', []):
-
-                if line.get('ks_level') != 4:
-                    continue
-
+                if line.get('ks_level') != 4: continue
                 account_id = line.get('account')
-
-                if account_id in processed_accounts:
-                    continue
-
+                if account_id in processed_accounts: continue
                 processed_accounts.add(account_id)
 
                 parent_level_2_id = line.get('parent')
-
-                if line.get('sub_type_id'):
-                    sub_type_id = line['sub_type_id']
-                    sub_type_name = line['sub_type_name']
-                else:
-                    sub_type_id = OTHER_SUB_TYPE_ID
-                    sub_type_name = OTHER_SUB_TYPE_NAME
+                sub_type_id = line.get('sub_type_id') or -1
+                sub_type_name = line.get('sub_type_name') or "OTHER"
 
                 lines_to_remove.add(id(line))
-
                 if parent_level_2_id not in grouped_sub_types:
                     grouped_sub_types[parent_level_2_id] = {}
 
                 if sub_type_id not in grouped_sub_types[parent_level_2_id]:
                     grouped_sub_types[parent_level_2_id][sub_type_id] = {
-                        'sub_type_name': sub_type_name,
-                        'accounts': [],
-                        'balance': 0.0,
-                        'debit': 0.0,
-                        'credit': 0.0,
-                        'currency_id': line['company_currency_id'],
+                        'sub_type_name': sub_type_name, 'accounts': [], 'balance': 0.0,
+                        'debit': 0.0, 'credit': 0.0, 'currency_id': line['company_currency_id'],
                     }
 
                 group_data = grouped_sub_types[parent_level_2_id][sub_type_id]
-
-                account_copy = copy.deepcopy(line)
-                group_data['accounts'].append(account_copy)
-
+                group_data['accounts'].append(copy.deepcopy(line))
                 group_data['balance'] += line.get('balance', 0.0)
                 group_data['debit'] += line.get('debit', 0.0)
                 group_data['credit'] += line.get('credit', 0.0)
@@ -4092,210 +4136,137 @@ class ks_dynamic_financial_base(models.Model):
             new_report_lines = []
 
             for line in original_lines:
-
-                if line.get('ks_level') == 4 and id(line) in lines_to_remove:
-                    continue
-
+                if line.get('ks_level') == 4 and id(line) in lines_to_remove: continue
                 new_report_lines.append(line)
-
                 if line.get('ks_level') == 2 and line.get('self_id') in grouped_sub_types:
                     parent_level_2_id = line['self_id']
-
                     for sub_type_id in sorted(grouped_sub_types[parent_level_2_id].keys()):
                         group_data = grouped_sub_types[parent_level_2_id][sub_type_id]
-
                         new_level_3_id = new_id_counter
                         new_id_counter += 1
-
-                        level_3_line = {
-                            'ks_name': group_data['sub_type_name'],
-                            'balance': group_data['balance'],
-                            'parent': parent_level_2_id,
-                            'self_id': new_level_3_id,
+                        new_report_lines.append({
+                            'ks_name': group_data['sub_type_name'], 'balance': group_data['balance'],
+                            'parent': parent_level_2_id, 'self_id': new_level_3_id,
                             'ks_df_report_account_type': 'report',
-                            'style_type': 'sub_sub_total',
-                            'precision': 2,
-                            'symbol': '₹',
-                            'position': 'before',
-                            'list_len': [0, 1, 2],
-                            'ks_level': 3,
-                            'company_currency_id': group_data['currency_id'],
-                            'account_type': 'sub_total',
-                            'balance_cmp': {},
-                            'debit': group_data.get('debit', 0.0),
-                            'credit': group_data.get('credit', 0.0),
-                            'sub_type_id': sub_type_id,
-                        }
-
-                        new_report_lines.append(level_3_line)
-
+                            'style_type': 'sub_sub_total', 'precision': 2, 'symbol': '₹', 'position': 'before',
+                            'list_len': [0, 1, 2], 'ks_level': 3, 'company_currency_id': group_data['currency_id'],
+                            'account_type': 'sub_total', 'balance_cmp': {}, 'debit': group_data.get('debit', 0.0),
+                            'credit': group_data.get('credit', 0.0), 'sub_type_id': sub_type_id,
+                        })
                         for acc in group_data['accounts']:
                             acc['parent'] = new_level_3_id
                             acc['list_len'] = [0, 1, 2, 3]
                             new_report_lines.append(acc)
-
             info['ks_report_lines'] = new_report_lines
 
-
-
-
+        # --------------------------- BALANCE SHEET (100% Production Logic + Initial Balance) ---------------------------
         if self.display_name == 'Balance Sheet':
             import copy
-            Account = self.env['account.account']
+            Account = self.env['account.account'].sudo()
 
             def _sort_key(val):
                 return (val == 'OTHER', val or '')
 
             def _get_selection_label(model, field_name, value):
                 field = model._fields.get(field_name)
-                if field and field.selection:
-                    return dict(field.selection).get(value, value)
-                return value
+                return dict(field.selection).get(value, value) if field and field.selection else value
 
             def _round(val):
                 return round(val or 0.0, 2)
 
-
             report_lines = info.get('ks_report_lines', [])
-            if not report_lines:
-                return
+            if report_lines:
+                report_label_line = report_lines[0]
+                account_lines = []
+                for line in report_lines:
+                    if line.get('account'):
+                        acc = Account.browse(line['account'])
+                        if acc.company_id.id == current_company_id:
+                            account_lines.append(line)
 
-            report_label_line = report_lines[0]
+                grouped = {}
+                seen_keys = set()
+                for line in account_lines:
+                    account = Account.browse(line['account'])
+                    main_group = account.main_group or 'OTHER'
+                    account_type = account.account_type or 'OTHER'
+                    sub_group = account.sub_sub_group_id.name if account.sub_sub_group_id else 'OTHER'
 
-            account_lines = [
-                line for line in report_lines
-                if line.get('account')
-            ]
+                    dedup_key = (account.id, main_group, account_type, sub_group)
+                    if dedup_key in seen_keys: continue
+                    seen_keys.add(dedup_key)
 
-            # ------------------------------------------------------------------
-            # 1️⃣ Group with aggregation + deduplication
-            # ------------------------------------------------------------------
-            grouped = {}
-            seen_keys = set()
-
-            for line in account_lines:
-                account = Account.browse(line['account'])
-
-                main_group = account.main_group or 'OTHER'
-                account_type = account.account_type or 'OTHER'
-                sub_group = account.sub_sub_group_id.name if account.sub_sub_group_id else 'OTHER'
-
-                dedup_key = (account.id, main_group, account_type, sub_group)
-                if dedup_key in seen_keys:
-                    continue
-                seen_keys.add(dedup_key)
-
-                grouped.setdefault(main_group, {})
-                grouped[main_group].setdefault(account_type, {})
-                grouped[main_group][account_type].setdefault(sub_group, {
-                    'accounts': [],
-                    'debit': 0.0,
-                    'credit': 0.0,
-                    'balance': 0.0,
-                    'currency_id': line.get('company_currency_id'),
-                })
-
-                grp = grouped[main_group][account_type][sub_group]
-                grp['accounts'].append(line)
-                grp['debit'] += line.get('debit', 0.0)
-                grp['credit'] += line.get('credit', 0.0)
-                grp['balance'] += line.get('balance', 0.0)
-
-            # ------------------------------------------------------------------
-            # 2️⃣ Build final report with totals
-            # ------------------------------------------------------------------
-            new_lines = [report_label_line]
-            new_id = 100000
-
-            for main_group in sorted(grouped.keys(), key=_sort_key):
-                # Hide Income & Expense ONLY in Balance Sheet (presentation layer)
-                if self.display_name == 'Balance Sheet' and main_group in ('income', 'expense'):
-                    continue
-                main_group_id = new_id
-                new_id += 1
-
-                main_group_label = _get_selection_label(Account, 'main_group', main_group)
-
-                main_debit = main_credit = main_balance = 0.0
-
-                for at in grouped[main_group].values():
-                    for sg in at.values():
-                        main_debit += sg['debit']
-                        main_credit += sg['credit']
-                        main_balance += sg['balance']
-
-                # Level 1 – Main Group (WITH TOTAL)
-                new_lines.append({
-                    'ks_name': main_group_label,
-                    'self_id': main_group_id,
-                    'parent': report_label_line.get('self_id'),
-                    'list_len': [0],
-                    'ks_level': 1,
-                    'account_type': 'group',
-                    'debit': _round(main_debit),
-                    'credit': _round(main_credit),
-                    'balance': _round(main_balance),
-                })
-
-                for account_type in sorted(grouped[main_group].keys(), key=_sort_key):
-                    account_type_id = new_id
-                    new_id += 1
-
-                    account_type_label = _get_selection_label(Account, 'account_type', account_type)
-
-                    at_debit = at_credit = at_balance = 0.0
-
-                    for sg in grouped[main_group][account_type].values():
-                        at_debit += sg['debit']
-                        at_credit += sg['credit']
-                        at_balance += sg['balance']
-
-                    # Level 2 – Account Type (WITH TOTAL)
-                    new_lines.append({
-                        'ks_name': account_type_label,
-                        'self_id': account_type_id,
-                        'parent': main_group_id,
-                        'list_len': [0, 1],
-                        'ks_level': 2,
-                        'account_type': 'group',
-                        'debit': _round(at_debit),
-                        'credit': _round(at_credit),
-                        'balance': _round(at_balance),
+                    grouped.setdefault(main_group, {}).setdefault(account_type, {}).setdefault(sub_group, {
+                        'accounts': [], 'debit': 0.0, 'credit': 0.0, 'balance': 0.0, 'initial_balance': 0.0,
+                        'currency_id': line.get('company_currency_id'),
                     })
 
-                    for sub_group in sorted(grouped[main_group][account_type].keys(), key=_sort_key):
-                        sub_group_id = new_id
+                    grp = grouped[main_group][account_type][sub_group]
+                    grp['accounts'].append(line)
+                    grp['debit'] += line.get('debit', 0.0)
+                    grp['credit'] += line.get('credit', 0.0)
+                    grp['balance'] += line.get('balance', 0.0)
+                    # Production logic lo Initial Balance ni merge chestunnam
+                    grp['initial_balance'] += line.get('initial_balance', 0.0)
+
+                new_lines = [report_label_line]
+                new_id = 100000
+                for main_group in sorted(grouped.keys(), key=_sort_key):
+                    if main_group in ('income', 'expense'): continue
+                    main_group_id = new_id;
+                    new_id += 1
+                    main_group_label = _get_selection_label(Account, 'main_group', main_group)
+                    main_debit = main_credit = main_balance = main_initial = 0.0
+                    for at in grouped[main_group].values():
+                        for sg in at.values():
+                            main_debit += sg['debit'];
+                            main_credit += sg['credit']
+                            main_balance += sg['balance'];
+                            main_initial += sg['initial_balance']
+
+                    new_lines.append({
+                        'ks_name': main_group_label, 'self_id': main_group_id, 'is_bs': True,
+                        'parent': report_label_line.get('self_id'), 'list_len': [0], 'ks_level': 1,
+                        'account_type': 'group', 'debit': _round(main_debit), 'credit': _round(main_credit),
+                        'balance': _round(main_balance), 'initial_balance': _round(main_initial),
+                    })
+
+                    for account_type in sorted(grouped[main_group].keys(), key=_sort_key):
+                        account_type_id = new_id;
                         new_id += 1
+                        account_type_label = _get_selection_label(Account, 'account_type', account_type)
+                        at_debit = at_credit = at_balance = at_initial = 0.0
+                        for sg in grouped[main_group][account_type].values():
+                            at_debit += sg['debit'];
+                            at_credit += sg['credit']
+                            at_balance += sg['balance'];
+                            at_initial += sg['initial_balance']
 
-                        sg = grouped[main_group][account_type][sub_group]
-
-                        # Level 3 – Sub Sub Group (WITH TOTAL)
                         new_lines.append({
-                            'ks_name': sub_group,
-                            'self_id': sub_group_id,
-                            'parent': account_type_id,
-                            'list_len': [0, 1, 2],
-                            'ks_level': 3,
-                            'account_type': 'group',
-                            'debit': _round(sg['debit']),
-                            'credit': _round(sg['credit']),
-                            'balance': _round(sg['balance']),
+                            'ks_name': account_type_label, 'self_id': account_type_id, 'parent': main_group_id,
+                            'list_len': [0, 1], 'ks_level': 2, 'account_type': 'group', 'is_bs': True,
+                            'debit': _round(at_debit), 'credit': _round(at_credit),
+                            'balance': _round(at_balance), 'initial_balance': _round(at_initial),
                         })
 
-                        # Level 4 – Accounts
-                        for acc_line in sg['accounts']:
-                            acc = copy.deepcopy(acc_line)
-                            acc.update({
-                                'parent': sub_group_id,
-                                'ks_level': 4,
-                                'list_len': [0, 1, 2, 3],
+                        for sub_group in sorted(grouped[main_group][account_type].keys(), key=_sort_key):
+                            sub_group_id = new_id;
+                            new_id += 1
+                            sg = grouped[main_group][account_type][sub_group]
+                            new_lines.append({
+                                'ks_name': sub_group, 'self_id': sub_group_id, 'parent': account_type_id,
+                                'list_len': [0, 1, 2], 'ks_level': 3, 'account_type': 'group', 'is_bs': True,
+                                'debit': _round(sg['debit']), 'credit': _round(sg['credit']),
+                                'balance': _round(sg['balance']), 'initial_balance': _round(sg['initial_balance']),
                             })
-                            new_lines.append(acc)
-
-            info['ks_report_lines'] = new_lines
+                            for acc_line in sg['accounts']:
+                                acc = copy.deepcopy(acc_line)
+                                acc.update(
+                                    {'parent': sub_group_id, 'ks_level': 4, 'list_len': [0, 1, 2, 3], 'is_bs': True})
+                                new_lines.append(acc)
+                info['ks_report_lines'] = new_lines
 
         return info
-
     # Get journal filters from model account.journal
     @api.model
     def ks_fetch_journal_filters(self):
