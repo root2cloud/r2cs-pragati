@@ -584,15 +584,47 @@ class ks_dynamic_financial_base(models.Model):
                                 ks_vals['balance_cmp']['comp_bal_' + rec_inter['ks_string']] = ks_value[
                                     'comp_bal_' + rec_inter['ks_string']]
 
-                    if ks_df_informations:
-                        ks_vals['debit'] = ks_value['debit']
-                        ks_vals['credit'] = ks_value['credit']
-                        if not currency_id.is_zero(ks_vals['debit']) or not currency_id.is_zero(ks_vals['credit']):
-                            flag = True
+                    # -------------------------------
+                    # Balance Sheet: FY-only debit/credit
+                    # -------------------------------
+                    fy_debit = fy_credit = 0.0
 
-                    if not currency_id.is_zero(ks_vals['balance']) or (
-                            is_balance_sheet and not currency_id.is_zero(ks_vals.get('initial_balance', 0.0))):
-                        flag = True
+                    if is_balance_sheet:
+                        date_from = ks_df_informations.get('ks_filter_context', {}).get('date_from')
+                        date_to = ks_df_informations.get('ks_filter_context', {}).get('date_to')
+
+                        if date_from and date_to:
+                            self.env.cr.execute("""
+                                                SELECT COALESCE(SUM(aml.debit), 0),
+                                                       COALESCE(SUM(aml.credit), 0)
+                                                FROM account_move_line aml
+                                                         JOIN account_move am ON am.id = aml.move_id
+                                                WHERE aml.account_id = %s
+                                                  AND aml.date >= %s
+                                                  AND aml.date <= %s
+                                                  AND am.state = 'posted'
+                                                  AND aml.company_id = %s
+                                                """, (account.id, date_from, date_to, company_id.id))
+
+                            fy_debit, fy_credit = self.env.cr.fetchone() or (0.0, 0.0)
+
+
+                    if is_balance_sheet:
+                        ks_vals['debit'] = fy_debit
+                        ks_vals['credit'] = fy_credit
+                        ks_vals['balance'] = initial_bal + (fy_debit - fy_credit)
+
+                        if (not currency_id.is_zero(initial_bal)
+                                or not currency_id.is_zero(fy_debit)
+                                or not currency_id.is_zero(fy_credit)):
+                            flag = True
+                    else:
+                        if ks_df_informations:
+                            ks_vals['debit'] = ks_value['debit']
+                            ks_vals['credit'] = ks_value['credit']
+
+                        if not currency_id.is_zero(ks_vals['balance']):
+                            flag = True
 
                     if flag:
                         sub_lines.append(ks_vals)
