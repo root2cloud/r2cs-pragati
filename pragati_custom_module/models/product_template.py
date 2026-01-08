@@ -1,4 +1,4 @@
-from odoo import models, fields, api,tools, _
+from odoo import models, fields, api, tools, _
 from odoo.exceptions import UserError, ValidationError
 
 
@@ -13,11 +13,13 @@ class ProductTemplate(models.Model):
     product_ref = fields.Char(
         string='Product S.NO:', required=True, copy=False, readonly=True, tracking=True,
         default=lambda self: _('New'))
+    tracking = fields.Selection(tracking=True)
     categ_id = fields.Many2one(
         'product.category', 'Product Category',
         change_default=True, default=_get_default_category_id, group_expand='_read_group_categ_id',
         required=True)
-    radio_field = fields.Selection([('none','None'),('leafy','Leafy'),('normal','Normal')],string="Radio Field",default='none')
+    radio_field = fields.Selection([('none', 'None'), ('leafy', 'Leafy'), ('normal', 'Normal')], string="Radio Field",
+                                   default='none')
     # detailed_type = fields.Selection(
     #     selection=[('consu', 'Consumable'), ('service', 'Service'), ('non_stockable', 'Non-stockable'), ('asset', 'Asset')],
     #     string='Detailed Type',
@@ -26,10 +28,11 @@ class ProductTemplate(models.Model):
     # )
     unit_cost = fields.Float(string='Unit Cost')
     unit_name_value = fields.Char(string='Unit Value')
-    product_uom_name = fields.Char(related='uom_id.name', string="Product UOM",store=True)
+    product_uom_name = fields.Char(related='uom_id.name', string="Product UOM", store=True)
     # website_ribbon_id = fields.Many2one('product.ribbon', string='Ribbon', compute='_compute_website_ribbon_id')
 
-    website_ribbon_id = fields.Many2one('product.ribbon', string='Ribbon', related='ribbon_domain_id', store=True, readonly=False)
+    website_ribbon_id = fields.Many2one('product.ribbon', string='Ribbon', related='ribbon_domain_id', store=True,
+                                        readonly=False)
 
     ribbon_domain_id = fields.Many2one('product.ribbon', compute='_compute_ribbon_domain_id', store=True)
 
@@ -56,7 +59,8 @@ class ProductTemplate(models.Model):
 
             if values.get('product_ref', _('New')) == _('New'):
                 # Get the name of the category
-                category_name = values.get('categ_id') and self.env['product.category'].browse(values['categ_id']).name or ''
+                category_name = values.get('categ_id') and self.env['product.category'].browse(
+                    values['categ_id']).name or ''
 
                 # Get the next sequence number
                 sequence_number = self.env["ir.sequence"].next_by_code("product.template")
@@ -67,7 +71,7 @@ class ProductTemplate(models.Model):
                 values['product_ref'] = product_ref
 
         return super(ProductTemplate, self).create(values_list)
-        
+
     # @api.model
     # def create(self, values):
     #     new_name = values.get('name')
@@ -90,9 +94,7 @@ class ProductTemplate(models.Model):
 
     #         values['product_ref'] = product_ref
 
-
     #     return super(ProductTemplate, self).create(values)
-
 
     @api.constrains('l10n_in_hsn_code')
     def _check_hsn_code(self):
@@ -106,15 +108,15 @@ class ProductTemplate(models.Model):
 
         for record in self:
             if (
-                record.uom_id
-                and record.uom_id == kg_uom
-                and record.radio_field == 'normal'
+                    record.uom_id
+                    and record.uom_id == kg_uom
+                    and record.radio_field == 'normal'
             ):
                 record.write({'unit_cost': record.list_price / 4, 'unit_name_value': '250 Grams'})
             elif (
-                record.uom_id
-                and record.uom_id == kg_uom
-                and record.radio_field == 'leafy'
+                    record.uom_id
+                    and record.uom_id == kg_uom
+                    and record.radio_field == 'leafy'
             ):
                 record.write({'unit_cost': record.list_price / 10, 'unit_name_value': '100 Grams'})
             else:
@@ -123,14 +125,11 @@ class ProductTemplate(models.Model):
 
 class ProductProduct(models.Model):
     _inherit = 'product.product'
-            
-    radio_field = fields.Selection(related='product_tmpl_id.radio_field',string="Radio Field",store=True)
-    product_uom_name = fields.Char(related='product_tmpl_id.product_uom_name', string="Product UOM",store=True)
+
+    radio_field = fields.Selection(related='product_tmpl_id.radio_field', string="Radio Field", store=True)
+    product_uom_name = fields.Char(related='product_tmpl_id.product_uom_name', string="Product UOM", store=True)
     unit_cost = fields.Float(string='Unit Cost', related='product_tmpl_id.unit_cost', store=True)
     unit_name_value = fields.Char(string='Unit Value', related='product_tmpl_id.unit_name_value', store=True)
-
-
-
 
 
 class Website(models.Model):
