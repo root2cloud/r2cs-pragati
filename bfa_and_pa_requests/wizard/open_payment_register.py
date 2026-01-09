@@ -27,7 +27,7 @@ class OpenPaymentRegisterWizard(models.TransientModel):
     payment_type = fields.Selection([
             ('outbound', 'Send'),
             ('inbound', 'Receive'),
-        ], string='Payment Type', default='inbound', required=True, tracking=True)
+        ], string='Payment Type', default='inbound', required=True)
     currency_id = fields.Many2one(
         comodel_name='res.currency',
         string='Currency',

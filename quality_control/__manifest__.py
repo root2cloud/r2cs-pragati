@@ -1,9 +1,9 @@
-
 {
     'name': 'Quality',
     'version': '1.0',
     'category': 'Manufacturing/Quality',
     'sequence': 120,
+    'license': 'LGPL-3',
     'summary': 'Control the quality of your products',
     'website': 'https://www.odoo.com/app/quality',
     'depends': ['quality'],

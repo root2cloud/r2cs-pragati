@@ -1,7 +1,7 @@
-
 {
     'name': 'MRP II - Expiry',
     'version': '1.0',
+    'license': 'LGPL-3',
     'category': 'Manufacturing/Manufacturing',
     'summary': 'MRP Workorder Expiry',
     'description': """

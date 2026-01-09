@@ -56,6 +56,7 @@ class ACSAppointmentConsumable(models.Model):
 
 class HmsTreatmentline(models.Model):
     _name = "hms.treatment.line"
+    _description = 'HMS Treatment Line'
 
     prescription_id = fields.Many2one('prescription.order', string="Prescription")
     session = fields.Integer(string="No. of Session")

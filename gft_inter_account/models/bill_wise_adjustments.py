@@ -333,6 +333,7 @@ class LedgerPaymentBillWiseAdjustments(models.Model):
 
 class BankAccountManualLineInBwa(models.Model):
     _name = 'bank.account.manual.line.in.bwa'
+    _description = 'Bank Account Manual Line in BWA'
 
     ledger_pay_bwa_id = fields.Many2one('ledger.payment.bill.wise.adjustments', string="Bank Manual ID:")
 

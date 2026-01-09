@@ -1,7 +1,7 @@
-
 {
     'name': "Employees time registration on Work Orders",
     'category': "Hidden",
+    'license': 'LGPL-3',
     'summary': 'Link module between Mrp II and HR employees',
 
     'description': """

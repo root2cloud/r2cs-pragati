@@ -1,7 +1,7 @@
-
 {
     'name': 'Accounting - MRP Subcontracting',
     'version': '1.0',
+    'license': 'LGPL-3',
     'category': 'Manufacturing/Manufacturing',
     'summary': 'Add Subcontracting information in Cost Analysis Reports and Production Analysis',
     'description': """

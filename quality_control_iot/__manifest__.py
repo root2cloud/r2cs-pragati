@@ -1,4 +1,3 @@
-
 {
     'name': 'Quality checks with IoT',
     'category': 'Manufacturing/Internet of Things (IoT)',
@@ -11,4 +10,5 @@ Use devices connected to an IoT Box to control the quality of your products.
         'wizard/quality_check_wizard_views.xml',
     ],
     'auto_install': True,
+    'license': 'LGPL-3',
 }

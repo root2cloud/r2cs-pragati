@@ -1,7 +1,7 @@
-
 {
     'name': 'MRP features for Quality Control',
     'version': '1.0',
+    'license': 'LGPL-3',
     'category': 'Manufacturing/Quality',
     'sequence': 50,
     'summary': 'Quality Management with MRP',
