@@ -21,7 +21,7 @@
     'version': '0.1',
 
     # any module necessary for this one to work correctly
-    'depends': ['base','point_of_sale'],
+    'depends': ['base', 'point_of_sale'],
 
     # always loaded
     'data': [
@@ -31,13 +31,14 @@
         # 'report/report_invoice_in_pos_extend.xml',
     ],
     'assets': {
-       'point_of_sale.assets': [
-           'pos_extension/static/src/js/OrderSummary.js',
-           'pos_extension/static/src/js/Receipt.js',
-           'pos_extension/static/src/xml/OrderSummary.xml',
-           'pos_extension/static/src/xml/OrderLineExtendInPos.xml',
-           'pos_extension/static/src/xml/OrderLineTax.xml',
-       ],
+        'point_of_sale.assets': [
+            'pos_extension/static/src/js/OrderSummary.js',
+            'pos_extension/static/src/js/Receipt.js',
+            'pos_extension/static/src/xml/OrderSummary.xml',
+            'pos_extension/static/src/xml/OrderLineExtendInPos.xml',
+            'pos_extension/static/src/xml/OrderLineTax.xml',
+            'pos_extension/static/src/js/PaymentScreen.js',
+        ],
     },
     # only loaded in demonstration mode
     'demo': [

@@ -301,6 +301,7 @@ class ACSTreatment(models.Model):
             
 class TherapyRooms(models.Model):
     _name = 'therapy.rooms'
+    _description = 'Therapy Rooms'
 
 
     name = fields.Char(string="Therapy Room")

@@ -1,8 +1,8 @@
-
 {
     'name': 'Approvals - Purchase',
     'version': '1.0',
     'category': 'Human Resources/Approvals',
+    'license': 'LGPL-3',
     'description': """
         This module adds to the approvals workflow the possibility to generate
         RFQ from an approval purchase request.

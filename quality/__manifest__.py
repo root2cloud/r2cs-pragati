@@ -1,10 +1,10 @@
-
 # -*- encoding: utf-8 -*-
 # Part of Odoo. See LICENSE file for full copyright and licensing details.
 
 {
     'name': 'Quality Base',
     'version': '1.0',
+    'license': 'LGPL-3',
     'category': 'Manufacturing/Quality',
     'sequence': 50,
     'summary': 'Basic Feature for Quality',

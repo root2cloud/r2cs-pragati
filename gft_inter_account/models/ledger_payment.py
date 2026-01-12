@@ -4,6 +4,7 @@ from odoo.exceptions import ValidationError, UserError
 
 class LedgerPayment(models.Model):
     _name = 'ledger.payment'
+    _inherit = ['mail.thread', 'mail.activity.mixin']
     _description = 'Ledger Payment'
 
     # Define fields
@@ -435,6 +436,7 @@ class LedgerPayment(models.Model):
 
 class BankAccountManualLine(models.Model):
     _name = 'bank.account.manual.line'
+    _description = 'Bank Account Manual Line'
 
     ledger_pay_id = fields.Many2one('ledger.payment', string="Bank Manual ID:")
     name = fields.Char(string="Invoice Number")

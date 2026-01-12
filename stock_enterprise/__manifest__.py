@@ -1,8 +1,7 @@
-
-
 {
     'name': "Stock enterprise",
     'version': "1.0",
+    'license': 'LGPL-3',
     'category': 'Inventory/Inventory',
     'summary': "Advanced features for Stock",
     'description': """

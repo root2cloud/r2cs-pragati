@@ -1,7 +1,7 @@
-
 {
     'name': 'Maintenance - MRP',
     'version': '1.0',
+    'license': 'LGPL-3',
     'category': 'Manufacturing/Manufacturing',
     'summary': 'Schedule and manage maintenance on machine and tools.',
     'website': 'https://www.odoo.com/app/maintenance',

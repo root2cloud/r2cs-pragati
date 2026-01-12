@@ -72,6 +72,7 @@ class LoyaltyGenerateWizard(models.TransientModel):
 
 class CustomLoyaltyReports(models.AbstractModel):
     _name = 'report.pragati_resorts.custom_loyalty_report'
+    _description = 'Pragati Resorts Custom Loyalty Report'
 
     def _get_report_values(self, docids, data=None):
         doc = self.env['loyalty.card'].sudo().search([('id', 'in', docids)])

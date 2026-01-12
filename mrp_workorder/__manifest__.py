@@ -1,8 +1,7 @@
-
-
 {
     'name': 'MRP II',
     'version': '1.0',
+    'license': 'LGPL-3',
     'category': 'Manufacturing/Manufacturing',
     'sequence': 51,
     'summary': """Work Orders, Planning, Stock Reports.""",

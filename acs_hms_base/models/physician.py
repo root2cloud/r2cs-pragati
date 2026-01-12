@@ -56,6 +56,7 @@ class Physician(models.Model):
 
 class Therapist(models.Model):
     _name = 'hms.therapist'
+    _inherit = ['mail.thread', 'mail.activity.mixin']
     _description = "Therapist"
 
     name = fields.Char(string = "Therapist")

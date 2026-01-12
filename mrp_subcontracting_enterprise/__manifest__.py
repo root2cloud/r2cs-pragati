@@ -1,6 +1,6 @@
-
 {
     'name': "MRP Subcontracting Enterprise",
+    'license': 'LGPL-3',
     'summary': "Bridge module for MRP subcontracting and enterprise to avoid some conflicts with studio",
     'description': "Bridge module for MRP subcontracting and enterprise",
     'category': 'Manufacturing/Manufacturing',

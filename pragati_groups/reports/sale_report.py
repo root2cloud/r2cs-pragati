@@ -6,6 +6,7 @@ from odoo import api, fields, models
 
 class LoyaltySaleReport(models.Model):
     _name = "loyalty.sale.report"
+    _description = 'Loyalty Sale Report'
 
     loyalty_program_id = fields.Many2one('loyalty.program', string="Program Name", readonly=True)
     product_id = fields.Many2one('product.product',string="Product", readonly=True)
