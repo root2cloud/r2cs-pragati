@@ -1,7 +1,7 @@
-
 {
     'name': 'Approvals - Purchase - Stock',
     'version': '1.0',
+    'license': 'LGPL-3',
     'category': 'Human Resources/Approvals',
     'description': """ Technical module to link Approvals, Purchase and Inventory together. """,
     'depends': ['approvals_purchase', 'purchase_stock'],

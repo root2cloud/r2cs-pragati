@@ -1,8 +1,7 @@
-
-
 {
     'name': 'Master Production Schedule',
     'version': '1.0',
+    'license': 'LGPL-3',
     'category': 'Manufacturing/Manufacturing',
     'sequence': 50,
     'summary': 'Master Production Schedule',

@@ -1,9 +1,9 @@
-
 {
     'name': 'Approvals',
     'version': '1.0',
     'category': 'Human Resources/Approvals',
     'sequence': 190,
+    'license': 'LGPL-3',
     'summary': 'Create and validate approvals requests',
     'description': """
 This module manages approvals workflow
@@ -30,7 +30,7 @@ creates next activities for the related approvers.
         'views/approval_request_views.xml',
         'views/res_users_views.xml',
     ],
-    'demo':[
+    'demo': [
         'data/approval_demo.xml',
     ],
     'application': True,

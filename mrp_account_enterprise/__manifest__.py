@@ -1,9 +1,9 @@
-
 {
     'name': 'Accounting - MRP',
     'version': '1.0',
     'category': 'Manufacturing/Manufacturing',
     'summary': 'Analytic accounting in Manufacturing',
+    'license': 'LGPL-3',
     'description': """
 Analytic Accounting in MRP
 ==========================
@@ -18,7 +18,7 @@ Analytic Accounting in MRP
         'views/mrp_account_view.xml',
         'views/cost_structure_report.xml',
         'reports/mrp_report_views.xml',
-        ],
+    ],
     'demo': ['demo/mrp_account_demo.xml'],
     'installable': True,
     'auto_install': True,

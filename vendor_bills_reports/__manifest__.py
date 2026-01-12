@@ -1,6 +1,7 @@
 {
     'name': 'Vendor bills for tds reports',
     'version': '1.0',
+    'license': 'LGPL-3',
     'depends': ['base', 'account'],
     'data': [
         'security/ir.model.access.csv',

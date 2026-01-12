@@ -70,13 +70,13 @@ class AccountMove(models.Model):
             })
 
 
-    @api.model
-    def create(self, vals):
-        invoice = super(AccountMove, self).create(vals)
-        # Check after creation if POS invoice with potential transport charges
-        if invoice.is_sale_document() and invoice.pos_order_ids:
-            invoice._create_freight_charge_advice()
-        return invoice
+    @api.model_create_multi
+    def create(self, vals_list):
+        invoices = super().create(vals_list)
+        for invoice in invoices:
+            if invoice.is_sale_document() and invoice.pos_order_ids:
+                invoice._create_freight_charge_advice()
+        return invoices
 
     def write(self, vals):
         res = super(AccountMove, self).write(vals)

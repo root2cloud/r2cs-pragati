@@ -4,6 +4,7 @@ from odoo.exceptions import ValidationError, UserError
 
 class InternalTransactions(models.Model):
     _name = 'internal.transaction'
+    _inherit = ['mail.thread', 'mail.activity.mixin']
     _description = 'Internal Transaction'
 
     # Fields

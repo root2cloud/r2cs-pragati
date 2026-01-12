@@ -218,7 +218,7 @@ class ACSDietChart(models.Model):
     waist = fields.Char(string="WAIST")
     hip = fields.Char(string="HIP")
     lt_thigh = fields.Char(string="LT_THIGH")
-    rt_thigh = fields.Char(strinG="RT_THIGH")
+    rt_thigh = fields.Char(string="RT_THIGH")
 
 
 

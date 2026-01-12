@@ -2,6 +2,7 @@
     'name': 'Account Group Manual Hierarchy',
     'version': '16.0.1.0.0',
     'category': 'Accounting',
+    'license': 'LGPL-3',
     'summary': 'Allow manual parent-child relationships in account groups',
     'description': '''
         This module removes the granularity constraint from account groups
