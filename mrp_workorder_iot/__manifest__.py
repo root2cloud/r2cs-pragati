@@ -1,7 +1,7 @@
-
 {
     'name': 'IoT features for Work Order',
     'version': '1.0',
+    'license': 'LGPL-3',
     'category': 'Manufacturing/Manufacturing',
     'sequence': 50,
     'summary': 'Steps in MRP work orders with IoT devices',

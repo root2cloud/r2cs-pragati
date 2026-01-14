@@ -1,5 +1,3 @@
-
-
 {
     'name': 'Quality Steps with IoT',
     'category': 'Manufacturing/Internet of Things (IoT)',
@@ -8,6 +6,7 @@
 This module provides the link between quality steps and IoT devices. 
 """,
     'depends': ['iot', 'quality'],
+    'license': 'LGPL-3',
     'data': [
         'views/iot_views.xml',
     ],
