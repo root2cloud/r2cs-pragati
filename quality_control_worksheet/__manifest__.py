@@ -1,7 +1,7 @@
-
 {
     'name': 'Worksheet for Quality Control',
     'version': '1.0',
+    'license': 'LGPL-3',
     'category': 'Manufacturing/Quality',
     'summary': 'Create custom worksheet for quality control',
     'depends': ['quality_control', 'worksheet'],

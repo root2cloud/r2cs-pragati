@@ -1,6 +1,7 @@
 {
     'name': 'MRP Workcenter Community Patch',
     'version': '1.0',
+    'license': 'LGPL-3',
     'category': 'Manufacturing',
     'depends': ['mrp', 'hr'],
     'data': ['security/ir.model.access.csv',
