@@ -1,10 +1,31 @@
-from odoo import models, fields, api,_
+from odoo import models, fields, api, _
 from num2words import num2words
 from decimal import Decimal
 from odoo.exceptions import ValidationError
 
+
 class AccountPayment(models.Model):
     _inherit = 'account.payment'
+
+    bill_attachment = fields.Binary(
+        string='Bill Attachment',
+        attachment=True
+    )
+
+    bill_attachment_filename = fields.Char(
+        string='Bill File Name'
+    )
+
+    def action_view_bill(self):
+        self.ensure_one()
+        if not self.bill_attachment:
+            return False
+
+        return {
+            'type': 'ir.actions.act_url',
+            'url': f'/web/content/{self._name}/{self.id}/bill_attachment/{self.bill_attachment_filename}?download=false',
+            'target': 'new',
+        }
 
     # advice_id = fields.Many2one('payment.advice', string='Advice ID')
     amount_in_words = fields.Char(string='Amount in Words', compute='_compute_amount_in_words', store=True)

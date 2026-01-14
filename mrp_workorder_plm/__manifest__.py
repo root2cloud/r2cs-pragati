@@ -1,8 +1,7 @@
-
-
 {
     'name': 'PLM for workorder',
     'version': '1.0',
+    'license': 'LGPL-3',
     'category': 'Manufacturing/Product Lifecycle Management (PLM)',
     'description': """
 PLM for workorder.

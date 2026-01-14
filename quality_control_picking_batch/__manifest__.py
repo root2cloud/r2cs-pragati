@@ -1,7 +1,7 @@
-
 {
     'name': 'Quality - Batch Transfer',
     'version': '1.0',
+    'license': 'LGPL-3',
     'category': 'Manufacturing/Quality',
     'summary': 'Support of quality control into batch transfers',
     'depends': [

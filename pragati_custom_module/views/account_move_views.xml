@@ -112,6 +112,27 @@
                 <field name="amount_in_words"/>
                 <field name="narration"/>
             </field>
+            <!-- NEW: Attachments after Partner -->
+            <xpath expr="//group[@name='group1']/label[@for='amount']" position="before">
+
+                <label for="bill_attachment"/>
+
+                <div class="o_row">
+                    <field name="bill_attachment"
+                           filename="bill_attachment_filename"/>
+                    <button name="action_view_bill"
+                            type="object"
+                            string="VIEW"
+                            class="btn-primary o_inline"
+                            attrs="{'invisible': [('bill_attachment','=', False)]}"/>
+                </div>
+
+                <!-- filename helper (REQUIRED) -->
+                <field name="bill_attachment_filename" invisible="1"/>
+
+            </xpath>
+
+
         </field>
     </record>
 
