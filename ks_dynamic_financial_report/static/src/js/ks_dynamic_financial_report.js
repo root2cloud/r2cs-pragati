@@ -13,7 +13,6 @@ odoo.define('ks_dynamic_financial_report.dynamic_report', function (require) {
     var Widget = require('web.Widget');
 
 
-
     var QWeb = core.qweb;
     var _t = core._t;
 
@@ -130,16 +129,13 @@ odoo.define('ks_dynamic_financial_report.dynamic_report', function (require) {
 
         },
 
-        ksRemoveDisplayClass: function(evt){
+        ksRemoveDisplayClass: function (evt) {
             $('.o_filter_menu').removeClass('ks_d_block')
         },
 
 
-
-
-
         custom_events: {
-            ks_value_modified :'ksPerformOnchange',
+            ks_value_modified: 'ksPerformOnchange',
         },
         /**
          * @override
@@ -225,7 +221,7 @@ odoo.define('ks_dynamic_financial_report.dynamic_report', function (require) {
 
         /**
          * @method to set/get Storage keys
-        */
+         */
         ksStorageKeyOpt: function (action = false) {
             let action_this = action || this;
             let self = this;
@@ -237,7 +233,7 @@ odoo.define('ks_dynamic_financial_report.dynamic_report', function (require) {
 
         /**
          * @method to print the report pdf
-        */
+         */
         ksReportPrintPdf: function (e) {
             var self = this;
             this._rpc({
@@ -247,15 +243,15 @@ odoo.define('ks_dynamic_financial_report.dynamic_report', function (require) {
                 context: this.ks_df_context,
             }).then(function (data) {
                 var report_name = self.ksGetReportName();
-                var action = self.ksGetReportAction(report_name,data);
+                var action = self.ksGetReportAction(report_name, data);
                 return self.do_action(action);
             });
         },
 
         /**
          * @method to get report name
-        */
-        ksGetReportName: function(){
+         */
+        ksGetReportName: function () {
             var self = this;
             if (self.controlPanelProps.action.xml_id == _t('ks_dynamic_financial_report.ks_df_tb_action')) {
                 return 'ks_dynamic_financial_report.ks_account_report_trial_balance';
@@ -280,8 +276,8 @@ odoo.define('ks_dynamic_financial_report.dynamic_report', function (require) {
 
         /**
          * @method to get report action
-        */
-        ksGetReportAction: function(report_name,data)   {
+         */
+        ksGetReportAction: function (report_name, data) {
             var self = this;
             var options = { // Set the options for the datetimepickers
                 locale: moment.locale(),
@@ -298,7 +294,7 @@ odoo.define('ks_dynamic_financial_report.dynamic_report', function (require) {
             if (data['ks_df_informations']['ks_differ']['ks_intervals'].length != 0) {
                 data['ks_df_informations']['ks_differ']['ks_end_date'] = moment(data['ks_df_informations']['ks_differ']['ks_end_date']).format(new_date_format)
                 data['ks_df_informations']['ks_differ']['ks_start_date'] = moment(data['ks_df_informations']['ks_differ']['ks_start_date']).format(new_date_format)
-                }
+            }
             return {
                 'type': 'ir.actions.report',
                 'report_type': 'qweb-pdf',
@@ -318,7 +314,7 @@ odoo.define('ks_dynamic_financial_report.dynamic_report', function (require) {
 
         /**
          * @method to send report email to user
-        */
+         */
         ksReportSendEmail: function (e) {
             e.preventDefault();
             var self = this;
@@ -340,8 +336,8 @@ odoo.define('ks_dynamic_financial_report.dynamic_report', function (require) {
 
         /**
          * @method to get report action name
-        */
-        ksGetReportActionName: function(){
+         */
+        ksGetReportActionName: function () {
             var self = this;
 
             if (self.controlPanelProps.action.xml_id == _t('ks_dynamic_financial_report.ks_df_tb_action')) {
@@ -367,7 +363,7 @@ odoo.define('ks_dynamic_financial_report.dynamic_report', function (require) {
 
         /**
          * @method to print report excel
-        */
+         */
         ksPrintReportXlsx: function () {
             var self = this;
             self._rpc({
@@ -382,9 +378,9 @@ odoo.define('ks_dynamic_financial_report.dynamic_report', function (require) {
 
         /**
          * @method to set report Information
-        */
+         */
         ksSetReportInfo: function (values) {
-            this.ks_df_reports_ids= values.ks_df_reports_ids;
+            this.ks_df_reports_ids = values.ks_df_reports_ids;
             this.ks_df_report_opt = values.ks_df_informations;
             this.ks_df_context = values.context;
             this.ks_report_manager_id = values.ks_report_manager_id;
@@ -409,7 +405,7 @@ odoo.define('ks_dynamic_financial_report.dynamic_report', function (require) {
 
         /**
          * @method to save the report Information in current session
-        */
+         */
         ksSaveReportInfo: function () {
             if ((this.ignore_session === 'write' || this.ignore_session === 'both') !== true) {
                 var ks_df_report_key = 'report:' + this.ks_dyn_fin_model + ':' + this.ks_report_id + ':' + session.company_id;
@@ -420,7 +416,7 @@ odoo.define('ks_dynamic_financial_report.dynamic_report', function (require) {
         /**
          * @override
          * @method to rerender the control panel when going back in the breadcrumb
-        */
+         */
         do_show: function () {
             this._super.apply(this, arguments);
             this.ksUpdateControlPanel();
@@ -428,7 +424,7 @@ odoo.define('ks_dynamic_financial_report.dynamic_report', function (require) {
 
         /**
          * @method to render the elements that have yet to be rendered
-        */
+         */
         ksUpdateControlPanel: function () {
             var status = {
                 cp_content: {
@@ -443,15 +439,15 @@ odoo.define('ks_dynamic_financial_report.dynamic_report', function (require) {
 
         /**
          * @method to reload the report content
-        */
+         */
         ksReloadReport: function () {
             var self = this;
             return this._rpc({
-                    model: this.ks_dyn_fin_model,
-                    method: 'ks_get_dynamic_fin_info',
-                    args: [self.ks_report_id, self.ks_df_report_opt],
-                    context: self.ks_df_context,
-                })
+                model: this.ks_dyn_fin_model,
+                method: 'ks_get_dynamic_fin_info',
+                args: [self.ks_report_id, self.ks_df_report_opt],
+                context: self.ks_df_context,
+            })
                 .then(function (result) {
                     self.ksSetReportInfo(result);
                     self.ksRenderReport();
@@ -471,7 +467,7 @@ odoo.define('ks_dynamic_financial_report.dynamic_report', function (require) {
 
         /**
          * @method to get general ledger line by page
-        */
+         */
         ksGetGlLineByPage: function (offset, account_id) {
             var self = this;
 
@@ -484,7 +480,7 @@ odoo.define('ks_dynamic_financial_report.dynamic_report', function (require) {
 
         /**
          * @method to get move line by page
-        */
+         */
         ksGetMoveLines: function (event) {
             event.preventDefault();
 
@@ -527,7 +523,7 @@ odoo.define('ks_dynamic_financial_report.dynamic_report', function (require) {
 
         /**
          * @method to get profit and loss lines by page
-        */
+         */
         ksGetPlLinesByPage: function (offset, account_id) {
             var self = this;
             return self._rpc({
@@ -540,9 +536,9 @@ odoo.define('ks_dynamic_financial_report.dynamic_report', function (require) {
 
         /**
          * @method to get profit and loss move lines
-        */
+         */
         ksGetPlMoveLines: function (event) {
-             $('.o_filter_menu').removeClass('ks_d_block')
+            $('.o_filter_menu').removeClass('ks_d_block')
 
             event.preventDefault();
             var self = this;
@@ -582,7 +578,7 @@ odoo.define('ks_dynamic_financial_report.dynamic_report', function (require) {
 
         /**
          * @method to get Aged Report move lines detailed information
-        */
+         */
         ksGetAgedReportDetailedInfo: function (offset, partner_id) {
             var self = this;
             return self._rpc({
@@ -594,9 +590,9 @@ odoo.define('ks_dynamic_financial_report.dynamic_report', function (require) {
 
         /**
          * @method to get Aged Report lines information
-        */
+         */
         ksGetAgedLinesInfo: function (event) {
-             $('.o_filter_menu').removeClass('ks_d_block')
+            $('.o_filter_menu').removeClass('ks_d_block')
             event.preventDefault();
             var self = this;
             var partner_id = $(event.currentTarget).data('bsPartnerId');
@@ -642,7 +638,7 @@ odoo.define('ks_dynamic_financial_report.dynamic_report', function (require) {
 
         /**
          * @method to get Consolidate lines by page
-        */
+         */
         ksGetConsolidateLinesByPage: function (offset, ks_journal_id) {
             var self = this;
             return self._rpc({
@@ -654,9 +650,9 @@ odoo.define('ks_dynamic_financial_report.dynamic_report', function (require) {
 
         /**
          * @method to get Consolidate move lines
-        */
+         */
         ksGetConsolidateInfo: function (event) {
-             $('.o_filter_menu').removeClass('ks_d_block')
+            $('.o_filter_menu').removeClass('ks_d_block')
             event.preventDefault();
             var self = this;
             var ks_journal_id = $(event.currentTarget).data('bsJournalId');
@@ -691,10 +687,120 @@ odoo.define('ks_dynamic_financial_report.dynamic_report', function (require) {
                 })
             }
         },
+        /**
+         * Initialize account filter functionality
+         * Handles clicks on account items and the apply button.
+         */
+        _initAccountFilter: function () {
+            var self = this;
 
+            // 1. Handle Account Item Clicks
+            this.$ks_searchview_buttons.off('click.ks_account_filter', '.ks-account-item').on('click.ks_account_filter', '.ks-account-item', function (e) {
+                e.preventDefault();
+                e.stopPropagation(); // Critical to stop closing
+
+                var $item = $(this);
+                var accountId = parseInt($item.data('account-id'));
+                var isSelected = $item.hasClass('ks-selected');
+
+                // Toggle selection in data
+                var account = _.find(self.ks_df_report_opt['account'], function (acc) {
+                    return acc.id === accountId;
+                });
+
+                if (account) {
+                    account.selected = !isSelected;
+                    self._updateAccountItemUI($item, account.selected);
+                }
+
+                return false; // Critical to prevent default link behavior
+            });
+
+            // 2. Handle Apply Button
+            this.$ks_searchview_buttons.off('click.ks_apply_filter', '.ks-apply-account-filter').on('click.ks_apply_filter', '.ks-apply-account-filter', function (e) {
+                e.preventDefault();
+                e.stopPropagation();
+
+                // Close dropdown manually
+                $(this).closest('.dropdown-menu').removeClass('show');
+
+                // Reload Report
+                self.ksReloadReport();
+                return false;
+            });
+
+            // 3. General Dropdown Click Protection
+            this.$ks_searchview_buttons.on('click', '.ks-account-filter', function (e) {
+                e.stopPropagation();
+            });
+
+            // Initialize Badge
+            this._updateSelectedAccountsCount();
+        },
+        /**
+         * Visual Logic: Moves items between "Pinned" and "Available" lists
+         */
+        _updateAccountItemUI: function ($item, isSelected) {
+            var $container = $item.closest('.ks-account-filter');
+            var $selectedList = $container.find('.selected-accounts-list');
+            var $availableList = $container.find('.available-accounts-list');
+            var $selectedHeader = $container.find('.selected-accounts-header');
+            var $selectedDivider = $container.find('.selected-accounts-divider');
+
+            if (isSelected) {
+                // 1. Mark as Selected
+                $item.addClass('ks-selected');
+
+                // 2. Add Green Tick (if it doesn't exist yet)
+                if ($item.find('.fa-check').length === 0) {
+                    $item.prepend('<span class="fa fa-check text-success me-2"></span>');
+                }
+
+                // 3. Move to Top
+                $selectedList.append($item);
+            } else {
+                // 1. Unmark
+                $item.removeClass('ks-selected');
+
+                // 2. Remove Green Tick completely (Do NOT add square)
+                $item.find('.fa-check').remove();
+
+                // 3. Move to Bottom
+                $availableList.append($item);
+            }
+
+            // Update Badge
+            this._updateSelectedAccountsCount();
+
+            // Toggle Header Visibility
+            var selectedCount = $selectedList.children().length;
+            if (selectedCount > 0) {
+                $selectedHeader.removeClass('d-none');
+                $selectedDivider.removeClass('d-none');
+            } else {
+                $selectedHeader.addClass('d-none');
+                $selectedDivider.addClass('d-none');
+            }
+        },
+        /**
+         * Updates the count badge on the main button (e.g., "Account (3)")
+         */
+        _updateSelectedAccountsCount: function () {
+            // Count items where selected === true
+            var selectedCount = _.filter(this.ks_df_report_opt['account'], function (acc) {
+                return acc.selected === true;
+            }).length;
+
+            var $badge = this.$ks_searchview_buttons.find('.selected-accounts-badge');
+            if (selectedCount > 0) {
+                $badge.removeClass('d-none').text(selectedCount);
+            } else {
+                $badge.addClass('d-none');
+            }
+        },
         /**
          * @method to render searchview buttons
-        */
+         */
         ksRenderSearchViewButtons: function () {
             var self = this;
             // bind searchview buttons/filter to the correct actions
@@ -734,9 +840,8 @@ odoo.define('ks_dynamic_financial_report.dynamic_report', function (require) {
             _.each(self.ks_df_report_opt, function (k) {
                 if (k !== null && k.ks_filter !== undefined) {
                     self.$ks_searchview_buttons.find('[data-bs-filter="' + k.ks_filter + '"]').addClass('selected');
-                }
-                else if(k !== null && k.ks_differentiate_filter !== undefined){
-                self.$ks_searchview_buttons.find('[data-bs-filter="' + k.ks_differentiate_filter + '"]').addClass('selected');
+                } else if (k !== null && k.ks_differentiate_filter !== undefined) {
+                    self.$ks_searchview_buttons.find('[data-bs-filter="' + k.ks_differentiate_filter + '"]').addClass('selected');
                 }
             });
             _.each(this.$ks_searchview_buttons.find('.js_account_report_bool_filter'), function (k) {
@@ -785,7 +890,7 @@ odoo.define('ks_dynamic_financial_report.dynamic_report', function (require) {
                 }
 //                if (error) {
                 if (error) {
-                Dialog.alert(this, _t('Date cannot be empty.'), {
+                    Dialog.alert(this, _t('Date cannot be empty.'), {
                         title: _t('Odoo Warning'),
                     });
 //                    new WarningDialog(self, {
@@ -816,7 +921,7 @@ odoo.define('ks_dynamic_financial_report.dynamic_report', function (require) {
                 }
 //                if (error) {
                 if (error) {
-                Dialog.alert(this, _t('Date cannot be empty.'), {
+                    Dialog.alert(this, _t('Date cannot be empty.'), {
                         title: _t('Odoo Warning'),
                     });
 //                    new WarningDialog(self, {
@@ -835,40 +940,39 @@ odoo.define('ks_dynamic_financial_report.dynamic_report', function (require) {
                 self.ks_df_context.ks_account_enable = false
                 self.ks_df_context.ks_account_both_enable = false
                 var ks_options_enable = false
-                if (!$(event.currentTarget).hasClass('selected')){
+                if (!$(event.currentTarget).hasClass('selected')) {
                     var ks_options_enable = true
                 }
                 var ks_temp_arr = []
                 var ks_options = $(event.currentTarget).parent().find('a')
-                for (var i=0; i < ks_options.length; i++){
-                    if (ks_options[i].dataset.filter !== option_value){
+                for (var i = 0; i < ks_options.length; i++) {
+                    if (ks_options[i].dataset.filter !== option_value) {
                         ks_temp_arr.push($(ks_options[i]).hasClass('selected'))
                     }
                 }
-                if (ks_temp_arr.indexOf(true) !== -1 || ks_options_enable){
+                if (ks_temp_arr.indexOf(true) !== -1 || ks_options_enable) {
                     self.ks_df_context.ks_option_enable = true;
-                }else{
+                } else {
                     self.ks_df_context.ks_option_enable = false;
                 }
 
-                if(option_value=='ks_comparison_range'){
+                if (option_value == 'ks_comparison_range') {
                     var ks_date_range_change = {}
-                    ks_date_range_change['ks_comparison_range'] =!self.ks_df_report_opt[option_value]
+                    ks_date_range_change['ks_comparison_range'] = !self.ks_df_report_opt[option_value]
                     return self._rpc({
-                    model: self.ks_dyn_fin_model,
-                    method: 'write',
-                    args: [self.ks_report_id, ks_date_range_change],
+                        model: self.ks_dyn_fin_model,
+                        method: 'write',
+                        args: [self.ks_report_id, ks_date_range_change],
                     }).then(function (res) {
                         self._rpc({
-                        model: self.ks_dyn_fin_model,
-                        method: 'ks_reload_page',
-                        }).then(function (action){
+                            model: self.ks_dyn_fin_model,
+                            method: 'ks_reload_page',
+                        }).then(function (action) {
                             self.do_action(action)
                         });
                     });
-                }
-                else if(option_value!='ks_comparison_range'){
-                    self.ks_df_report_opt[option_value]= !self.ks_df_report_opt[option_value]
+                } else if (option_value != 'ks_comparison_range') {
+                    self.ks_df_report_opt[option_value] = !self.ks_df_report_opt[option_value]
                 }
                 if (option_value === 'unfold_all') {
                     self.unfold_all(self.ks_df_report_opt[option_value]);
@@ -895,28 +999,28 @@ odoo.define('ks_dynamic_financial_report.dynamic_report', function (require) {
                 var option_value = $(this).data('bsFilter');
                 var option_id = $(this).data('bsId');
 
-                if (!$(event.currentTarget).hasClass('selected')){
+                if (!$(event.currentTarget).hasClass('selected')) {
                     var ks_options_enable = true
                 }
                 var ks_temp_arr = []
                 var ks_options = $(event.currentTarget).parent().find('a')
-                for (var i=0; i < ks_options.length; i++){
-                    if (parseInt(ks_options[i].dataset.bsId) !== option_id){
+                for (var i = 0; i < ks_options.length; i++) {
+                    if (parseInt(ks_options[i].dataset.bsId) !== option_id) {
                         ks_temp_arr.push($(ks_options[i]).hasClass('selected'))
                     }
                 }
-                if (option_value === 'account'){
-                    if (ks_temp_arr.indexOf(true) !== -1 || ks_options_enable){
+                if (option_value === 'account') {
+                    if (ks_temp_arr.indexOf(true) !== -1 || ks_options_enable) {
                         self.ks_df_context.ks_account_enable = true;
                     }
                 }
-                if (option_value === 'journals'){
-                    if (ks_temp_arr.indexOf(true) !== -1 || ks_options_enable){
+                if (option_value === 'journals') {
+                    if (ks_temp_arr.indexOf(true) !== -1 || ks_options_enable) {
                         self.ks_df_context.ks_journal_enable = true;
                     }
                 }
-                if (option_value === 'account_type'){
-                    if (ks_temp_arr.indexOf(true) !== -1 || ks_options_enable){
+                if (option_value === 'account_type') {
+                    if (ks_temp_arr.indexOf(true) !== -1 || ks_options_enable) {
                         self.ks_df_context.ks_account_both_enable = true;
                     }
                 }
@@ -983,9 +1087,9 @@ odoo.define('ks_dynamic_financial_report.dynamic_report', function (require) {
                 }
 //                if (error) {
                 if (error) {
-                Dialog.alert(this, _t('Date cannot be empty.'), {
-                    title: _t('Odoo Warning'),
-                });
+                    Dialog.alert(this, _t('Date cannot be empty.'), {
+                        title: _t('Odoo Warning'),
+                    });
 //                    new WarningDialog(self, {
 //                        title: _t("Odoo Warning"),
 //                    }, {
@@ -1040,19 +1144,19 @@ odoo.define('ks_dynamic_financial_report.dynamic_report', function (require) {
 //                    this.$ks_searchview_buttons.find('.js_account_analytic_m2m').append(this.ksMany2Many.$el);
 //                }
 //            }
-
+            this._initAccountFilter();
         },
 
         /**
          * @method to render main template
-        */
+         */
         ksRenderMainTemplate: function () {
             this.ksRenderBody();
         },
 
         /**
          * @method to render report body and currency conversion
-        */
+         */
         ksRenderBody: function () {
             var self = this;
 
@@ -1095,152 +1199,128 @@ odoo.define('ks_dynamic_financial_report.dynamic_report', function (require) {
 
         /**
          * @method to render general ledger report
-        */
-        ksRenderGeneralLedger: function(){
+         */
+        ksRenderGeneralLedger: function () {
             var self = this;
 
             self.$('.o_content').html(QWeb.render('ks_df_gl', {
-                    ks_report_lines: self.ks_report_lines,
-                    ks_enable_ledger_in_bal: self.ks_enable_ledger_in_bal
-                }));
+                ks_report_lines: self.ks_report_lines,
+                ks_enable_ledger_in_bal: self.ks_enable_ledger_in_bal
+            }));
         },
 
         /**
          * @method to render trial balance report
-        */
+         */
         // ... Assuming this is inside an Odoo Widget/Class ...
-ksRenderTrialBalance: function(){
-    var self = this;
+        ksRenderTrialBalance: function () {
+            var self = this;
 
 
-    /*
-    _.each(self.ks_report_lines, function (k, v) {
-        var ksFormatConfigurations = {
-            currency_id: k.company_currency_id,
-            noSymbol: true,
-        };
-        // Removed k.initial_debit = self.ksFormatCurrencySign(k.initial_debit, ...); and all similar lines.
-    });
-    // Removed similar formatting for self.ks_retained and self.ks_subtotal
-    */
+            /*
+            _.each(self.ks_report_lines, function (k, v) {
+                var ksFormatConfigurations = {
+                    currency_id: k.company_currency_id,
+                    noSymbol: true,
+                };
+                // Removed k.initial_debit = self.ksFormatCurrencySign(k.initial_debit, ...); and all similar lines.
+            });
+            // Removed similar formatting for self.ks_retained and self.ks_subtotal
+            */
 
-    // Date formatting (Unchanged)
-    let options = { // Set the options for the datetimepickers
-        locale: moment.locale(),
-        format: 'L',
-        icons: {
-            date: "fa fa-calendar",
+            // Date formatting (Unchanged)
+            let options = { // Set the options for the datetimepickers
+                locale: moment.locale(),
+                format: 'L',
+                icons: {
+                    date: "fa fa-calendar",
+                },
+            };
+            let dt = new datepicker.DateWidget(options);
+            let date_format = dt.options.format
+            let new_date_format = date_format.replaceAll('/', '-');
+            var ks_df_new_start_report_opt = moment(self.ks_df_report_opt['date']['ks_start_date']).format(new_date_format)
+            var ks_df_new_end_report_opt = moment(self.ks_df_report_opt['date']['ks_end_date']).format(new_date_format)
+
+
+            console.log(self.ks_report_lines)
+            self.$('.o_content').html(QWeb.render('ks_df_trial_balance', {
+                account_data: self.ks_report_lines,
+                retained: self.ks_retained,
+                ks_df_new_start_report_opt: ks_df_new_start_report_opt,
+                ks_df_new_end_report_opt: ks_df_new_end_report_opt,
+                subtotal: self.ks_subtotal,
+            }));
+
+            var company_currency_id = self.ks_report_lines.length > 0 ? self.ks_report_lines[0].company_currency_id : null;
+            var ksFormatConfigurations = {
+                currency_id: company_currency_id,
+                noSymbol: true,
+            };
+
+            // Helper to format a single cell
+            function formatCell(cell) {
+                var value = parseFloat($(cell).text().trim()) || 0.0;
+                var currency_id = $(cell).data('company-currency-id') || company_currency_id;
+                var configs = {currency_id: currency_id, noSymbol: true};
+
+                // Use the existing formatting logic from your original code
+                var formattedValue = self.ksFormatCurrencySign(value, configs, value < 0 ? '-' : '');
+                $(cell).html(formattedValue);
+            }
+
+            // A. Format the newly added group total cells
+            // The classes used here are the ones added to the XML above.
+            self.$('.ks_total_init_debit, .ks_total_init_credit, .ks_total_init_balance, .ks_total_debit, .ks_total_credit, .ks_total_balance, .ks_total_end_debit, .ks_total_end_credit, .ks_total_end_balance').each(function () {
+                formatCell(this);
+            });
+
+            // B. Re-format the main account lines (which were passed as raw numbers)
+            // We target the cells in the account details rows (which lack the new total classes)
+            self.$('tr:not([id$="-header"]):not([style*="#E5CCFF"]) td.ks_amt').each(function () {
+                formatCell(this);
+            });
         },
-    };
-    let dt = new datepicker.DateWidget(options);
-    let date_format = dt.options.format
-    let new_date_format = date_format.replaceAll('/', '-');
-    var ks_df_new_start_report_opt = moment(self.ks_df_report_opt['date']['ks_start_date']).format(new_date_format)
-    var  ks_df_new_end_report_opt = moment(self.ks_df_report_opt['date']['ks_end_date']).format(new_date_format)
-
-
-
-    console.log(self.ks_report_lines)
-    self.$('.o_content').html(QWeb.render('ks_df_trial_balance', {
-        account_data: self.ks_report_lines,
-        retained: self.ks_retained,
-        ks_df_new_start_report_opt: ks_df_new_start_report_opt,
-        ks_df_new_end_report_opt: ks_df_new_end_report_opt,
-        subtotal: self.ks_subtotal,
-    }));
-
-    var company_currency_id = self.ks_report_lines.length > 0 ? self.ks_report_lines[0].company_currency_id : null;
-    var ksFormatConfigurations = {
-        currency_id: company_currency_id,
-        noSymbol: true,
-    };
-
-    // Helper to format a single cell
-    function formatCell(cell) {
-        var value = parseFloat($(cell).text().trim()) || 0.0;
-        var currency_id = $(cell).data('company-currency-id') || company_currency_id;
-        var configs = { currency_id: currency_id, noSymbol: true };
-
-        // Use the existing formatting logic from your original code
-        var formattedValue = self.ksFormatCurrencySign(value, configs, value < 0 ? '-' : '');
-        $(cell).html(formattedValue);
-    }
-
-    // A. Format the newly added group total cells
-    // The classes used here are the ones added to the XML above.
-self.$('.ks_total_init_debit, .ks_total_init_credit, .ks_total_init_balance, .ks_total_debit, .ks_total_credit, .ks_total_balance, .ks_total_end_debit, .ks_total_end_credit, .ks_total_end_balance').each(function() {
-    formatCell(this);
-});
-
-    // B. Re-format the main account lines (which were passed as raw numbers)
-    // We target the cells in the account details rows (which lack the new total classes)
-    self.$('tr:not([id$="-header"]):not([style*="#E5CCFF"]) td.ks_amt').each(function() {
-        formatCell(this);
-    });
-},
 // ...
 
         /**
          * @method to render partner ledger report
-        */
-        ksRenderPartnerLedger: function(){
+         */
+        ksRenderPartnerLedger: function () {
             var self = this;
 
             self.$('.o_content').html(QWeb.render('ks_df_pl0', {
-                    ks_report_lines: self.ks_report_lines,
-                    ks_enable_ledger_in_bal: self.ks_enable_ledger_in_bal
-                }));
+                ks_report_lines: self.ks_report_lines,
+                ks_enable_ledger_in_bal: self.ks_enable_ledger_in_bal
+            }));
         },
 
         /**
          * @method to render consolidate journal report
-        */
-        ksRenderConsolidateJournal: function(){
+         */
+        ksRenderConsolidateJournal: function () {
             var self = this;
 
             _.each(self.ks_month_lines, function (k, v) {
-                    var ksFormatConfigurations = {
-                        currency_id: k.company_currency_id,
-                        noSymbol: true,
-                    };
-                    k.debit = self.ksFormatCurrencySign(k.debit, ksFormatConfigurations, k.debit < 0 ? '-' : '');
-                    k.credit = self.ksFormatCurrencySign(k.credit, ksFormatConfigurations, k.credit < 0 ? '-' : '');
-                    k.balance = self.ksFormatCurrencySign(k.balance, ksFormatConfigurations, k.balance < 0 ? '-' : '')
+                var ksFormatConfigurations = {
+                    currency_id: k.company_currency_id,
+                    noSymbol: true,
+                };
+                k.debit = self.ksFormatCurrencySign(k.debit, ksFormatConfigurations, k.debit < 0 ? '-' : '');
+                k.credit = self.ksFormatCurrencySign(k.credit, ksFormatConfigurations, k.credit < 0 ? '-' : '');
+                k.balance = self.ksFormatCurrencySign(k.balance, ksFormatConfigurations, k.balance < 0 ? '-' : '')
 
-                });
+            });
             self.$('.o_content').html(QWeb.render('ks_df_cj0', {
-                    ks_report_lines: self.ks_report_lines,
-                    ks_month_lines: self.ks_month_lines
-                }));
+                ks_report_lines: self.ks_report_lines,
+                ks_month_lines: self.ks_month_lines
+            }));
         },
 
         /**
          * @method to render Age Receivable report
-        */
-        ksRenderAgeReceivable: function(){
-            var self = this;
-
-            _.each(self.ks_partner_dict, function (k, v) {
-                    var ksFormatConfigurations = {
-                        currency_id: k.company_currency_id,
-                        noSymbol: true,
-                    };
-                    for (var z = 0; z < self.ks_period_list.length; z++) {
-                        k[self.ks_period_list[z]] = self.ksFormatCurrencySign(k[self.ks_period_list[z]], ksFormatConfigurations, k[self.ks_period_list[z]] < 0 ? '-' : '');
-                    }
-                    k.total = self.ksFormatCurrencySign(k.total, ksFormatConfigurations, k.total < 0 ? '-' : '');
-                });
-            self.$('.o_content').html(QWeb.render('ks_df_rec0', {
-                    ks_period_list: self.ks_period_list,
-                    ks_period_dict: self.ks_period_dict,
-                    ks_partner_dict: self.ks_partner_dict,
-                }));
-        },
-
-        /**
-         * @method to render Age Payable report
-        */
-        ksRenderAgePayable: function(){
+         */
+        ksRenderAgeReceivable: function () {
             var self = this;
 
             _.each(self.ks_partner_dict, function (k, v) {
@@ -1254,188 +1334,211 @@ self.$('.ks_total_init_debit, .ks_total_init_credit, .ks_total_init_balance, .ks
                 k.total = self.ksFormatCurrencySign(k.total, ksFormatConfigurations, k.total < 0 ? '-' : '');
             });
             self.$('.o_content').html(QWeb.render('ks_df_rec0', {
-                    ks_period_list: self.ks_period_list,
-                    ks_period_dict: self.ks_period_dict,
-                    ks_partner_dict: self.ks_partner_dict,
-                }));
+                ks_period_list: self.ks_period_list,
+                ks_period_dict: self.ks_period_dict,
+                ks_partner_dict: self.ks_partner_dict,
+            }));
+        },
+
+        /**
+         * @method to render Age Payable report
+         */
+        ksRenderAgePayable: function () {
+            var self = this;
+
+            _.each(self.ks_partner_dict, function (k, v) {
+                var ksFormatConfigurations = {
+                    currency_id: k.company_currency_id,
+                    noSymbol: true,
+                };
+                for (var z = 0; z < self.ks_period_list.length; z++) {
+                    k[self.ks_period_list[z]] = self.ksFormatCurrencySign(k[self.ks_period_list[z]], ksFormatConfigurations, k[self.ks_period_list[z]] < 0 ? '-' : '');
+                }
+                k.total = self.ksFormatCurrencySign(k.total, ksFormatConfigurations, k.total < 0 ? '-' : '');
+            });
+            self.$('.o_content').html(QWeb.render('ks_df_rec0', {
+                ks_period_list: self.ks_period_list,
+                ks_period_dict: self.ks_period_dict,
+                ks_partner_dict: self.ks_partner_dict,
+            }));
         },
 
         /**
          * @method to render Tax report
-        */
-        ksRenderTaxReport: function(){
+         */
+        ksRenderTaxReport: function () {
             var self = this;
 
             self.$('.o_content').html(QWeb.render('ks_tax_report_lines', {
-                    ks_report_lines: self.ks_report_lines,
-                    ks_df_report_opt: self.ks_df_report_opt
-                }));
+                ks_report_lines: self.ks_report_lines,
+                ks_df_report_opt: self.ks_df_report_opt
+            }));
         },
 
         /**
          * @method to render Executive summary report
-        */
-        ksRenderExecutiveSummary: function(){
+         */
+        ksRenderExecutiveSummary: function () {
             var self = this;
 
             self.$('.o_content').html(QWeb.render('ks_executive_summary_lines', {
-                    ks_report_lines: self.ks_report_lines,
-                    ks_df_report_opt: self.ks_df_report_opt
+                ks_report_lines: self.ks_report_lines,
+                ks_df_report_opt: self.ks_df_report_opt
 
-                }));
+            }));
 
             if (parseFloat(self.ks_initial_balance) > 0 || parseFloat(self.ks_current_balance) > 0 || parseFloat(self.ks_ending_balance) > 0) {
-                    self.$(".o_content").append(QWeb.render('ks_account_report_summary_section', {
-                        ks_initial_balance: self.ks_initial_balance,
-                        ks_current_balance: self.ks_current_balance,
-                        ks_ending_balance: self.ks_ending_balance
-                    }));
-                }
+                self.$(".o_content").append(QWeb.render('ks_account_report_summary_section', {
+                    ks_initial_balance: self.ks_initial_balance,
+                    ks_current_balance: self.ks_current_balance,
+                    ks_ending_balance: self.ks_ending_balance
+                }));
+            }
         },
 
         /**
          * @method to render Generic summary report
-        */
-        ksRenderGenericReport: function(){
+         */
+        ksRenderGenericReport: function () {
             var self = this;
 
             self.$('.o_content').html(QWeb.render('ks_account_report_lines', {
-                    ks_report_lines: self.ks_report_lines,
-                    ks_df_report_opt: self.ks_df_report_opt
+                ks_report_lines: self.ks_report_lines,
+                ks_df_report_opt: self.ks_df_report_opt
 
-                }));
+            }));
 
             if (parseFloat(self.ks_initial_balance) > 0 || parseFloat(self.ks_current_balance) > 0 || parseFloat(self.ks_ending_balance) > 0) {
-                    self.$(".o_content").append(QWeb.render('ks_account_report_summary_section', {
-                        ks_initial_balance: self.ks_initial_balance,
-                        ks_current_balance: self.ks_current_balance,
-                        ks_ending_balance: self.ks_ending_balance
-                    }));
-                }
+                self.$(".o_content").append(QWeb.render('ks_account_report_summary_section', {
+                    ks_initial_balance: self.ks_initial_balance,
+                    ks_current_balance: self.ks_current_balance,
+                    ks_ending_balance: self.ks_ending_balance
+                }));
+            }
         },
 
         /**
          * @method to set report currency configuration
-        */
-        ksSetReportCurrencyConfig: function() {
+         */
+        ksSetReportCurrencyConfig: function () {
             var self = this;
 
             _.each(self.ks_report_lines, function (k, v) {
-                    var ksFormatConfigurations = {
-                        currency_id: k.company_currency_id,
-                        noSymbol: true,
-                    };
+                var ksFormatConfigurations = {
+                    currency_id: k.company_currency_id,
+                    noSymbol: true,
+                };
 //                    k.debit = self.ksFormatCurrencySign(k.debit, ksFormatConfigurations, k.debit < 0 ? '-' : '');
 //                    k.credit = self.ksFormatCurrencySign(k.credit, ksFormatConfigurations, k.credit < 0 ? '-' : '');
-                    if (self.controlPanelProps.action.xml_id == _t('ks_dynamic_financial_report.ks_df_tb_action')){
+                if (self.controlPanelProps.action.xml_id == _t('ks_dynamic_financial_report.ks_df_tb_action')) {
 
-                    }else{
-                        k.initial_balance = self.ksFormatCurrencySign(k.initial_balance, ksFormatConfigurations, k.initial_balance < 0 ? '-' : '');
-                    }
-                    //  changed the values of balance
-                    if (!k['percentage']) {
+                } else {
+                    k.initial_balance = self.ksFormatCurrencySign(k.initial_balance, ksFormatConfigurations, k.initial_balance < 0 ? '-' : '');
+                }
+                //  changed the values of balance
+                if (!k['percentage']) {
 //                        k.balance = self.ksFormatCurrencySign(k.balance, ksFormatConfigurations, k.balance < 0 ? '-' : '');
-                    } else {
-                        k.balance = String(Math.round(k.balance)) + "%";
-                    }
+                } else {
+                    k.balance = String(Math.round(k.balance)) + "%";
+                }
 
-                    for (const prop in k.balance_cmp) {
-                        k.balance_cmp[prop] = self.ksFormatCurrencySign(k.balance_cmp[prop], ksFormatConfigurations, k.balance[prop] < 0 ? '-' : '');
-                    }
-                });
+                for (const prop in k.balance_cmp) {
+                    k.balance_cmp[prop] = self.ksFormatCurrencySign(k.balance_cmp[prop], ksFormatConfigurations, k.balance[prop] < 0 ? '-' : '');
+                }
+            });
         },
 
         /**
          * @method to set tax report currency configuration
-        */
-        ksSetTaxReportCurrencyConfig: function() {
+         */
+        ksSetTaxReportCurrencyConfig: function () {
             var self = this;
 
             _.each(self.ks_report_lines, function (k, v) {
-                    var ksFormatConfigurations = {
-                        currency_id: k.company_currency_id,
-                        noSymbol: true,
-                    };
-                    k.ks_net_amount = self.ksFormatCurrencySign(k.ks_net_amount, ksFormatConfigurations, k.ks_net_amount < 0 ? '-' : '');
-                    k.tax = self.ksFormatCurrencySign(k.tax, ksFormatConfigurations, k.tax < 0 ? '-' : '');
+                var ksFormatConfigurations = {
+                    currency_id: k.company_currency_id,
+                    noSymbol: true,
+                };
+                k.ks_net_amount = self.ksFormatCurrencySign(k.ks_net_amount, ksFormatConfigurations, k.ks_net_amount < 0 ? '-' : '');
+                k.tax = self.ksFormatCurrencySign(k.tax, ksFormatConfigurations, k.tax < 0 ? '-' : '');
 
-                    for (const prop in k.balance_cmp) {
-                        k.balance_cmp[prop][0]['ks_com_net'] = self.ksFormatCurrencySign(k.balance_cmp[prop][0]['ks_com_net'], ksFormatConfigurations, k.balance_cmp[prop][0]['ks_com_net'] < 0 ? '-' : '');
-                        k.balance_cmp[prop][1]['ks_com_tax'] = self.ksFormatCurrencySign(k.balance_cmp[prop][1]['ks_com_tax'], ksFormatConfigurations, k.balance_cmp[prop][1]['ks_com_tax'] < 0 ? '-' : '');
-                    }
-                });
+                for (const prop in k.balance_cmp) {
+                    k.balance_cmp[prop][0]['ks_com_net'] = self.ksFormatCurrencySign(k.balance_cmp[prop][0]['ks_com_net'], ksFormatConfigurations, k.balance_cmp[prop][0]['ks_com_net'] < 0 ? '-' : '');
+                    k.balance_cmp[prop][1]['ks_com_tax'] = self.ksFormatCurrencySign(k.balance_cmp[prop][1]['ks_com_tax'], ksFormatConfigurations, k.balance_cmp[prop][1]['ks_com_tax'] < 0 ? '-' : '');
+                }
+            });
         },
 
         /**
          * @method to set tax report currency configuration
-        */
-        ksSetExecutiveReportCurrencyConfig: function() {
+         */
+        ksSetExecutiveReportCurrencyConfig: function () {
             var self = this;
 
-             _.each(self.ks_report_lines, function (k, v) {
-                    var ksFormatConfigurations = {
-                        currency_id: k.company_currency_id,
-                        noSymbol: true,
-                    };
+            _.each(self.ks_report_lines, function (k, v) {
+                var ksFormatConfigurations = {
+                    currency_id: k.company_currency_id,
+                    noSymbol: true,
+                };
 
-                    for (const prop in k.debit) {
-                        k.debit[prop] = self.ksFormatCurrencySign(k.debit[prop], ksFormatConfigurations, k.debit[prop] < 0 ? '-' : '');
-                    }
-                    for (const prop in k.credit) {
-                        k.credit[prop] = self.ksFormatCurrencySign(k.credit[prop], ksFormatConfigurations, k.credit[prop] < 0 ? '-' : '');
-                    }
+                for (const prop in k.debit) {
+                    k.debit[prop] = self.ksFormatCurrencySign(k.debit[prop], ksFormatConfigurations, k.debit[prop] < 0 ? '-' : '');
+                }
+                for (const prop in k.credit) {
+                    k.credit[prop] = self.ksFormatCurrencySign(k.credit[prop], ksFormatConfigurations, k.credit[prop] < 0 ? '-' : '');
+                }
 
-                    //  changed the values of balance
-                    if (!k['percentage']) {
-                        for (const prop in k.balance) {
-                            k.balance[prop] = self.ksFormatCurrencySign(k.balance[prop], ksFormatConfigurations, k.balance[prop] < 0 ? '-' : '');
-                        }
-                    } else {
-                        for (const prop in k.balance) {
-                            k.balance[prop] = String(field_utils.format.float(k.balance[prop])) + "%";
-                        }
+                //  changed the values of balance
+                if (!k['percentage']) {
+                    for (const prop in k.balance) {
+                        k.balance[prop] = self.ksFormatCurrencySign(k.balance[prop], ksFormatConfigurations, k.balance[prop] < 0 ? '-' : '');
                     }
+                } else {
+                    for (const prop in k.balance) {
+                        k.balance[prop] = String(field_utils.format.float(k.balance[prop])) + "%";
+                    }
+                }
 
-                    for (const prop in k.balance_cmp) {
-                        k.balance_cmp[prop] = self.ksFormatCurrencySign(k.balance_cmp[prop], ksFormatConfigurations, k.balance[prop] < 0 ? '-' : '');
-                    }
-                });
+                for (const prop in k.balance_cmp) {
+                    k.balance_cmp[prop] = self.ksFormatCurrencySign(k.balance_cmp[prop], ksFormatConfigurations, k.balance[prop] < 0 ? '-' : '');
+                }
+            });
         },
 
         /**
          * @method to render report body and currency conversion
-        */
-ksGetAction: function (e) {
-    e.stopPropagation();
-    var self = this;
-    var action = $(e.target).attr('action');
-    var moveId = $(e.target).parents('td').data('bsMoveId');  // For move lines
-    var accountId = $(e.target).closest('a').attr('data-bs-account-id');  // Explicitly get from data-bs-account-id
-    if (!accountId) {
-        accountId = $(e.target).parents('td').data('bsAccountId');  // Fallback to normalized data
-    }
-    var params = $(e.target).data();
-    params.accountId = parseInt(accountId) || 0;  // Ensure integer and set as accountId for Python
-    if (moveId) {
-        params.bsMoveId = moveId;  // For move actions
-    }
-    var context = new Context(this.ks_df_context, params.actionContext || {}, {
-        active_id: accountId || moveId
-    });
-
-    params = _.omit(params, 'actionContext');
-    if (action) {
-        return this._rpc({
-                model: this.ks_dyn_fin_model,
-                method: action,
-                args: [this.ks_report_id, this.ks_df_report_opt, params],
-                context: context.eval(),
-            })
-            .then(function (result) {
-                return self.do_action(result);
+         */
+        ksGetAction: function (e) {
+            e.stopPropagation();
+            var self = this;
+            var action = $(e.target).attr('action');
+            var moveId = $(e.target).parents('td').data('bsMoveId');  // For move lines
+            var accountId = $(e.target).closest('a').attr('data-bs-account-id');  // Explicitly get from data-bs-account-id
+            if (!accountId) {
+                accountId = $(e.target).parents('td').data('bsAccountId');  // Fallback to normalized data
+            }
+            var params = $(e.target).data();
+            params.accountId = parseInt(accountId) || 0;  // Ensure integer and set as accountId for Python
+            if (moveId) {
+                params.bsMoveId = moveId;  // For move actions
+            }
+            var context = new Context(this.ks_df_context, params.actionContext || {}, {
+                active_id: accountId || moveId
             });
-    }
-},
+
+            params = _.omit(params, 'actionContext');
+            if (action) {
+                return this._rpc({
+                    model: this.ks_dyn_fin_model,
+                    method: action,
+                    args: [this.ks_report_id, this.ks_df_report_opt, params],
+                    context: context.eval(),
+                })
+                    .then(function (result) {
+                        return self.do_action(result);
+                    });
+            }
+        },
         /**
          * @method to format currnecy with amount
          */
@@ -1445,8 +1548,9 @@ ksGetAction: function (e) {
             var without_sign = field_utils.format.monetary(Math.abs(amount), {}, ksFormatConfigurations);
             if (!amount) {
                 return '-'
-            };
-            if (currency_id){
+            }
+            ;
+            if (currency_id) {
                 if (currency_id.position === "after") {
                     return sign + '&nbsp;' + without_sign + '&nbsp;' + currency_id.symbol;
                 } else {
@@ -1475,7 +1579,7 @@ ksGetAction: function (e) {
          * @method to set the information required by Dynamic financial reports
          */
         ksSetDfRepInfo: function (values) {
-            this.ks_df_reports_ids= values.ks_df_reports_ids;
+            this.ks_df_reports_ids = values.ks_df_reports_ids;
             this.ks_df_report_opt = values.ks_df_informations;
             this.ks_df_context = values.context;
             this.ks_report_manager_id = values.ks_report_manager_id;
@@ -1507,8 +1611,8 @@ ksGetAction: function (e) {
 });
 
 
- $(document).ready(function() {
-        $(document).on('click', 'header .o_main_navbar', function(evt){
-                $('.o_filter_menu').removeClass('ks_d_block')
-            });
+$(document).ready(function () {
+    $(document).on('click', 'header .o_main_navbar', function (evt) {
+        $('.o_filter_menu').removeClass('ks_d_block')
     });
+});
