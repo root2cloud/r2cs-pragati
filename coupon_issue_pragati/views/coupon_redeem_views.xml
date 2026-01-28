@@ -1,0 +1,137 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- TREE VIEW -->
+    <record id="view_coupon_redeem_tree" model="ir.ui.view">
+        <field name="name">coupon.redeem.tree</field>
+        <field name="model">coupon.redeem</field>
+        <field name="arch" type="xml">
+            <tree>
+                <field name="name"/>
+                <field name="coupon_code"/>
+                <field name="customer_id"/>
+                <field name="coupon_value"/>
+                <field name="redeem_date"/>
+                <field name="redeem_by"/>
+                <field name="state"/>
+            </tree>
+        </field>
+    </record>
+
+    <!-- FORM VIEW -->
+    <record id="view_coupon_redeem_form" model="ir.ui.view">
+        <field name="name">coupon.redeem.form</field>
+        <field name="model">coupon.redeem</field>
+        <field name="arch" type="xml">
+            <form string="Coupon Redeem">
+                <header>
+                    <field name="state" widget="statusbar" statusbar_visible="draft,redeemed,cancelled"
+                           clickable="true"/>
+                    <field name="show_redeem_button" invisible="1"/>
+                    <field name="show_cancel_button" invisible="1"/>
+                    <field name="show_reset_button" invisible="1"/>
+                    <button name="action_redeem" string="Redeem" type="object" class="btn-primary"
+                            attrs="{'invisible': [('show_redeem_button', '=', False)]}"/>
+                    <button name="action_cancel" string="Cancel" type="object" class="btn-danger"
+                            attrs="{'invisible': [('show_cancel_button', '=', False)]}"
+                            confirm="Are you sure you want to cancel this redeem?"/>
+                    <button name="action_reset_to_draft" string="Reset to Draft" type="object" class="btn-secondary"
+                            attrs="{'invisible': [('show_reset_button', '=', False)]}"/>
+                </header>
+
+                <sheet>
+                    <div class="oe_button_box" name="button_box"/>
+
+                    <group string="Coupon Selection">
+                        <group>
+                            <field name="name" readonly="1"/>
+                            <field name="coupon_issue_id"
+                                   attrs="{'readonly': [('state', '!=', 'draft')]}"
+                                   placeholder="Select coupon from list..."/>
+                            <field name="no_of_persons"/>
+
+                        </group>
+                        <group>
+                            <field name="coupon_code" readonly="1"/>
+                            <field name="coupon_value" readonly="1"/>
+                            <field name="remarks"
+                                   string="Remarks"/>
+                            <field name="redeemed_coupon_ids" invisible="1"/>
+                        </group>
+                    </group>
+
+                    <group string="Redeem Details">
+                        <group>
+                            <field name="redeem_date" attrs="{'readonly': [('state', '!=', 'draft')]}"/>
+                            <field name="redeem_by" attrs="{'readonly': [('state', '!=', 'draft')]}"/>
+                        </group>
+                    </group>
+
+                    <notebook>
+                        <page string="Customer Information">
+                            <group>
+                                <field name="customer_id" readonly="1"/>
+                                <field name="mobile" readonly="1"/>
+                                <field name="address" readonly="1"/>
+                            </group>
+                        </page>
+
+                        <page string="Coupon Information">
+                            <group>
+                                <field name="issue_date" readonly="1"/>
+                                <field name="expiry_date" readonly="1"/>
+                                <field name="company_name" readonly="1"/>
+                                <field name="department_id" readonly="1"/>
+                            </group>
+                        </page>
+                    </notebook>
+                </sheet>
+
+                <div class="oe_chatter">
+                    <field name="message_follower_ids" widget="mail_followers"/>
+                    <field name="activity_ids" widget="mail_activity"/>
+                    <field name="message_ids" widget="mail_thread"/>
+                </div>
+            </form>
+        </field>
+    </record>
+
+    <!-- SEARCH VIEW -->
+    <record id="view_coupon_redeem_search" model="ir.ui.view">
+        <field name="name">coupon.redeem.search</field>
+        <field name="model">coupon.redeem</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="coupon_code"/>
+                <field name="customer_id"/>
+                <field name="coupon_issue_id"/>
+                <field name="state"/>
+                <field name="redeem_date"/>
+                <!--                <field name="remarks"/>  &lt;!&ndash; Added remarks to search &ndash;&gt;-->
+                <filter string="Draft" name="draft" domain="[('state', '=', 'draft')]"/>
+                <filter string="Redeemed" name="redeemed" domain="[('state', '=', 'redeemed')]"/>
+                <filter string="Cancelled" name="cancelled" domain="[('state', '=', 'cancelled')]"/>
+                <!--                <filter string="With Remarks" name="has_remarks" domain="[('remarks', '!=', False)]"/>-->
+                <group expand="0" string="Group By">
+                    <filter string="State" name="group_state" context="{'group_by': 'state'}"/>
+                    <filter string="Customer" name="group_customer" context="{'group_by': 'customer_id'}"/>
+                    <filter string="Redeem Date" name="group_redeem_date" context="{'group_by': 'redeem_date:month'}"/>
+                    <filter string="Redeemed By" name="group_redeem_by" context="{'group_by': 'redeem_by'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <!-- ACTION -->
+    <record id="action_coupon_redeem" model="ir.actions.act_window">
+        <field name="name">Coupon Redeems</field>
+        <field name="res_model">coupon.redeem</field>
+        <field name="view_mode">tree,form</field>
+        <field name="search_view_id" ref="view_coupon_redeem_search"/>
+    </record>
+
+    <!-- MENU -->
+    <menuitem id="menu_coupon_redeem_sales" name="Coupon Redeems" parent="sale.sale_order_menu"
+              action="action_coupon_redeem" sequence="35"/>
+
+</odoo>

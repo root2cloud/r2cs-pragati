@@ -1,0 +1,17 @@
+<odoo>
+    <record id="seq_coupon_issue" model="ir.sequence">
+        <field name="name">Coupon Issue Sequence</field>
+        <field name="code">coupon.issue.sequence</field>
+        <field name="prefix">CI/%(year)s/</field>
+        <field name="padding">6</field>
+        <field name="company_id" eval="False"/>
+    </record>
+
+    <record id="seq_coupon_redeem" model="ir.sequence">
+        <field name="name">Coupon Redeem Reference</field>
+        <field name="code">coupon.redeem.sequence</field>
+        <field name="prefix">RED/%(year)s/</field>
+        <field name="padding">6</field>
+        <field name="company_id" eval="False"/>
+    </record>
+</odoo>

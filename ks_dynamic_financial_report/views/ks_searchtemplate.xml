@@ -38,21 +38,21 @@
                  t-if="ks_df_informations['ks_partner_account_type_filter']">
                 <t t-call="ks_dynamic_financial_report.ks_searchview_account_filter"/>
             </div>
-<!--            <div class="btn-group o_dropdown ks_dynamic_report_base_account_filter"-->
-<!--                 t-if="ks_df_informations['ks_generic_tax_filter']">-->
-<!--                <t t-call="ks_dynamic_financial_report.ks_searchview_tax_report"/>-->
-<!--            </div>-->
-<!--            <div class="btn-group o_dropdown ks_dynamic_report_base_account_filter"-->
-<!--                 t-if="ks_df_informations['ks_analytic_account_visibility'] ">-->
-<!--                <t t-call="ks_dynamic_financial_report.ks_searchview_analytic_filter"/>-->
-<!--            </div>-->
+            <!--            <div class="btn-group o_dropdown ks_dynamic_report_base_account_filter"-->
+            <!--                 t-if="ks_df_informations['ks_generic_tax_filter']">-->
+            <!--                <t t-call="ks_dynamic_financial_report.ks_searchview_tax_report"/>-->
+            <!--            </div>-->
+            <!--            <div class="btn-group o_dropdown ks_dynamic_report_base_account_filter"-->
+            <!--                 t-if="ks_df_informations['ks_analytic_account_visibility'] ">-->
+            <!--                <t t-call="ks_dynamic_financial_report.ks_searchview_analytic_filter"/>-->
+            <!--            </div>-->
 
             <div id="extra_ks_df_informations_dropdown" class="btn-group o_dropdown o_account_reports_filter_bool">
                 <t t-call="ks_dynamic_financial_report.ks_searchview_extra_ks_df_informations"/>
             </div>
 
             <div id="extra_ks_account_information" class="btn-group o_dropdown ks_dynamic_report_base_journals_filter"
-                t-if="ks_df_informations['ks_account_filter_visiblity']">
+                 t-if="ks_df_informations['ks_account_filter_visiblity']">
                 <t t-call="ks_dynamic_financial_report.ks_searchview_extra_ks_account_information"/>
             </div>
 
@@ -124,7 +124,8 @@
                 <a role="menuitem" class="dropdown-item js_foldable_trigger o_closed_menu ks_stop_propagation"
                    data-bs-filter='custom_filter_date'>Custom
                 </a>
-                <div class="o_foldable_menu o_closed_menu o_account_report_search p-3" data-bs-filter='custom_filter_date'>
+                <div class="o_foldable_menu o_closed_menu o_account_report_search p-3"
+                     data-bs-filter='custom_filter_date'>
                     <t t-if="ks_df_informations['date']['ks_process'] == 'range'">
                         <t t-if="ks_df_reports_ids.ks_name not in ['Age Receivable', 'Age Payable']">
                             <label class="custom-date" for="ks_start_date">Start Date :</label>
@@ -136,10 +137,10 @@
                                 </div>
                             </div>
                         </t>
-                        </t>
+                    </t>
                     <label class="custom-date" for="ks_date_to"
-                               t-if="ks_df_informations['date']['ks_process'] in ['single', 'range']">End Date :
-                        </label>
+                           t-if="ks_df_informations['date']['ks_process'] in ['single', 'range']">End Date :
+                    </label>
                     <div class="form-group custom-date">
                         <div class='o_datepicker js_account_reports_datetimepicker'
                              t-att-data-bs-default-value="ks_df_informations['date']['ks_end_date']">
@@ -147,7 +148,8 @@
                             <span class="o_datepicker_button"/>
                         </div>
                     </div>
-                    <button type="button" class="btn btn-primary js_account_report_date_filter mt-2" data-bs-filter="custom">
+                    <button type="button" class="btn btn-primary js_account_report_date_filter mt-2"
+                            data-bs-filter="custom">
                         Apply
                     </button>
                 </div>
@@ -206,7 +208,8 @@
                 <a role="menuitem" class="dropdown-item js_foldable_trigger o_closed_menu ks_stop_propagation"
                    data-bs-filter='custom_cmp_filter'>Custom
                 </a>
-                <div class="o_foldable_menu o_closed_menu o_account_report_search p-3" data-bs-filter='custom_cmp_filter'>
+                <div class="o_foldable_menu o_closed_menu o_account_report_search p-3"
+                     data-bs-filter='custom_cmp_filter'>
                     <t t-if="ks_df_informations['date']['ks_process'] in ['range', 'single']">
                         <label class="custom-date" for="date_from_cmp">Start Date :</label>
                         <div class="form-group custom-date">
@@ -234,7 +237,7 @@
             </div>
         </template>
 
-       <template id="ks_searchview_journals_filter">
+        <template id="ks_searchview_journals_filter">
             <button type="button" class="o_dropdown_toggler_btn btn btn-secondary dropdown-toggle"
                     data-bs-toggle="dropdown">
                 <span class="fa fa-book"/>journals
@@ -295,7 +298,8 @@
         </template>
 
         <template id="ks_searchview_account_filter">
-            <button type="button" class="o_dropdown_toggler_btn btn btn-secondary dropdown-toggle ks_search_account_filter"
+            <button type="button"
+                    class="o_dropdown_toggler_btn btn btn-secondary dropdown-toggle ks_search_account_filter"
                     data-bs-toggle="dropdown">
                 <span class="fa fa-user"/>
                 Account:
@@ -312,7 +316,8 @@
             <t t-if="ks_df_informations.get('ks_account_both_enable')">
                 <div class="dropdown-menu o_filter_menu ks_d_block p-3" role="menu">
                     <t t-foreach="ks_df_informations['account_type']" t-as="a">
-                        <a role="menuitem" class="dropdown-item js_account_report_choice_filter" t-att-title="a.get('name')"
+                        <a role="menuitem" class="dropdown-item js_account_report_choice_filter"
+                           t-att-title="a.get('name')"
                            t-att-data-bs-id="a.get('id')" data-bs-filter="account_type">
                             <t t-esc="a.get('name')"/>
                         </a>
@@ -322,7 +327,8 @@
             <t t-else="">
                 <div class="dropdown-menu o_filter_menu p-3" role="menu">
                     <t t-foreach="ks_df_informations['account_type']" t-as="a">
-                        <a role="menuitem" class="dropdown-item js_account_report_choice_filter" t-att-title="a.get('name')"
+                        <a role="menuitem" class="dropdown-item js_account_report_choice_filter"
+                           t-att-title="a.get('name')"
                            t-att-data-bs-id="a.get('id')" data-bs-filter="account_type">
                             <t t-esc="a.get('name')"/>
                         </a>
@@ -355,116 +361,157 @@
                 <div class="dropdown-menu o_filter_menu ks_d_block" role="menu">
 
                     <a role="menuitem" class="dropdown-item js_account_report_bool_filter"
-                   title="Posted entries" data-bs-filter="ks_posted_entries"
-                   t-if="ks_df_informations.get('ks_posted_entries') != None"
-                   groups="account.group_account_readonly">Posted Entries
-                </a>
+                       title="Posted entries" data-bs-filter="ks_posted_entries"
+                       t-if="ks_df_informations.get('ks_posted_entries') != None"
+                       groups="account.group_account_readonly">Posted Entries
+                    </a>
 
                     <a role="menuitem" class="dropdown-item js_account_report_bool_filter"
-                   title="UnPosted entries" data-bs-filter="ks_unposted_entries"
-                   t-if="ks_df_informations.get('ks_unposted_entries') != None"
-                   groups="account.group_account_readonly">UnPosted Entries(Draft)
-                </a>
+                       title="UnPosted entries" data-bs-filter="ks_unposted_entries"
+                       t-if="ks_df_informations.get('ks_unposted_entries') != None"
+                       groups="account.group_account_readonly">UnPosted Entries(Draft)
+                    </a>
 
                     <a role="menuitem" class="dropdown-item js_account_report_bool_filter"
-                   title="reconciled" data-bs-filter="ks_reconciled"
-                   t-if="ks_df_reports_ids.ks_name=='Partner Ledger'">Show
-                    reconciled Entriess
-                </a>
+                       title="reconciled" data-bs-filter="ks_reconciled"
+                       t-if="ks_df_reports_ids.ks_name=='Partner Ledger'">Show
+                        reconciled Entriess
+                    </a>
 
                     <a role="menuitem" class="dropdown-item js_account_report_bool_filter"
-                   title="Unreconciled" data-bs-filter="ks_unreconciled"
-                   t-if="ks_df_reports_ids.ks_name=='Partner Ledger'">Show
-                    Unreconciled Entries
-                </a>
+                       title="Unreconciled" data-bs-filter="ks_unreconciled"
+                       t-if="ks_df_reports_ids.ks_name=='Partner Ledger'">Show
+                        Unreconciled Entries
+                    </a>
 
                     <a t-if="ks_df_reports_ids.ks_name not in ['Age Receivable', 'Age Payable']" role="menuitem"
-                   class="dropdown-item js_account_report_bool_filter"
-                   title="Change_date_range" data-bs-filter="ks_comparison_range">To change date range
-                </a>
+                       class="dropdown-item js_account_report_bool_filter"
+                       title="Change_date_range" data-bs-filter="ks_comparison_range">To change date range
+                    </a>
 
                     <a role="menuitem" class="dropdown-item js_account_report_bool_filter"
-                   title="Detail reports" data-bs-filter="ks_report_with_lines"
-                   t-if="ks_df_reports_ids.ks_name not in ['Balance Sheet', 'Profit and Loss', 'Cash Flow Statement', 'Executive Summary', 'Tax Report', 'Trial Balance']">
-                    To Print Report With Details
-                </a>
-            </div>
+                       title="Detail reports" data-bs-filter="ks_report_with_lines"
+                       t-if="ks_df_reports_ids.ks_name not in ['Balance Sheet', 'Profit and Loss', 'Cash Flow Statement', 'Executive Summary', 'Tax Report', 'Trial Balance']">
+                        To Print Report With Details
+                    </a>
+                </div>
             </t>
             <t t-else="">
                 <div class="dropdown-menu o_filter_menu" role="menu">
-                <a role="menuitem" class="dropdown-item js_account_report_bool_filter"
-                   title="Posted entries" data-bs-filter="ks_posted_entries"
-                   t-if="ks_df_informations.get('ks_posted_entries') != None"
-                   groups="account.group_account_readonly">Posted Entries
-                </a>
-                <a role="menuitem" class="dropdown-item js_account_report_bool_filter"
-                   title="UnPosted entries" data-bs-filter="ks_unposted_entries"
-                   t-if="ks_df_informations.get('ks_unposted_entries') != None"
-                   groups="account.group_account_readonly">UnPosted Entries(Draft)
-                </a>
+                    <a role="menuitem" class="dropdown-item js_account_report_bool_filter"
+                       title="Posted entries" data-bs-filter="ks_posted_entries"
+                       t-if="ks_df_informations.get('ks_posted_entries') != None"
+                       groups="account.group_account_readonly">Posted Entries
+                    </a>
+                    <a role="menuitem" class="dropdown-item js_account_report_bool_filter"
+                       title="UnPosted entries" data-bs-filter="ks_unposted_entries"
+                       t-if="ks_df_informations.get('ks_unposted_entries') != None"
+                       groups="account.group_account_readonly">UnPosted Entries(Draft)
+                    </a>
 
-                <a role="menuitem" class="dropdown-item js_account_report_bool_filter"
-                   title="reconciled" data-bs-filter="ks_reconciled"
-                   t-if="ks_df_reports_ids.ks_name=='Partner Ledger'">Show
-                    reconciled Entriess
-                </a>
-                <a role="menuitem" class="dropdown-item js_account_report_bool_filter"
-                   title="Unreconciled" data-bs-filter="ks_unreconciled"
-                   t-if="ks_df_reports_ids.ks_name=='Partner Ledger'">Show
-                    Unreconciled Entries
-                </a>
-                <a t-if="ks_df_reports_ids.ks_name not in ['Age Receivable', 'Age Payable']" role="menuitem"
-                   class="dropdown-item js_account_report_bool_filter"
-                   title="Change_date_range" data-bs-filter="ks_comparison_range">To change date range
-                </a>
-                <a role="menuitem" class="dropdown-item js_account_report_bool_filter"
-                   title="Detail reports" data-bs-filter="ks_report_with_lines"
-                   t-if="ks_df_reports_ids.ks_name not in ['Balance Sheet', 'Profit and Loss', 'Cash Flow Statement', 'Executive Summary', 'Tax Report', 'Trial Balance']">
-                    To Print Report With Details
-                </a>
-            </div>
+                    <a role="menuitem" class="dropdown-item js_account_report_bool_filter"
+                       title="reconciled" data-bs-filter="ks_reconciled"
+                       t-if="ks_df_reports_ids.ks_name=='Partner Ledger'">Show
+                        reconciled Entriess
+                    </a>
+                    <a role="menuitem" class="dropdown-item js_account_report_bool_filter"
+                       title="Unreconciled" data-bs-filter="ks_unreconciled"
+                       t-if="ks_df_reports_ids.ks_name=='Partner Ledger'">Show
+                        Unreconciled Entries
+                    </a>
+                    <a t-if="ks_df_reports_ids.ks_name not in ['Age Receivable', 'Age Payable']" role="menuitem"
+                       class="dropdown-item js_account_report_bool_filter"
+                       title="Change_date_range" data-bs-filter="ks_comparison_range">To change date range
+                    </a>
+                    <a role="menuitem" class="dropdown-item js_account_report_bool_filter"
+                       title="Detail reports" data-bs-filter="ks_report_with_lines"
+                       t-if="ks_df_reports_ids.ks_name not in ['Balance Sheet', 'Profit and Loss', 'Cash Flow Statement', 'Executive Summary', 'Tax Report', 'Trial Balance']">
+                        To Print Report With Details
+                    </a>
+                </div>
             </t>
         </template>
 
         <template id="ks_searchview_extra_ks_account_information">
-            <button type="button" class="o_dropdown_toggler_btn btn btn-secondary dropdown-toggle"
-                    data-bs-toggle="dropdown">
-                <span class="fa fa-book"/>
-                Account
-                <t t-set="selected_account"
-                   t-value="', '.join(account.get('name') for account in ks_df_informations['account'] if account.get('selected'))"/>
-                <t t-if="selected_account">
-                    <t t-esc="selected_account"/>
-                </t>
-            </button>
-            <div class="dropdown-menu o_filter_menu p-3" role="menu"
-                 style="max-height:300px;overflow-y:auto;">
-                <!-- Search input field at the top -->
-                <input type="text" class="form-control mb-2" placeholder="Search accounts..."
-                       onkeyup="odoo.ksExtraAccountFilterSearch(this)"/>
-                <div id="ks-extra-account-list">
-                    <t t-foreach="ks_df_informations['account']" t-as="a">
-                        <a role="menuitem" class="dropdown-item js_account_report_choice_filter ks-extra-account-item"
-                           t-att-title="a.get('name')"
-                           t-att-data-bs-id="a.get('id')" data-bs-filter="account">
-                            <t t-esc="a.get('name')"/>
-                        </a>
-                    </t>
+            <div class="btn-group o_dropdown ks-account-filter-container">
+                <button type="button" class="o_dropdown_toggler_btn btn btn-secondary dropdown-toggle"
+                        data-bs-toggle="dropdown">
+                    <span class="fa fa-user"/>
+                    Account
+                    <span class="selected-accounts-badge badge ms-2 d-none"
+                          style="background-color: #E0E0E0; color: #333333; font-size: 13px; vertical-align: middle; border-radius: 10px; padding: 3px 8px;">
+                        0
+                    </span>
+                </button>
+
+                <div class="dropdown-menu o_filter_menu ks-account-filter ks_stop_propagation p-0"
+                     role="menu"
+                     style="min-width: 250px; max-height: 400px;">
+
+                    <div class="d-flex flex-column" style="height: 100%; max-height: 400px;">
+
+                        <div class="px-3 py-2 border-bottom bg-light">
+                            <input type="text"
+                                   class="form-control form-control-sm ks-account-search"
+                                   placeholder="Search accounts..."
+                                   onkeyup="odoo.ksExtraAccountFilterSearch(this)"/>
+                        </div>
+
+                        <div class="ks-scrollable-content" style="overflow-y: auto; flex: 1; min-height: 0;">
+
+                            <div class="selected-accounts-section">
+                                <h6 class="dropdown-header selected-accounts-header d-none font-weight-bold">Selected
+                                    Accounts
+                                </h6>
+                                <div class="selected-accounts-list">
+                                    <t t-foreach="ks_df_informations['account']" t-as="account">
+                                        <t t-if="account.get('selected')">
+                                            <a href="#" class="dropdown-item ks-account-item ks-selected"
+                                               t-att-data-account-id="account.get('id')">
+                                                <span class="fa fa-check text-success me-2"></span>
+                                                <span t-esc="account.get('name')"/>
+                                            </a>
+                                        </t>
+                                    </t>
+                                </div>
+                                <div class="dropdown-divider selected-accounts-divider d-none"></div>
+                            </div>
+
+                            <div class="available-accounts-section">
+                                <h6 class="dropdown-header font-weight-bold">Available Accounts</h6>
+                                <div class="available-accounts-list">
+                                    <t t-foreach="ks_df_informations['account']" t-as="account">
+                                        <t t-if="not account.get('selected')">
+                                            <a href="#" class="dropdown-item ks-account-item"
+                                               t-att-data-account-id="account.get('id')">
+                                                <span t-esc="account.get('name')"/>
+                                            </a>
+                                        </t>
+                                    </t>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="dropdown-footer p-2 border-top bg-light">
+                            <button type="button" class="btn btn-success btn-sm w-100 ks-apply-account-filter">
+                                <i class="fa fa-check me-1"></i>
+                                Apply
+                            </button>
+                        </div>
+                    </div>
                 </div>
             </div>
         </template>
-
-<!--        <template id="ks_searchview_analytic_filter">-->
-<!--            <button type="button" t-if="ks_df_informations.get('analytic')"-->
-<!--                    class="o_dropdown_toggler_btn btn btn-secondary dropdown-toggle ks_df_analytic_filter"-->
-<!--                    data-bs-toggle="dropdown">-->
-<!--                <span class="fa fa-folder-open"/>-->
-<!--                Analytic-->
-<!--            </button>-->
-<!--            <ul class="dropdown-menu o_filter_menu p-3" role="menu">-->
-<!--                <li class="o_account_report_search js_account_analytic_m2m"/>-->
-<!--            </ul>-->
-<!--        </template>-->
+        <!--        <template id="ks_searchview_analytic_filter">-->
+        <!--            <button type="button" t-if="ks_df_informations.get('analytic')"-->
+        <!--                    class="o_dropdown_toggler_btn btn btn-secondary dropdown-toggle ks_df_analytic_filter"-->
+        <!--                    data-bs-toggle="dropdown">-->
+        <!--                <span class="fa fa-folder-open"/>-->
+        <!--                Analytic-->
+        <!--            </button>-->
+        <!--            <ul class="dropdown-menu o_filter_menu p-3" role="menu">-->
+        <!--                <li class="o_account_report_search js_account_analytic_m2m"/>-->
+        <!--            </ul>-->
+        <!--        </template>-->
 
     </data>
 </odoo>
