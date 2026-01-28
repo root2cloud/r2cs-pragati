@@ -1,0 +1,134 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- PDF Report Template -->
+    <template id="coupon_report_template">
+        <t t-call="web.html_container">
+            <t t-call="web.external_layout">
+                <div class="page">
+                    <h2 style="text-align: center;">Coupon Report</h2>
+                    <h3 style="text-align: center;">As on
+                        <t t-esc="current_date"/>
+                    </h3>
+
+                    <!-- Summary Section -->
+                    <div style="margin: 20px 0; padding: 10px; border: 1px solid #ddd;">
+                        <h4>Summary</h4>
+                        <table style="width: 100%;">
+                            <tr>
+                                <td>
+                                    <strong>Total Coupons Issued:</strong>
+                                </td>
+                                <td>
+                                    <t t-esc="total_issued"/>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>
+                                    <strong>Total Coupons Redeemed:</strong>
+                                </td>
+                                <td>
+                                    <t t-esc="total_redeemed"/>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>
+                                    <strong>Total Coupon Value:</strong>
+                                </td>
+                                <td>
+                                    <t t-esc="total_value"/>
+                                </td>
+                            </tr>
+                        </table>
+                    </div>
+
+                    <!-- Details Table -->
+                    <table class="table table-bordered" style="width: 100%; border-collapse: collapse;">
+                        <thead>
+                            <tr style="background-color: #f2f2f2;">
+                                <th style="border: 1px solid #ddd; padding: 8px;">Reference</th>
+                                <th style="border: 1px solid #ddd; padding: 8px;">Coupon Code</th>
+                                <th style="border: 1px solid #ddd; padding: 8px;">Customer</th>
+                                <th style="border: 1px solid #ddd; padding: 8px;">No. of Persons</th>
+                                <th style="border: 1px solid #ddd; padding: 8px;">Coupon Value</th>
+                                <th style="border: 1px solid #ddd; padding: 8px;">Issue Date</th>
+                                <th style="border: 1px solid #ddd; padding: 8px;">Expiry Date</th>
+                                <th style="border: 1px solid #ddd; padding: 8px;">Salesperson</th>
+                                <th style="border: 1px solid #ddd; padding: 8px;">Status</th>
+                                <th style="border: 1px solid #ddd; padding: 8px;">Redeemed Date</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <t t-foreach="docs" t-as="coupon">
+                                <tr>
+                                    <td style="border: 1px solid #ddd; padding: 8px;">
+                                        <t t-esc="coupon.name"/>
+                                    </td>
+                                    <td style="border: 1px solid #ddd; padding: 8px;">
+                                        <t t-esc="coupon.coupon_code"/>
+                                    </td>
+                                    <td style="border: 1px solid #ddd; padding: 8px;">
+                                        <t t-esc="coupon.customer_id.name or ''"/>
+                                    </td>
+                                    <td style="border: 1px solid #ddd; padding: 8px;">
+                                        <t t-set="redeem"
+                                           t-value="coupon.env['coupon.redeem'].search([('coupon_issue_id', '=', coupon.id), ('state', '=', 'redeemed')], limit=1)"/>
+                                        <t t-if="redeem">
+                                            <t t-esc="redeem.no_of_persons"/>
+                                        </t>
+                                        <t t-if="not redeem">-</t>
+                                    </td>
+                                    <td style="border: 1px solid #ddd; padding: 8px;">
+                                        <t t-esc="coupon.coupon_value"/>
+                                    </td>
+                                    <td style="border: 1px solid #ddd; padding: 8px;">
+                                        <t t-esc="coupon.issue_date"/>
+                                    </td>
+                                    <td style="border: 1px solid #ddd; padding: 8px;">
+                                        <t t-esc="coupon.expiry_date or ''"/>
+                                    </td>
+                                    <td style="border: 1px solid #ddd; padding: 8px;"><t t-esc="coupon.salespersons_name or ''"/></td>
+                                    <td style="border: 1px solid #ddd; padding: 8px;">
+                                        <t t-esc="coupon.state"/>
+                                    </td>
+                                    <td style="border: 1px solid #ddd; padding: 8px;">
+                                        <t t-set="redeem"
+                                           t-value="coupon.env['coupon.redeem'].search([('coupon_issue_id', '=', coupon.id), ('state', '=', 'redeemed')], limit=1)"/>
+                                        <t t-if="redeem">
+                                            <t t-esc="redeem.redeem_date"/>
+                                        </t>
+                                        <t t-if="not redeem">Not Redeemed</t>
+                                    </td>
+                                </tr>
+                            </t>
+                        </tbody>
+                    </table>
+                </div>
+            </t>
+        </t>
+    </template>
+
+    <!-- PDF Report Action -->
+    <record id="action_coupon_report" model="ir.actions.report">
+        <field name="name">Coupon Report (PDF)</field>
+        <field name="model">coupon.issue</field>
+        <field name="report_type">qweb-pdf</field>
+        <field name="report_name">coupon_issue_pragati.coupon_report_template</field>
+        <field name="print_report_name">'Coupon Report'</field>
+        <field name="binding_model_id" ref="model_coupon_issue"/>
+        <field name="binding_type">report</field>
+    </record>
+
+    <!-- Wizard for custom reports -->
+    <record id="wizard_coupon_report" model="ir.actions.act_window">
+        <field name="name">Coupon Reports</field>
+        <field name="res_model">coupon.report.wizard</field>
+        <field name="view_mode">form</field>
+        <field name="target">new</field>
+    </record>
+
+    <menuitem id="menu_coupon_reports"
+              name="Coupon Reports"
+              parent="sale.sale_order_menu"
+              action="wizard_coupon_report"
+              sequence="40"/>
+</odoo>
