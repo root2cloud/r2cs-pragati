@@ -92,7 +92,7 @@
                             <field name="company_id" invisible="1"/>
                             <field name="company_name"/>
                             <field name="department_id"/>
-                            <field name="salesperson_id" invisible="1"/>
+<!--                            <field name="salesperson_id" invisible="1"/>-->
                             <field name="salespersons_name"/>
                         </group>
 

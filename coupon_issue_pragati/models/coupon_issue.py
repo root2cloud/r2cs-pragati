@@ -16,14 +16,14 @@ class CouponIssue(models.Model):
         default='New'
     )
 
-    salesperson_id = fields.Many2one(
-        'res.users',
-        string="Salesperson",
-        required=True
-    )
+    # salesperson_id = fields.Many2one(
+    #     'res.users',
+    #     string="Salesperson",
+    #     required=True
+    # )
 
     salespersons_name = fields.Char(
-        string="Salesperson",
+        string="Sales person",
         required=True
     )
 
