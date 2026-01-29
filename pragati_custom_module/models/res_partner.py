@@ -91,9 +91,10 @@ class ResPartner(models.Model):
                 _logger.info(f"✓ Vendor '{vals.get('name')}' created in WAITING APPROVAL (archived)")
             else:
                 # For customers: directly active, no approval needed
-                vals['state'] = 'approved'
+                # Use 'active' state for users, not 'approved'
                 vals['active'] = True
-                _logger.info(f"✓ Customer '{vals.get('name')}' created APPROVED")
+                _logger.info(f"✓ Customer '{vals.get('name')}' created")
+                # DO NOT set state for customers - let it use default
 
         # Create partners
         partners = super(ResPartner, self).create(vals_list)
@@ -122,7 +123,6 @@ class ResPartner(models.Model):
                         _logger.info(f"✓ Activity created for {approver.name}")
 
         return partners
-
     # ============================================
     # COMPUTE METHODS
     # ============================================
