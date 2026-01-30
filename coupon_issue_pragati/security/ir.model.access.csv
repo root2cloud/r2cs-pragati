@@ -1,4 +1,5 @@
 id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
 access_coupon_issue,coupon.issue,model_coupon_issue,,1,1,1,1
 access_coupon_redeem,coupon.redeem,model_coupon_redeem,,1,1,1,1
+access_coupon_issue_attachment,coupon.issue.attachment,model_coupon_issue_attachment,,1,1,1,1
 

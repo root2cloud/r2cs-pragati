@@ -52,6 +52,7 @@ class CouponRedeem(models.Model):
     company_id = fields.Many2one('res.company', string="Company", readonly=True)
     company_name = fields.Char(string="Company", readonly=True)
     department_id = fields.Many2one('hr.department', string="Department", readonly=True)
+    designation = fields.Char(string="Designation")
 
     # Redeem Details
     redeem_date = fields.Date(
@@ -180,6 +181,7 @@ class CouponRedeem(models.Model):
             self.company_id = self.coupon_issue_id.company_id
             self.company_name = self.coupon_issue_id.company_name
             self.department_id = self.coupon_issue_id.department_id
+            # self.designation = self.coupon_issue_id.designation
 
             # Check if coupon is already redeemed
             existing_redeem = self.search([

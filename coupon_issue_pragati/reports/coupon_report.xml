@@ -1,109 +1,146 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
+    <!-- Create a custom paperformat for landscape -->
+    <record id="paperformat_coupon_landscape" model="report.paperformat">
+        <field name="name">A4 Landscape</field>
+        <field name="default" eval="False"/>
+        <field name="format">A4</field>
+        <field name="orientation">Landscape</field>
+        <field name="margin_top">15</field>
+        <field name="margin_bottom">15</field>
+        <field name="margin_left">10</field>
+        <field name="margin_right">10</field>
+        <field name="page_height">0</field>
+        <field name="page_width">0</field>
+        <field name="header_line">False</field>
+        <field name="header_spacing">25</field>
+        <field name="dpi">90</field>
+    </record>
+
     <!-- PDF Report Template -->
     <template id="coupon_report_template">
         <t t-call="web.html_container">
-            <t t-call="web.external_layout">
-                <div class="page">
-                    <h2 style="text-align: center;">Coupon Report</h2>
-                    <h3 style="text-align: center;">As on
-                        <t t-esc="current_date"/>
+            <div class="page">
+                <!-- Custom Header - No logo -->
+                <div style="text-align: center; margin-bottom: 20px; border-bottom: 2px solid #e0e0e0; padding-bottom: 15px;">
+                    <h2 style="margin: 5px 0; color: #2c3e50; font-size: 22px;">Coupon Report</h2>
+                    <h3 style="margin: 8px 0; color: #34495e; font-size: 16px;">
+                        <t t-if="company and company.name"><t t-esc="company.name"/></t>
                     </h3>
+                    <h4 style="margin: 5px 0; color: #7f8c8d; font-size: 14px;">
+                        As on <t t-esc="current_date"/>
+                    </h4>
+                </div>
 
-                    <!-- Summary Section -->
-                    <div style="margin: 20px 0; padding: 10px; border: 1px solid #ddd;">
-                        <h4>Summary</h4>
-                        <table style="width: 100%;">
-                            <tr>
-                                <td>
-                                    <strong>Total Coupons Issued:</strong>
-                                </td>
-                                <td>
-                                    <t t-esc="total_issued"/>
-                                </td>
-                            </tr>
-                            <tr>
-                                <td>
-                                    <strong>Total Coupons Redeemed:</strong>
-                                </td>
-                                <td>
-                                    <t t-esc="total_redeemed"/>
-                                </td>
-                            </tr>
-                            <tr>
-                                <td>
-                                    <strong>Total Coupon Value:</strong>
-                                </td>
-                                <td>
-                                    <t t-esc="total_value"/>
-                                </td>
-                            </tr>
-                        </table>
-                    </div>
-
-                    <!-- Details Table -->
-                    <table class="table table-bordered" style="width: 100%; border-collapse: collapse;">
-                        <thead>
-                            <tr style="background-color: #f2f2f2;">
-                                <th style="border: 1px solid #ddd; padding: 8px;">Reference</th>
-                                <th style="border: 1px solid #ddd; padding: 8px;">Coupon Code</th>
-                                <th style="border: 1px solid #ddd; padding: 8px;">Customer</th>
-                                <th style="border: 1px solid #ddd; padding: 8px;">No. of Persons</th>
-                                <th style="border: 1px solid #ddd; padding: 8px;">Coupon Value</th>
-                                <th style="border: 1px solid #ddd; padding: 8px;">Issue Date</th>
-                                <th style="border: 1px solid #ddd; padding: 8px;">Expiry Date</th>
-                                <th style="border: 1px solid #ddd; padding: 8px;">Salesperson</th>
-                                <th style="border: 1px solid #ddd; padding: 8px;">Status</th>
-                                <th style="border: 1px solid #ddd; padding: 8px;">Redeemed Date</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <t t-foreach="docs" t-as="coupon">
-                                <tr>
-                                    <td style="border: 1px solid #ddd; padding: 8px;">
-                                        <t t-esc="coupon.name"/>
-                                    </td>
-                                    <td style="border: 1px solid #ddd; padding: 8px;">
-                                        <t t-esc="coupon.coupon_code"/>
-                                    </td>
-                                    <td style="border: 1px solid #ddd; padding: 8px;">
-                                        <t t-esc="coupon.customer_id.name or ''"/>
-                                    </td>
-                                    <td style="border: 1px solid #ddd; padding: 8px;">
-                                        <t t-set="redeem"
-                                           t-value="coupon.env['coupon.redeem'].search([('coupon_issue_id', '=', coupon.id), ('state', '=', 'redeemed')], limit=1)"/>
-                                        <t t-if="redeem">
-                                            <t t-esc="redeem.no_of_persons"/>
-                                        </t>
-                                        <t t-if="not redeem">-</t>
-                                    </td>
-                                    <td style="border: 1px solid #ddd; padding: 8px;">
-                                        <t t-esc="coupon.coupon_value"/>
-                                    </td>
-                                    <td style="border: 1px solid #ddd; padding: 8px;">
-                                        <t t-esc="coupon.issue_date"/>
-                                    </td>
-                                    <td style="border: 1px solid #ddd; padding: 8px;">
-                                        <t t-esc="coupon.expiry_date or ''"/>
-                                    </td>
-                                    <td style="border: 1px solid #ddd; padding: 8px;"><t t-esc="coupon.salespersons_name or ''"/></td>
-                                    <td style="border: 1px solid #ddd; padding: 8px;">
-                                        <t t-esc="coupon.state"/>
-                                    </td>
-                                    <td style="border: 1px solid #ddd; padding: 8px;">
-                                        <t t-set="redeem"
-                                           t-value="coupon.env['coupon.redeem'].search([('coupon_issue_id', '=', coupon.id), ('state', '=', 'redeemed')], limit=1)"/>
-                                        <t t-if="redeem">
-                                            <t t-esc="redeem.redeem_date"/>
-                                        </t>
-                                        <t t-if="not redeem">Not Redeemed</t>
-                                    </td>
-                                </tr>
-                            </t>
-                        </tbody>
+                <!-- Summary Section -->
+                <div style="margin: 20px 0; padding: 15px; border: 1px solid #e0e0e0; background-color: #f8f9fa; border-radius: 5px;">
+                    <h4 style="color: #2c3e50; border-bottom: 1px solid #3498db; padding-bottom: 8px; margin: 0 0 15px 0;">Summary</h4>
+                    <table style="width: 100%;">
+                        <tr>
+                            <td style="width: 40%; padding: 8px; font-weight: bold; color: #2c3e50;">
+                                Total Coupons Issued:
+                            </td>
+                            <td style="padding: 8px; color: #2c3e50;">
+                                <t t-esc="total_issued"/>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td style="padding: 8px; font-weight: bold; color: #2c3e50;">
+                                Total Coupons Redeemed:
+                            </td>
+                            <td style="padding: 8px; color: #2c3e50;">
+                                <t t-esc="total_redeemed"/>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td style="padding: 8px; font-weight: bold; color: #2c3e50;">
+                                Total Coupon Value:
+                            </td>
+                            <td style="padding: 8px; color: #2c3e50;">
+                                <t t-esc="total_value"/>
+                            </td>
+                        </tr>
                     </table>
                 </div>
-            </t>
+
+                <!-- Details Table -->
+                <table style="width: 100%; border-collapse: collapse; margin-top: 20px;">
+                    <thead>
+                        <tr style="background-color: #f1f8ff; color: #2c3e50; border-bottom: 2px solid #3498db;">
+                            <th style="border: 1px solid #dee2e6; padding: 10px; text-align: left; font-weight: bold;">Reference</th>
+                            <th style="border: 1px solid #dee2e6; padding: 10px; text-align: left; font-weight: bold;">Coupon Code</th>
+                            <th style="border: 1px solid #dee2e6; padding: 10px; text-align: left; font-weight: bold;">Customer</th>
+                            <th style="border: 1px solid #dee2e6; padding: 10px; text-align: left; font-weight: bold;">Designation</th>
+                            <th style="border: 1px solid #dee2e6; padding: 10px; text-align: center; font-weight: bold;">No. of Persons</th>
+                            <th style="border: 1px solid #dee2e6; padding: 10px; text-align: right; font-weight: bold;">Coupon Value</th>
+                            <th style="border: 1px solid #dee2e6; padding: 10px; text-align: center; font-weight: bold;">Issue Date</th>
+                            <th style="border: 1px solid #dee2e6; padding: 10px; text-align: center; font-weight: bold;">Expiry Date</th>
+                            <th style="border: 1px solid #dee2e6; padding: 10px; text-align: left; font-weight: bold;">Salesperson</th>
+                            <th style="border: 1px solid #dee2e6; padding: 10px; text-align: center; font-weight: bold;">Status</th>
+                            <th style="border: 1px solid #dee2e6; padding: 10px; text-align: center; font-weight: bold;">Redeemed Date</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <t t-foreach="docs" t-as="coupon">
+                            <tr t-att-style="coupon_index % 2 == 0 and 'background-color: #ffffff;' or 'background-color: #f8f9fa;'">
+                                <td style="border: 1px solid #dee2e6; padding: 8px; vertical-align: top;">
+                                    <t t-esc="coupon.name"/>
+                                </td>
+                                <td style="border: 1px solid #dee2e6; padding: 8px; vertical-align: top;">
+                                    <t t-esc="coupon.coupon_code"/>
+                                </td>
+                                <td style="border: 1px solid #dee2e6; padding: 8px; vertical-align: top;">
+                                    <t t-esc="coupon.customer_id.name or ''"/>
+                                </td>
+                                <td style="border: 1px solid #dee2e6; padding: 8px; vertical-align: top;">
+                                    <t t-esc="coupon.designation or '-'"/>
+                                </td>
+                                <td style="border: 1px solid #dee2e6; padding: 8px; text-align: center; vertical-align: top;">
+                                    <t t-set="redeem"
+                                       t-value="coupon.env['coupon.redeem'].search([('coupon_issue_id', '=', coupon.id), ('state', '=', 'redeemed')], limit=1)"/>
+                                    <t t-if="redeem">
+                                        <t t-esc="redeem.no_of_persons"/>
+                                    </t>
+                                    <t t-if="not redeem">-</t>
+                                </td>
+                                <td style="border: 1px solid #dee2e6; padding: 8px; text-align: right; vertical-align: top;">
+                                    <t t-esc="coupon.coupon_value"/>
+                                </td>
+                                <td style="border: 1px solid #dee2e6; padding: 8px; text-align: center; vertical-align: top;">
+                                    <t t-esc="coupon.issue_date"/>
+                                </td>
+                                <td style="border: 1px solid #dee2e6; padding: 8px; text-align: center; vertical-align: top;">
+                                    <t t-esc="coupon.expiry_date or '-'"/>
+                                </td>
+                                <td style="border: 1px solid #dee2e6; padding: 8px; vertical-align: top;">
+                                    <t t-esc="coupon.salespersons_name or '-'"/>
+                                </td>
+                                <td style="border: 1px solid #dee2e6; padding: 8px; text-align: center; vertical-align: top;">
+                                    <span t-att-style="coupon.state == 'approved' and 'color: #27ae60;' or
+                                                      coupon.state == 'rejected' and 'color: #e74c3c;' or
+                                                      coupon.state == 'draft' and 'color: #95a5a6;' or
+                                                      coupon.state in ['level1','level2','level3'] and 'color: #f39c12;'">
+                                        <t t-esc="coupon.state"/>
+                                    </span>
+                                </td>
+                                <td style="border: 1px solid #dee2e6; padding: 8px; text-align: center; vertical-align: top;">
+                                    <t t-set="redeem"
+                                       t-value="coupon.env['coupon.redeem'].search([('coupon_issue_id', '=', coupon.id), ('state', '=', 'redeemed')], limit=1)"/>
+                                    <t t-if="redeem">
+                                        <span style="color: #27ae60;"><t t-esc="redeem.redeem_date"/></span>
+                                    </t>
+                                    <t t-if="not redeem" style="color: #95a5a6;">Not Redeemed</t>
+                                </td>
+                            </tr>
+                        </t>
+                    </tbody>
+                </table>
+
+                <!-- Footer -->
+                <div style="margin-top: 30px; padding-top: 15px; border-top: 1px solid #e0e0e0; text-align: center; color: #7f8c8d; font-size: 12px;">
+                    Generated on <t t-esc="current_date"/> | Page 1 of 1
+                </div>
+            </div>
         </t>
     </template>
 
@@ -113,7 +150,8 @@
         <field name="model">coupon.issue</field>
         <field name="report_type">qweb-pdf</field>
         <field name="report_name">coupon_issue_pragati.coupon_report_template</field>
-        <field name="print_report_name">'Coupon Report'</field>
+        <field name="print_report_name">"'Coupon Report'"</field>
+        <field name="paperformat_id" ref="paperformat_coupon_landscape"/>
         <field name="binding_model_id" ref="model_coupon_issue"/>
         <field name="binding_type">report</field>
     </record>
@@ -132,3 +170,296 @@
               action="wizard_coupon_report"
               sequence="40"/>
 </odoo>
+
+<!--&lt;!&ndash;<?xml version="1.0" encoding="utf-8"?>&ndash;&gt;-->
+<!--&lt;!&ndash;<odoo>&ndash;&gt;-->
+<!--&lt;!&ndash;    &lt;!&ndash; Create a custom paperformat for landscape &ndash;&gt;&ndash;&gt;-->
+<!--&lt;!&ndash;    <record id="paperformat_coupon_landscape" model="report.paperformat">&ndash;&gt;-->
+<!--&lt;!&ndash;        <field name="name">A4 Landscape</field>&ndash;&gt;-->
+<!--&lt;!&ndash;        <field name="default" eval="False"/>&ndash;&gt;-->
+<!--&lt;!&ndash;        <field name="format">A4</field>&ndash;&gt;-->
+<!--&lt;!&ndash;        <field name="orientation">Landscape</field>&ndash;&gt;-->
+<!--&lt;!&ndash;        <field name="margin_top">20</field>&ndash;&gt;-->
+<!--&lt;!&ndash;        <field name="margin_bottom">20</field>&ndash;&gt;-->
+<!--&lt;!&ndash;        <field name="margin_left">7</field>&ndash;&gt;-->
+<!--&lt;!&ndash;        <field name="margin_right">7</field>&ndash;&gt;-->
+<!--&lt;!&ndash;        <field name="page_height">0</field>&ndash;&gt;-->
+<!--&lt;!&ndash;        <field name="page_width">0</field>&ndash;&gt;-->
+<!--&lt;!&ndash;        <field name="header_line">False</field>&ndash;&gt;-->
+<!--&lt;!&ndash;        <field name="header_spacing">35</field>&ndash;&gt;-->
+<!--&lt;!&ndash;        <field name="dpi">90</field>&ndash;&gt;-->
+<!--&lt;!&ndash;    </record>&ndash;&gt;-->
+
+<!--&lt;!&ndash;    &lt;!&ndash; PDF Report Template &ndash;&gt;&ndash;&gt;-->
+<!--&lt;!&ndash;    <template id="coupon_report_template">&ndash;&gt;-->
+<!--&lt;!&ndash;        <t t-call="web.html_container">&ndash;&gt;-->
+<!--&lt;!&ndash;            &lt;!&ndash; Add paperformat for landscape &ndash;&gt;&ndash;&gt;-->
+<!--&lt;!&ndash;            <t t-set="paper_format" t-value="'A4 landscape'"/>&ndash;&gt;-->
+<!--&lt;!&ndash;            <t t-call="web.external_layout">&ndash;&gt;-->
+<!--&lt;!&ndash;                <div class="page">&ndash;&gt;-->
+<!--&lt;!&ndash;                    <h2 style="text-align: center;">Coupon Report</h2>&ndash;&gt;-->
+<!--&lt;!&ndash;                    <h3 style="text-align: center;">As on&ndash;&gt;-->
+<!--&lt;!&ndash;                        <t t-esc="current_date"/>&ndash;&gt;-->
+<!--&lt;!&ndash;                    </h3>&ndash;&gt;-->
+
+<!--&lt;!&ndash;                    &lt;!&ndash; Summary Section &ndash;&gt;&ndash;&gt;-->
+<!--&lt;!&ndash;                    <div style="margin: 20px 0; padding: 10px; border: 1px solid #ddd;">&ndash;&gt;-->
+<!--&lt;!&ndash;                        <h4>Summary</h4>&ndash;&gt;-->
+<!--&lt;!&ndash;                        <table style="width: 100%;">&ndash;&gt;-->
+<!--&lt;!&ndash;                            <tr>&ndash;&gt;-->
+<!--&lt;!&ndash;                                <td>&ndash;&gt;-->
+<!--&lt;!&ndash;                                    <strong>Total Coupons Issued:</strong>&ndash;&gt;-->
+<!--&lt;!&ndash;                                </td>&ndash;&gt;-->
+<!--&lt;!&ndash;                                <td>&ndash;&gt;-->
+<!--&lt;!&ndash;                                    <t t-esc="total_issued"/>&ndash;&gt;-->
+<!--&lt;!&ndash;                                </td>&ndash;&gt;-->
+<!--&lt;!&ndash;                            </tr>&ndash;&gt;-->
+<!--&lt;!&ndash;                            <tr>&ndash;&gt;-->
+<!--&lt;!&ndash;                                <td>&ndash;&gt;-->
+<!--&lt;!&ndash;                                    <strong>Total Coupons Redeemed:</strong>&ndash;&gt;-->
+<!--&lt;!&ndash;                                </td>&ndash;&gt;-->
+<!--&lt;!&ndash;                                <td>&ndash;&gt;-->
+<!--&lt;!&ndash;                                    <t t-esc="total_redeemed"/>&ndash;&gt;-->
+<!--&lt;!&ndash;                                </td>&ndash;&gt;-->
+<!--&lt;!&ndash;                            </tr>&ndash;&gt;-->
+<!--&lt;!&ndash;                            <tr>&ndash;&gt;-->
+<!--&lt;!&ndash;                                <td>&ndash;&gt;-->
+<!--&lt;!&ndash;                                    <strong>Total Coupon Value:</strong>&ndash;&gt;-->
+<!--&lt;!&ndash;                                </td>&ndash;&gt;-->
+<!--&lt;!&ndash;                                <td>&ndash;&gt;-->
+<!--&lt;!&ndash;                                    <t t-esc="total_value"/>&ndash;&gt;-->
+<!--&lt;!&ndash;                                </td>&ndash;&gt;-->
+<!--&lt;!&ndash;                            </tr>&ndash;&gt;-->
+<!--&lt;!&ndash;                        </table>&ndash;&gt;-->
+<!--&lt;!&ndash;                    </div>&ndash;&gt;-->
+
+<!--&lt;!&ndash;                    &lt;!&ndash; Details Table &ndash;&gt;&ndash;&gt;-->
+<!--&lt;!&ndash;                    <table class="table table-bordered" style="width: 100%; border-collapse: collapse;">&ndash;&gt;-->
+<!--&lt;!&ndash;                        <thead>&ndash;&gt;-->
+<!--&lt;!&ndash;                            <tr style="background-color: #f2f2f2;">&ndash;&gt;-->
+<!--&lt;!&ndash;                                <th style="border: 1px solid #ddd; padding: 8px;">Reference</th>&ndash;&gt;-->
+<!--&lt;!&ndash;                                <th style="border: 1px solid #ddd; padding: 8px;">Coupon Code</th>&ndash;&gt;-->
+<!--&lt;!&ndash;                                <th style="border: 1px solid #ddd; padding: 8px;">Customer</th>&ndash;&gt;-->
+<!--&lt;!&ndash;                                <th style="border: 1px solid #ddd; padding: 8px;">Designation</th>&ndash;&gt;-->
+<!--&lt;!&ndash;                                <th style="border: 1px solid #ddd; padding: 8px;">No. of Persons</th>&ndash;&gt;-->
+<!--&lt;!&ndash;                                <th style="border: 1px solid #ddd; padding: 8px;">Coupon Value</th>&ndash;&gt;-->
+<!--&lt;!&ndash;                                <th style="border: 1px solid #ddd; padding: 8px;">Issue Date</th>&ndash;&gt;-->
+<!--&lt;!&ndash;                                <th style="border: 1px solid #ddd; padding: 8px;">Expiry Date</th>&ndash;&gt;-->
+<!--&lt;!&ndash;                                <th style="border: 1px solid #ddd; padding: 8px;">Salesperson</th>&ndash;&gt;-->
+<!--&lt;!&ndash;                                <th style="border: 1px solid #ddd; padding: 8px;">Status</th>&ndash;&gt;-->
+<!--&lt;!&ndash;                                <th style="border: 1px solid #ddd; padding: 8px;">Redeemed Date</th>&ndash;&gt;-->
+<!--&lt;!&ndash;                            </tr>&ndash;&gt;-->
+<!--&lt;!&ndash;                        </thead>&ndash;&gt;-->
+<!--&lt;!&ndash;                        <tbody>&ndash;&gt;-->
+<!--&lt;!&ndash;                            <t t-foreach="docs" t-as="coupon">&ndash;&gt;-->
+<!--&lt;!&ndash;                                <tr>&ndash;&gt;-->
+<!--&lt;!&ndash;                                    <td style="border: 1px solid #ddd; padding: 8px;">&ndash;&gt;-->
+<!--&lt;!&ndash;                                        <t t-esc="coupon.name"/>&ndash;&gt;-->
+<!--&lt;!&ndash;                                    </td>&ndash;&gt;-->
+<!--&lt;!&ndash;                                    <td style="border: 1px solid #ddd; padding: 8px;">&ndash;&gt;-->
+<!--&lt;!&ndash;                                        <t t-esc="coupon.coupon_code"/>&ndash;&gt;-->
+<!--&lt;!&ndash;                                    </td>&ndash;&gt;-->
+<!--&lt;!&ndash;                                    <td style="border: 1px solid #ddd; padding: 8px;">&ndash;&gt;-->
+<!--&lt;!&ndash;                                        <t t-esc="coupon.customer_id.name or ''"/>&ndash;&gt;-->
+<!--&lt;!&ndash;                                    </td>&ndash;&gt;-->
+<!--&lt;!&ndash;                                    <td style="border: 1px solid #ddd; padding: 8px;">&ndash;&gt;-->
+<!--&lt;!&ndash;                                        <t t-esc="coupon.designation or '-'"/>&ndash;&gt;-->
+<!--&lt;!&ndash;                                    </td>&ndash;&gt;-->
+<!--&lt;!&ndash;                                    <td style="border: 1px solid #ddd; padding: 8px;">&ndash;&gt;-->
+<!--&lt;!&ndash;                                        <t t-set="redeem"&ndash;&gt;-->
+<!--&lt;!&ndash;                                           t-value="coupon.env['coupon.redeem'].search([('coupon_issue_id', '=', coupon.id), ('state', '=', 'redeemed')], limit=1)"/>&ndash;&gt;-->
+<!--&lt;!&ndash;                                        <t t-if="redeem">&ndash;&gt;-->
+<!--&lt;!&ndash;                                            <t t-esc="redeem.no_of_persons"/>&ndash;&gt;-->
+<!--&lt;!&ndash;                                        </t>&ndash;&gt;-->
+<!--&lt;!&ndash;                                        <t t-if="not redeem">-</t>&ndash;&gt;-->
+<!--&lt;!&ndash;                                    </td>&ndash;&gt;-->
+<!--&lt;!&ndash;                                    <td style="border: 1px solid #ddd; padding: 8px;">&ndash;&gt;-->
+<!--&lt;!&ndash;                                        <t t-esc="coupon.coupon_value"/>&ndash;&gt;-->
+<!--&lt;!&ndash;                                    </td>&ndash;&gt;-->
+<!--&lt;!&ndash;                                    <td style="border: 1px solid #ddd; padding: 8px;">&ndash;&gt;-->
+<!--&lt;!&ndash;                                        <t t-esc="coupon.issue_date"/>&ndash;&gt;-->
+<!--&lt;!&ndash;                                    </td>&ndash;&gt;-->
+<!--&lt;!&ndash;                                    <td style="border: 1px solid #ddd; padding: 8px;">&ndash;&gt;-->
+<!--&lt;!&ndash;                                        <t t-esc="coupon.expiry_date or ''"/>&ndash;&gt;-->
+<!--&lt;!&ndash;                                    </td>&ndash;&gt;-->
+<!--&lt;!&ndash;                                    <td style="border: 1px solid #ddd; padding: 8px;"><t t-esc="coupon.salespersons_name or ''"/></td>&ndash;&gt;-->
+<!--&lt;!&ndash;                                    <td style="border: 1px solid #ddd; padding: 8px;">&ndash;&gt;-->
+<!--&lt;!&ndash;                                        <t t-esc="coupon.state"/>&ndash;&gt;-->
+<!--&lt;!&ndash;                                    </td>&ndash;&gt;-->
+<!--&lt;!&ndash;                                    <td style="border: 1px solid #ddd; padding: 8px;">&ndash;&gt;-->
+<!--&lt;!&ndash;                                        <t t-set="redeem"&ndash;&gt;-->
+<!--&lt;!&ndash;                                           t-value="coupon.env['coupon.redeem'].search([('coupon_issue_id', '=', coupon.id), ('state', '=', 'redeemed')], limit=1)"/>&ndash;&gt;-->
+<!--&lt;!&ndash;                                        <t t-if="redeem">&ndash;&gt;-->
+<!--&lt;!&ndash;                                            <t t-esc="redeem.redeem_date"/>&ndash;&gt;-->
+<!--&lt;!&ndash;                                        </t>&ndash;&gt;-->
+<!--&lt;!&ndash;                                        <t t-if="not redeem">Not Redeemed</t>&ndash;&gt;-->
+<!--&lt;!&ndash;                                    </td>&ndash;&gt;-->
+<!--&lt;!&ndash;                                </tr>&ndash;&gt;-->
+<!--&lt;!&ndash;                            </t>&ndash;&gt;-->
+<!--&lt;!&ndash;                        </tbody>&ndash;&gt;-->
+<!--&lt;!&ndash;                    </table>&ndash;&gt;-->
+<!--&lt;!&ndash;                </div>&ndash;&gt;-->
+<!--&lt;!&ndash;            </t>&ndash;&gt;-->
+<!--&lt;!&ndash;        </t>&ndash;&gt;-->
+<!--&lt;!&ndash;    </template>&ndash;&gt;-->
+
+<!--&lt;!&ndash;    &lt;!&ndash; PDF Report Action - Single definition with landscape paperformat &ndash;&gt;&ndash;&gt;-->
+<!--&lt;!&ndash;    <record id="action_coupon_report" model="ir.actions.report">&ndash;&gt;-->
+<!--&lt;!&ndash;        <field name="name">Coupon Report (PDF)</field>&ndash;&gt;-->
+<!--&lt;!&ndash;        <field name="model">coupon.issue</field>&ndash;&gt;-->
+<!--&lt;!&ndash;        <field name="report_type">qweb-pdf</field>&ndash;&gt;-->
+<!--&lt;!&ndash;        <field name="report_name">coupon_issue_pragati.coupon_report_template</field>&ndash;&gt;-->
+<!--&lt;!&ndash;        <field name="print_report_name">'Coupon Report'</field>&ndash;&gt;-->
+<!--&lt;!&ndash;        <field name="paperformat_id" ref="paperformat_coupon_landscape"/>&ndash;&gt;-->
+<!--&lt;!&ndash;        <field name="binding_model_id" ref="model_coupon_issue"/>&ndash;&gt;-->
+<!--&lt;!&ndash;        <field name="binding_type">report</field>&ndash;&gt;-->
+<!--&lt;!&ndash;    </record>&ndash;&gt;-->
+
+<!--&lt;!&ndash;    &lt;!&ndash; Wizard for custom reports &ndash;&gt;&ndash;&gt;-->
+<!--&lt;!&ndash;    <record id="wizard_coupon_report" model="ir.actions.act_window">&ndash;&gt;-->
+<!--&lt;!&ndash;        <field name="name">Coupon Reports</field>&ndash;&gt;-->
+<!--&lt;!&ndash;        <field name="res_model">coupon.report.wizard</field>&ndash;&gt;-->
+<!--&lt;!&ndash;        <field name="view_mode">form</field>&ndash;&gt;-->
+<!--&lt;!&ndash;        <field name="target">new</field>&ndash;&gt;-->
+<!--&lt;!&ndash;    </record>&ndash;&gt;-->
+
+<!--&lt;!&ndash;    <menuitem id="menu_coupon_reports"&ndash;&gt;-->
+<!--&lt;!&ndash;              name="Coupon Reports"&ndash;&gt;-->
+<!--&lt;!&ndash;              parent="sale.sale_order_menu"&ndash;&gt;-->
+<!--&lt;!&ndash;              action="wizard_coupon_report"&ndash;&gt;-->
+<!--&lt;!&ndash;              sequence="40"/>&ndash;&gt;-->
+<!--&lt;!&ndash;</odoo>&ndash;&gt;-->
+<!--&lt;!&ndash;<?xml version="1.0" encoding="utf-8"?>&ndash;&gt;-->
+<!--&lt;!&ndash;<odoo>&ndash;&gt;-->
+<!--&lt;!&ndash;    &lt;!&ndash; PDF Report Template &ndash;&gt;&ndash;&gt;-->
+<!--&lt;!&ndash;    <template id="coupon_report_template">&ndash;&gt;-->
+<!--&lt;!&ndash;        <t t-call="web.html_container">&ndash;&gt;-->
+<!--&lt;!&ndash;            <t t-call="web.external_layout">&ndash;&gt;-->
+<!--&lt;!&ndash;                <div class="page">&ndash;&gt;-->
+<!--&lt;!&ndash;                    <h2 style="text-align: center;">Coupon Report</h2>&ndash;&gt;-->
+<!--&lt;!&ndash;                    <h3 style="text-align: center;">As on&ndash;&gt;-->
+<!--&lt;!&ndash;                        <t t-esc="current_date"/>&ndash;&gt;-->
+<!--&lt;!&ndash;                    </h3>&ndash;&gt;-->
+
+<!--&lt;!&ndash;                    &lt;!&ndash; Summary Section &ndash;&gt;&ndash;&gt;-->
+<!--&lt;!&ndash;                    <div style="margin: 20px 0; padding: 10px; border: 1px solid #ddd;">&ndash;&gt;-->
+<!--&lt;!&ndash;                        <h4>Summary</h4>&ndash;&gt;-->
+<!--&lt;!&ndash;                        <table style="width: 100%;">&ndash;&gt;-->
+<!--&lt;!&ndash;                            <tr>&ndash;&gt;-->
+<!--&lt;!&ndash;                                <td>&ndash;&gt;-->
+<!--&lt;!&ndash;                                    <strong>Total Coupons Issued:</strong>&ndash;&gt;-->
+<!--&lt;!&ndash;                                </td>&ndash;&gt;-->
+<!--&lt;!&ndash;                                <td>&ndash;&gt;-->
+<!--&lt;!&ndash;                                    <t t-esc="total_issued"/>&ndash;&gt;-->
+<!--&lt;!&ndash;                                </td>&ndash;&gt;-->
+<!--&lt;!&ndash;                            </tr>&ndash;&gt;-->
+<!--&lt;!&ndash;                            <tr>&ndash;&gt;-->
+<!--&lt;!&ndash;                                <td>&ndash;&gt;-->
+<!--&lt;!&ndash;                                    <strong>Total Coupons Redeemed:</strong>&ndash;&gt;-->
+<!--&lt;!&ndash;                                </td>&ndash;&gt;-->
+<!--&lt;!&ndash;                                <td>&ndash;&gt;-->
+<!--&lt;!&ndash;                                    <t t-esc="total_redeemed"/>&ndash;&gt;-->
+<!--&lt;!&ndash;                                </td>&ndash;&gt;-->
+<!--&lt;!&ndash;                            </tr>&ndash;&gt;-->
+<!--&lt;!&ndash;                            <tr>&ndash;&gt;-->
+<!--&lt;!&ndash;                                <td>&ndash;&gt;-->
+<!--&lt;!&ndash;                                    <strong>Total Coupon Value:</strong>&ndash;&gt;-->
+<!--&lt;!&ndash;                                </td>&ndash;&gt;-->
+<!--&lt;!&ndash;                                <td>&ndash;&gt;-->
+<!--&lt;!&ndash;                                    <t t-esc="total_value"/>&ndash;&gt;-->
+<!--&lt;!&ndash;                                </td>&ndash;&gt;-->
+<!--&lt;!&ndash;                            </tr>&ndash;&gt;-->
+<!--&lt;!&ndash;                        </table>&ndash;&gt;-->
+<!--&lt;!&ndash;                    </div>&ndash;&gt;-->
+
+<!--&lt;!&ndash;                    &lt;!&ndash; Details Table &ndash;&gt;&ndash;&gt;-->
+<!--&lt;!&ndash;                    <table class="table table-bordered" style="width: 100%; border-collapse: collapse;">&ndash;&gt;-->
+<!--&lt;!&ndash;                        <thead>&ndash;&gt;-->
+<!--&lt;!&ndash;                            <tr style="background-color: #f2f2f2;">&ndash;&gt;-->
+<!--&lt;!&ndash;                                <th style="border: 1px solid #ddd; padding: 8px;">Reference</th>&ndash;&gt;-->
+<!--&lt;!&ndash;                                <th style="border: 1px solid #ddd; padding: 8px;">Coupon Code</th>&ndash;&gt;-->
+<!--&lt;!&ndash;                                <th style="border: 1px solid #ddd; padding: 8px;">Customer</th>&ndash;&gt;-->
+<!--&lt;!&ndash;                                <th style="border: 1px solid #ddd; padding: 8px;">No. of Persons</th>&ndash;&gt;-->
+<!--&lt;!&ndash;                                <th style="border: 1px solid #ddd; padding: 8px;">Coupon Value</th>&ndash;&gt;-->
+<!--&lt;!&ndash;                                <th style="border: 1px solid #ddd; padding: 8px;">Issue Date</th>&ndash;&gt;-->
+<!--&lt;!&ndash;                                <th style="border: 1px solid #ddd; padding: 8px;">Expiry Date</th>&ndash;&gt;-->
+<!--&lt;!&ndash;                                <th style="border: 1px solid #ddd; padding: 8px;">Salesperson</th>&ndash;&gt;-->
+<!--&lt;!&ndash;                                <th style="border: 1px solid #ddd; padding: 8px;">Status</th>&ndash;&gt;-->
+<!--&lt;!&ndash;                                <th style="border: 1px solid #ddd; padding: 8px;">Redeemed Date</th>&ndash;&gt;-->
+<!--&lt;!&ndash;                            </tr>&ndash;&gt;-->
+<!--&lt;!&ndash;                        </thead>&ndash;&gt;-->
+<!--&lt;!&ndash;                        <tbody>&ndash;&gt;-->
+<!--&lt;!&ndash;                            <t t-foreach="docs" t-as="coupon">&ndash;&gt;-->
+<!--&lt;!&ndash;                                <tr>&ndash;&gt;-->
+<!--&lt;!&ndash;                                    <td style="border: 1px solid #ddd; padding: 8px;">&ndash;&gt;-->
+<!--&lt;!&ndash;                                        <t t-esc="coupon.name"/>&ndash;&gt;-->
+<!--&lt;!&ndash;                                    </td>&ndash;&gt;-->
+<!--&lt;!&ndash;                                    <td style="border: 1px solid #ddd; padding: 8px;">&ndash;&gt;-->
+<!--&lt;!&ndash;                                        <t t-esc="coupon.coupon_code"/>&ndash;&gt;-->
+<!--&lt;!&ndash;                                    </td>&ndash;&gt;-->
+<!--&lt;!&ndash;                                    <td style="border: 1px solid #ddd; padding: 8px;">&ndash;&gt;-->
+<!--&lt;!&ndash;                                        <t t-esc="coupon.customer_id.name or ''"/>&ndash;&gt;-->
+<!--&lt;!&ndash;                                    </td>&ndash;&gt;-->
+<!--&lt;!&ndash;                                    <td style="border: 1px solid #ddd; padding: 8px;">&ndash;&gt;-->
+<!--&lt;!&ndash;                                        <t t-set="redeem"&ndash;&gt;-->
+<!--&lt;!&ndash;                                           t-value="coupon.env['coupon.redeem'].search([('coupon_issue_id', '=', coupon.id), ('state', '=', 'redeemed')], limit=1)"/>&ndash;&gt;-->
+<!--&lt;!&ndash;                                        <t t-if="redeem">&ndash;&gt;-->
+<!--&lt;!&ndash;                                            <t t-esc="redeem.no_of_persons"/>&ndash;&gt;-->
+<!--&lt;!&ndash;                                        </t>&ndash;&gt;-->
+<!--&lt;!&ndash;                                        <t t-if="not redeem">-</t>&ndash;&gt;-->
+<!--&lt;!&ndash;                                    </td>&ndash;&gt;-->
+<!--&lt;!&ndash;                                    <td style="border: 1px solid #ddd; padding: 8px;">&ndash;&gt;-->
+<!--&lt;!&ndash;                                        <t t-esc="coupon.coupon_value"/>&ndash;&gt;-->
+<!--&lt;!&ndash;                                    </td>&ndash;&gt;-->
+<!--&lt;!&ndash;                                    <td style="border: 1px solid #ddd; padding: 8px;">&ndash;&gt;-->
+<!--&lt;!&ndash;                                        <t t-esc="coupon.issue_date"/>&ndash;&gt;-->
+<!--&lt;!&ndash;                                    </td>&ndash;&gt;-->
+<!--&lt;!&ndash;                                    <td style="border: 1px solid #ddd; padding: 8px;">&ndash;&gt;-->
+<!--&lt;!&ndash;                                        <t t-esc="coupon.expiry_date or ''"/>&ndash;&gt;-->
+<!--&lt;!&ndash;                                    </td>&ndash;&gt;-->
+<!--&lt;!&ndash;                                    <td style="border: 1px solid #ddd; padding: 8px;"><t t-esc="coupon.salespersons_name or ''"/></td>&ndash;&gt;-->
+<!--&lt;!&ndash;                                    <td style="border: 1px solid #ddd; padding: 8px;">&ndash;&gt;-->
+<!--&lt;!&ndash;                                        <t t-esc="coupon.state"/>&ndash;&gt;-->
+<!--&lt;!&ndash;                                    </td>&ndash;&gt;-->
+<!--&lt;!&ndash;                                    <td style="border: 1px solid #ddd; padding: 8px;">&ndash;&gt;-->
+<!--&lt;!&ndash;                                        <t t-set="redeem"&ndash;&gt;-->
+<!--&lt;!&ndash;                                           t-value="coupon.env['coupon.redeem'].search([('coupon_issue_id', '=', coupon.id), ('state', '=', 'redeemed')], limit=1)"/>&ndash;&gt;-->
+<!--&lt;!&ndash;                                        <t t-if="redeem">&ndash;&gt;-->
+<!--&lt;!&ndash;                                            <t t-esc="redeem.redeem_date"/>&ndash;&gt;-->
+<!--&lt;!&ndash;                                        </t>&ndash;&gt;-->
+<!--&lt;!&ndash;                                        <t t-if="not redeem">Not Redeemed</t>&ndash;&gt;-->
+<!--&lt;!&ndash;                                    </td>&ndash;&gt;-->
+<!--&lt;!&ndash;                                </tr>&ndash;&gt;-->
+<!--&lt;!&ndash;                            </t>&ndash;&gt;-->
+<!--&lt;!&ndash;                        </tbody>&ndash;&gt;-->
+<!--&lt;!&ndash;                    </table>&ndash;&gt;-->
+<!--&lt;!&ndash;                </div>&ndash;&gt;-->
+<!--&lt;!&ndash;            </t>&ndash;&gt;-->
+<!--&lt;!&ndash;        </t>&ndash;&gt;-->
+<!--&lt;!&ndash;    </template>&ndash;&gt;-->
+
+<!--&lt;!&ndash;    &lt;!&ndash; PDF Report Action &ndash;&gt;&ndash;&gt;-->
+<!--&lt;!&ndash;    <record id="action_coupon_report" model="ir.actions.report">&ndash;&gt;-->
+<!--&lt;!&ndash;        <field name="name">Coupon Report (PDF)</field>&ndash;&gt;-->
+<!--&lt;!&ndash;        <field name="model">coupon.issue</field>&ndash;&gt;-->
+<!--&lt;!&ndash;        <field name="report_type">qweb-pdf</field>&ndash;&gt;-->
+<!--&lt;!&ndash;        <field name="report_name">coupon_issue_pragati.coupon_report_template</field>&ndash;&gt;-->
+<!--&lt;!&ndash;        <field name="print_report_name">'Coupon Report'</field>&ndash;&gt;-->
+<!--&lt;!&ndash;        <field name="binding_model_id" ref="model_coupon_issue"/>&ndash;&gt;-->
+<!--&lt;!&ndash;        <field name="binding_type">report</field>&ndash;&gt;-->
+<!--&lt;!&ndash;    </record>&ndash;&gt;-->
+
+<!--&lt;!&ndash;    &lt;!&ndash; Wizard for custom reports &ndash;&gt;&ndash;&gt;-->
+<!--&lt;!&ndash;    <record id="wizard_coupon_report" model="ir.actions.act_window">&ndash;&gt;-->
+<!--&lt;!&ndash;        <field name="name">Coupon Reports</field>&ndash;&gt;-->
+<!--&lt;!&ndash;        <field name="res_model">coupon.report.wizard</field>&ndash;&gt;-->
+<!--&lt;!&ndash;        <field name="view_mode">form</field>&ndash;&gt;-->
+<!--&lt;!&ndash;        <field name="target">new</field>&ndash;&gt;-->
+<!--&lt;!&ndash;    </record>&ndash;&gt;-->
+
+<!--&lt;!&ndash;    <menuitem id="menu_coupon_reports"&ndash;&gt;-->
+<!--&lt;!&ndash;              name="Coupon Reports"&ndash;&gt;-->
+<!--&lt;!&ndash;              parent="sale.sale_order_menu"&ndash;&gt;-->
+<!--&lt;!&ndash;              action="wizard_coupon_report"&ndash;&gt;-->
+<!--&lt;!&ndash;              sequence="40"/>&ndash;&gt;-->
+<!--&lt;!&ndash;</odoo>&ndash;&gt;-->
