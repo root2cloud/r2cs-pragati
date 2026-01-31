@@ -12,6 +12,7 @@
                 <field name="coupon_value"/>
                 <field name="issue_date"/>
                 <field name="expiry_date"/>
+                <field name="designation"/>
                 <field name="state"/>
             </tree>
         </field>
@@ -84,6 +85,7 @@
                             <field name="coupon_value"/>
                             <field name="issue_date"/>
                             <field name="expiry_date"/>
+                            <field name="designation"/>
                         </group>
                     </group>
 
@@ -92,42 +94,36 @@
                             <field name="company_id" invisible="1"/>
                             <field name="company_name"/>
                             <field name="department_id"/>
-<!--                            <field name="salesperson_id" invisible="1"/>-->
+                            <field name="salesperson_id" invisible="1"/>
                             <field name="salespersons_name"/>
                         </group>
 
                         <group>
                             <!-- Make approvers editable in draft state -->
-                            <field name="approval_1_id" attrs="{'readonly': [('state', '!=', 'draft')]}"/>
-                            <field name="approval_2_id" attrs="{'readonly': [('state', '!=', 'draft')]}"/>
-                            <field name="approval_3_id" attrs="{'readonly': [('state', '!=', 'draft')]}"/>
+                            <field name="approval_1_id" readonly="1"/>
+                            <field name="approval_2_id" readonly="1"/>
+                            <field name="approval_3_id" readonly="1"/>
                         </group>
                     </group>
 
-                    <!-- Approval Information -->
-                    <!--                    <group string="Approval Information" attrs="{'invisible': [('state', '=', 'draft')]}">-->
-                    <!--                        <group>-->
-                    <!--                            <field name="approval_1_date" readonly="1"-->
-                    <!--                                   attrs="{'invisible': [('approval_1_date', '=', False)]}"/>-->
-                    <!--                            <field name="approval_2_date" readonly="1"-->
-                    <!--                                   attrs="{'invisible': [('approval_2_date', '=', False)]}"/>-->
-                    <!--                            <field name="approval_3_date" readonly="1"-->
-                    <!--                                   attrs="{'invisible': [('approval_3_date', '=', False)]}"/>-->
-                    <!--                        </group>-->
-                    <!--                    </group>-->
+                    <notebook>
+                        <page string="Attachments">
 
-                    <!-- Rejection Information -->
-                    <group string="Rejection Information" attrs="{'invisible': [('state', '!=', 'rejected')]}">
-                        <field name="rejection_date" readonly="1"/>
-                    </group>
+                                <field name="attachment_ids" >
+                                    <tree editable="bottom">
+                                        <field name="attachment_file"
+                                               filename="attachment_filename"/>
+                                        <button name="action_view_attachment"
+                                                type="object"
+                                                string="View"
+                                                class="btn-secondary"/>
+                                    </tree>
+                                </field>
 
-                    <group string="Attachment">
-                        <button name="action_view_attachment" string="View Attachment" type="object"
-                                class="btn-info"
-                                attrs="{'invisible': [('has_attachment', '=', False)]}"/>
-                        <field name="attachment" filename="attachment_name"/>
-                    </group>
+                        </page>
+                    </notebook>
                 </sheet>
+
 
                 <div class="oe_chatter">
                     <field name="message_follower_ids" widget="mail_followers"/>

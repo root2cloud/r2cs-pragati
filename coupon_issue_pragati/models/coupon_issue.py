@@ -16,14 +16,14 @@ class CouponIssue(models.Model):
         default='New'
     )
 
-    # salesperson_id = fields.Many2one(
-    #     'res.users',
-    #     string="Salesperson",
-    #     required=True
-    # )
+    salesperson_id = fields.Many2one(
+        'res.users',
+        string="Salesperson",
+
+    )
 
     salespersons_name = fields.Char(
-        string="Sales person",
+        string="Salesperson",
         required=True
     )
 
@@ -37,6 +37,7 @@ class CouponIssue(models.Model):
     coupon_value = fields.Float(string="Coupon Value", required=True)
     issue_date = fields.Date(string="Issue Date", default=fields.Date.context_today)
     expiry_date = fields.Date(string="Expiry Date")
+    designation = fields.Char(string="Designation")
 
     # Company & Dept
     company_id = fields.Many2one(
@@ -365,4 +366,37 @@ class CouponIssue(models.Model):
             'url': '/coupon/export/excel/%s' % self.id,
             'target': 'self',
         }
+
+    attachment_ids = fields.One2many(
+        'coupon.issue.attachment',
+        'coupon_issue_id',
+        string='Attachments'
+    )
+
+
+class CouponIssueAttachment(models.Model):
+    _name = 'coupon.issue.attachment'
+    _description = 'Coupon Issue Attachment'
+
+    coupon_issue_id = fields.Many2one(
+        'coupon.issue',
+        string='Coupon Issue',
+        ondelete='cascade'
+    )
+
+    attachment_file = fields.Binary(string='Attachment', required=True)
+    attachment_filename = fields.Char(string='File Name')
+
+    def action_view_attachment(self):
+        self.ensure_one()
+        return {
+            'type': 'ir.actions.act_url',
+            'url': '/web/content?model=coupon.issue.attachment'
+                   '&id=%s&field=attachment_file'
+                   '&filename_field=attachment_filename'
+                   '&download=false' % self.id,
+            'target': 'new',
+        }
+
+
 

@@ -54,6 +54,7 @@
                         <group>
                             <field name="coupon_code" readonly="1"/>
                             <field name="coupon_value" readonly="1"/>
+                            <field name="designation" />
                             <field name="remarks"
                                    string="Remarks"/>
                             <field name="redeemed_coupon_ids" invisible="1"/>
