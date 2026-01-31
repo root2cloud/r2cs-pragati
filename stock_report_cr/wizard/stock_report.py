@@ -76,7 +76,8 @@ class ReportWizard(models.TransientModel):
             'in': sum(rec.get('in', 0) for rec in record_list),
             'out': sum(rec.get('out', 0) for rec in record_list),
             'balance': sum(rec.get('balance', 0) for rec in record_list),
-            'value': sum(rec.get('value', 0) for rec in record_list),
+            'sale_value': sum(rec.get('sale_value', 0) for rec in record_list),
+            'cost_value': sum(rec.get('cost_value', 0) for rec in record_list),
         }
         return totals
 
@@ -157,24 +158,37 @@ class ReportWizard(models.TransientModel):
             in_com = incoming_dict.get(res.product_id.id, 0)
             out_go = outgoing_dict.get(res.product_id.id, 0)
             balance = initial_stock + in_com - out_go
-            unit_price = res.product_id.lst_price  # unit price from product
-            value = unit_price * balance  # calculated value
+
+            # --- CHANGE 1: Rounding Logic ---
+            product = res.product_id.with_company(self.company_id)
+
+            # Round prices and values to 2 decimal places
+            sale_price = round(float(product.list_price or 0.0), 2)
+            cost_price = round(float(product.standard_price or 0.0), 2)
+
+            sale_value = round(sale_price * balance, 2)
+            cost_value = round(cost_price * balance, 2)
+            # --------------------------------
 
             vals = {
                 'product': res.product_id.name,
-                'default_code': res.product_id.default_code,
+                # --- CHANGE 2: Fix "False" text ---
+                'default_code': res.product_id.default_code or '',
                 'uom': res.product_uom_id.name,
-                'reference': res.reference,
+                'reference': res.reference or '',
+                # ----------------------------------
                 'initial_stock': initial_stock,
                 'hsn': res.product_id.product_tmpl_id.l10n_in_hsn_code or '',
                 'in': in_com,
                 'out': out_go,
                 'balance': balance,
-                'value': value,  # new field added
+                'sale_price': sale_price,
+                'sale_value': sale_value,
+                'cost_price': cost_price,
+                'cost_value': cost_value,
                 'rec_set': res,
             }
             record_list.append(vals)
-
         # Calculate totals
         grand_totals = self._calculate_totals(record_list)
 
@@ -202,7 +216,8 @@ class ReportWizard(models.TransientModel):
             'total_in': grand_totals['in'],
             'total_out': grand_totals['out'],
             'total_balance': grand_totals['balance'],
-            'total_value': grand_totals['value'],  # total value
+            'total_sale_value': grand_totals['sale_value'],
+            'total_cost_value': grand_totals['cost_value'],
         }
 
         if self.group_by_category:
@@ -292,24 +307,37 @@ class ReportWizard(models.TransientModel):
             in_com = incoming_dict.get(res.product_id.id, 0)
             out_go = outgoing_dict.get(res.product_id.id, 0)
             balance = initial_stock + in_com - out_go
-            unit_price = res.product_id.lst_price  # unit price from product
-            value = unit_price * balance  # calculated value
+
+            # --- CHANGE 1: Rounding Logic ---
+            product = res.product_id.with_company(self.company_id)
+
+            # Round prices and values to 2 decimal places
+            sale_price = round(float(product.list_price or 0.0), 2)
+            cost_price = round(float(product.standard_price or 0.0), 2)
+
+            sale_value = round(sale_price * balance, 2)
+            cost_value = round(cost_price * balance, 2)
+            # --------------------------------
 
             vals = {
                 'product': res.product_id.name,
-                'default_code': res.product_id.default_code,
+                # --- CHANGE 2: Fix "False" text ---
+                'default_code': res.product_id.default_code or '',
                 'uom': res.product_uom_id.name,
-                'reference': res.reference,
+                'reference': res.reference or '',
+                # ----------------------------------
                 'initial_stock': initial_stock,
                 'hsn': res.product_id.product_tmpl_id.l10n_in_hsn_code or '',
                 'in': in_com,
                 'out': out_go,
                 'balance': balance,
-                'value': value,  # new field added
+                'sale_price': sale_price,
+                'sale_value': sale_value,
+                'cost_price': cost_price,
+                'cost_value': cost_value,
                 'rec_set': res,
             }
             record_list.append(vals)
-
         # Calculate totals for Excel
         grand_totals = self._calculate_totals(record_list)
 
@@ -353,7 +381,10 @@ class ReportWizard(models.TransientModel):
         sheet.write(row_head, 5, 'IN', head_style)
         sheet.write(row_head, 6, 'OUT', head_style)
         sheet.write(row_head, 7, 'Balance', head_style)
-        sheet.write(row_head, 8, 'Value', head_style)
+        sheet.write(row_head, 8, 'Sale Price', head_style)  # New
+        sheet.write(row_head, 9, 'Sale Value', head_style)  # New
+        sheet.write(row_head, 10, 'Cost Price', head_style)  # New
+        sheet.write(row_head, 11, 'Cost Value', head_style)  # Updated
         sheet.freeze_panes(10, 0)
 
         categ_style = workbook.add_format({'bg_color': '#dedede', 'align': 'center'})
@@ -371,6 +402,10 @@ class ReportWizard(models.TransientModel):
                 sheet.write(row, 6, '', categ_style)
                 sheet.write(row, 7, '', categ_style)
                 sheet.write(row, 8, '', categ_style)
+                sheet.write(row, 9, '', categ_style)
+                sheet.write(row, 10, '', categ_style)
+                sheet.write(row, 11, '', categ_style)
+
                 for line in category_dict[main]:
                     row += 1
                     sheet.write(row, 0, line.get('default_code'), data_font_style)
@@ -381,7 +416,10 @@ class ReportWizard(models.TransientModel):
                     sheet.write(row, 5, line.get('in'), data_font_style)
                     sheet.write(row, 6, line.get('out'), data_font_style)
                     sheet.write(row, 7, line.get('balance'), data_font_style)
-                    sheet.write(row, 8, line.get('value'), data_font_style)  # new column value
+                    sheet.write(row, 8, line.get('sale_price'), data_font_style)  # New
+                    sheet.write(row, 9, line.get('sale_value'), data_font_style)  # New
+                    sheet.write(row, 10, line.get('cost_price'), data_font_style)  # New
+                    sheet.write(row, 11, line.get('cost_value'), data_font_style)  # Updated
 
                 # Add category subtotal
                 row += 1
@@ -393,7 +431,10 @@ class ReportWizard(models.TransientModel):
                 sheet.write(row, 5, category_totals[main]['in'], subtotal_style)
                 sheet.write(row, 6, category_totals[main]['out'], subtotal_style)
                 sheet.write(row, 7, category_totals[main]['balance'], subtotal_style)
-                sheet.write(row, 8, category_totals[main]['value'], subtotal_style)  # subtotal value
+                sheet.write(row, 8, '', subtotal_style)  # Spacer
+                sheet.write(row, 9, category_totals[main]['sale_value'], subtotal_style)  # Sale Value
+                sheet.write(row, 10, '', subtotal_style)  # Spacer
+                sheet.write(row, 11, category_totals[main]['cost_value'], subtotal_style)  # Cost Value
                 row += 2
         else:
             for line in record_list:
@@ -406,7 +447,10 @@ class ReportWizard(models.TransientModel):
                 sheet.write(row, 5, line.get('in'), data_font_style)
                 sheet.write(row, 6, line.get('out'), data_font_style)
                 sheet.write(row, 7, line.get('balance'), data_font_style)
-                sheet.write(row, 8, line.get('value'), data_font_style)  # new column value
+                sheet.write(row, 8, line.get('sale_price'), data_font_style)  # New
+                sheet.write(row, 9, line.get('sale_value'), data_font_style)  # New
+                sheet.write(row, 10, line.get('cost_price'), data_font_style)  # New
+                sheet.write(row, 11, line.get('cost_value'), data_font_style)  # Updated
 
         # Add grand total row
         row += 2
@@ -418,7 +462,10 @@ class ReportWizard(models.TransientModel):
         sheet.write(row, 5, grand_totals['in'], total_style)
         sheet.write(row, 6, grand_totals['out'], total_style)
         sheet.write(row, 7, grand_totals['balance'], total_style)
-        sheet.write(row, 8, grand_totals['value'], total_style)  # grand total value
+        sheet.write(row, 8, '', total_style)  # Spacer for Sale Price
+        sheet.write(row, 9, grand_totals['sale_value'], total_style)  # Total Sale Value
+        sheet.write(row, 10, '', total_style)  # Spacer for Cost Price
+        sheet.write(row, 11, grand_totals['cost_value'], total_style)  # Total Cost Value
 
         workbook.close()
         xlsx_data = output.getvalue()
