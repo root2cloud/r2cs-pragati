@@ -52,7 +52,7 @@ class CouponRedeem(models.Model):
     company_id = fields.Many2one('res.company', string="Company", readonly=True)
     company_name = fields.Char(string="Company", readonly=True)
     department_id = fields.Many2one('hr.department', string="Department", readonly=True)
-    designation = fields.Char(string="Designation")
+    designation = fields.Char(string="Coupon Reedem Designation")
 
     # Redeem Details
     redeem_date = fields.Date(

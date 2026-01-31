@@ -37,7 +37,7 @@ class CouponIssue(models.Model):
     coupon_value = fields.Float(string="Coupon Value", required=True)
     issue_date = fields.Date(string="Issue Date", default=fields.Date.context_today)
     expiry_date = fields.Date(string="Expiry Date")
-    designation = fields.Char(string="Designation")
+    designation = fields.Char(string="Coupon Issue Designation")
 
     # Company & Dept
     company_id = fields.Many2one(
