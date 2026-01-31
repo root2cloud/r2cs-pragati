@@ -85,7 +85,7 @@
                             <field name="coupon_value"/>
                             <field name="issue_date"/>
                             <field name="expiry_date"/>
-                            <field name="designation"/>
+
                         </group>
                     </group>
 
@@ -93,6 +93,7 @@
                         <group>
                             <field name="company_id" invisible="1"/>
                             <field name="company_name"/>
+                            <field name="designation"/>
                             <field name="department_id"/>
                             <field name="salesperson_id" invisible="1"/>
                             <field name="salespersons_name"/>
