@@ -25,16 +25,21 @@
                 <div style="text-align: center; margin-bottom: 20px; border-bottom: 2px solid #e0e0e0; padding-bottom: 15px;">
                     <h2 style="margin: 5px 0; color: #2c3e50; font-size: 22px;">Coupon Report</h2>
                     <h3 style="margin: 8px 0; color: #34495e; font-size: 16px;">
-                        <t t-if="company and company.name"><t t-esc="company.name"/></t>
+                        <t t-if="company and company.name">
+                            <t t-esc="company.name"/>
+                        </t>
                     </h3>
                     <h4 style="margin: 5px 0; color: #7f8c8d; font-size: 14px;">
-                        As on <t t-esc="current_date"/>
+                        As on
+                        <t t-esc="current_date"/>
                     </h4>
                 </div>
 
                 <!-- Summary Section -->
                 <div style="margin: 20px 0; padding: 15px; border: 1px solid #e0e0e0; background-color: #f8f9fa; border-radius: 5px;">
-                    <h4 style="color: #2c3e50; border-bottom: 1px solid #3498db; padding-bottom: 8px; margin: 0 0 15px 0;">Summary</h4>
+                    <h4 style="color: #2c3e50; border-bottom: 1px solid #3498db; padding-bottom: 8px; margin: 0 0 15px 0;">
+                        Summary
+                    </h4>
                     <table style="width: 100%;">
                         <tr>
                             <td style="width: 40%; padding: 8px; font-weight: bold; color: #2c3e50;">
@@ -67,20 +72,51 @@
                 <table style="width: 100%; border-collapse: collapse; margin-top: 20px;">
                     <thead>
                         <tr style="background-color: #f1f8ff; color: #2c3e50; border-bottom: 2px solid #3498db;">
-                            <th style="border: 1px solid #dee2e6; padding: 10px; text-align: left; font-weight: bold;">Reference</th>
-                            <th style="border: 1px solid #dee2e6; padding: 10px; text-align: left; font-weight: bold;">Coupon Code</th>
-                            <th style="border: 1px solid #dee2e6; padding: 10px; text-align: left; font-weight: bold;">Customer</th>
-                            <th style="border: 1px solid #dee2e6; padding: 10px; text-align: left; font-weight: bold;">Company</th>
-                            <th style="border: 1px solid #dee2e6; padding: 10px; text-align: left; font-weight: bold;">Coupon Issue Designation</th>
-                            <th style="border: 1px solid #dee2e6; padding: 10px; text-align: center; font-weight: bold;">No. of Persons</th>
-                            <th style="border: 1px solid #dee2e6; padding: 10px; text-align: right; font-weight: bold;">Coupon Value</th>
-                            <th style="border: 1px solid #dee2e6; padding: 10px; text-align: center; font-weight: bold;">Issue Date</th>
-                            <th style="border: 1px solid #dee2e6; padding: 10px; text-align: center; font-weight: bold;">Expiry Date</th>
-                            <th style="border: 1px solid #dee2e6; padding: 10px; text-align: left; font-weight: bold;">Salesperson</th>
-                            <th style="border: 1px solid #dee2e6; padding: 10px; text-align: center; font-weight: bold;">Status</th>
-                            <th style="border: 1px solid #dee2e6; padding: 10px; text-align: center; font-weight: bold;">Redeemed Date</th>
-                            <th style="border: 1px solid #dee2e6; padding: 10px; text-align: left; font-weight: bold;">Redeemed By</th>
-                            <th style="border: 1px solid #dee2e6; padding: 10px; text-align: left; font-weight: bold;">Redeem Designation</th>
+                            <th style="border: 1px solid #dee2e6; padding: 10px; text-align: left; font-weight: bold;">
+                                Reference
+                            </th>
+                            <th style="border: 1px solid #dee2e6; padding: 10px; text-align: left; font-weight: bold;">
+                                Coupon Code
+                            </th>
+                            <th style="border: 1px solid #dee2e6; padding: 10px; text-align: left; font-weight: bold;">
+                                Customer
+                            </th>
+                            <th style="border: 1px solid #dee2e6; padding: 10px; text-align: left; font-weight: bold;">
+                                Company
+                            </th>
+                            <th style="border: 1px solid #dee2e6; padding: 10px; text-align: left; font-weight: bold;">
+                                Coupon Issue Designation
+                            </th>
+                            <th style="border: 1px solid #dee2e6; padding: 10px; text-align: center; font-weight: bold;">
+                                No. of Persons
+                            </th>
+                            <th style="border: 1px solid #dee2e6; padding: 10px; text-align: right; font-weight: bold;">
+                                Coupon Value
+                            </th>
+                            <th style="border: 1px solid #dee2e6; padding: 10px; text-align: center; font-weight: bold;">
+                                Issue Date
+                            </th>
+                            <th style="border: 1px solid #dee2e6; padding: 10px; text-align: center; font-weight: bold;">
+                                Expiry Date
+                            </th>
+                            <th style="border: 1px solid #dee2e6; padding: 10px; text-align: left; font-weight: bold;">
+                                Salesperson
+                            </th>
+                            <th style="border: 1px solid #dee2e6; padding: 10px; text-align: center; font-weight: bold;">
+                                Status
+                            </th>
+                            <th style="border: 1px solid #dee2e6; padding: 10px; text-align: center; font-weight: bold;">
+                                Redeemed Date
+                            </th>
+                            <th style="border: 1px solid #dee2e6; padding: 10px; text-align: left; font-weight: bold;">
+                                Redeemed By
+                            </th>
+                            <th style="border: 1px solid #dee2e6; padding: 10px; text-align: left; font-weight: bold;">
+                                Redeem Designation
+                            </th>
+                            <th style="border: 1px solid #dee2e6; padding: 10px; text-align: left; font-weight: bold;">
+                                Coupon Reedemeed Mobile Number
+                            </th>
                         </tr>
                     </thead>
                     <tbody>
@@ -133,26 +169,43 @@
                                     <t t-set="redeem"
                                        t-value="coupon.env['coupon.redeem'].search([('coupon_issue_id', '=', coupon.id), ('state', '=', 'redeemed')], limit=1)"/>
                                     <t t-if="redeem">
-                                        <span style="color: #27ae60;"><t t-esc="redeem.redeem_date"/></span>
+                                        <span style="color: #27ae60;">
+                                            <t t-esc="redeem.redeem_date"/>
+                                        </span>
                                     </t>
                                     <t t-if="not redeem" style="color: #95a5a6;">Not Redeemed</t>
                                 </td>
-                                <td style="border: 1px solid #dee2e6; padding: 8px; vertical-align: top;">
+                                <!-- Redeemed By : coupon_redeem -->
+                                <!-- Redeemed By -->
+                                <td style="border: 1px solid #dee2e6; padding: 8px;">
                                     <t t-set="redeem"
-                                       t-value="coupon.env['coupon.redeem'].search([('coupon_issue_id', '=', coupon.id), ('state', '=', 'redeemed')], limit=1)"/>
-                                    <t t-if="redeem">
-                                        <t t-esc="redeem.redeem_by.name or '-'"/>
-                                    </t>
+                                       t-value="coupon.env['coupon.redeem'].search([
+           ('coupon_issue_id', '=', coupon.id),
+           ('state', '=', 'redeemed')
+       ], limit=1)"/>
+                                    <t t-esc="redeem and redeem.coupon_redeem or '-'"/>
+                                </td>
+
+                                <!-- Redeem Designation -->
+                                <td style="border: 1px solid #dee2e6; padding: 8px;">
+                                    <t t-esc="redeem and redeem.designation or '-'"/>
                                     <t t-if="not redeem">-</t>
                                 </td>
+
+                                <!-- Mobile Number -->
+                                <!-- Redeem Mobile Number -->
                                 <td style="border: 1px solid #dee2e6; padding: 8px; vertical-align: top;">
-                                    <t t-set="redeem"
-                                       t-value="coupon.env['coupon.redeem'].search([('coupon_issue_id', '=', coupon.id), ('state', '=', 'redeemed')], limit=1)"/>
-                                    <t t-if="redeem">
-                                        <t t-esc="redeem.designation or '-'"/>
-                                    </t>
-                                    <t t-if="not redeem">-</t>
+                                    <t t-esc="redeem and redeem.mobile_number or '-'"/>
                                 </td>
+
+<!--                                <td style="border: 1px solid #dee2e6; padding: 8px; vertical-align: top;">-->
+<!--                                    <t t-set="redeem"-->
+<!--                                       t-value="coupon.env['coupon.redeem'].search([('coupon_issue_id', '=', coupon.id), ('state', '=', 'redeemed')], limit=1)"/>-->
+<!--                                    &lt;!&ndash;                                    <t t-if="redeem">&ndash;&gt;-->
+<!--                                    &lt;!&ndash;                                        <t t-esc="redeem.designation or '-'"/>&ndash;&gt;-->
+<!--                                    &lt;!&ndash;                                    </t>&ndash;&gt;-->
+<!--                                    <t t-if="not redeem">-</t>-->
+<!--                                </td>-->
                             </tr>
                         </t>
                     </tbody>
@@ -160,7 +213,9 @@
 
                 <!-- Footer -->
                 <div style="margin-top: 30px; padding-top: 15px; border-top: 1px solid #e0e0e0; text-align: center; color: #7f8c8d; font-size: 12px;">
-                    Generated on <t t-esc="current_date"/> | Page 1 of 1
+                    Generated on
+                    <t t-esc="current_date"/>
+                    | Page 1 of 1
                 </div>
             </div>
         </t>
