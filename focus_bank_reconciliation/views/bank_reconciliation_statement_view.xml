@@ -95,8 +95,7 @@
         <field name="target">current</field>
     </record>
 
-    <menuitem id="menu_bank_reconciliation_root" name="Bank Reconciliation" parent="account.menu_finance_entries"
-              sequence="55"/>
+
     <menuitem id="menu_bank_reconciliation_statement_view" name="Bank Reconciliation Statement"
               action="action_bank_reconciliation_statement_view" parent="menu_bank_reconciliation_root" sequence="2"/>
 
