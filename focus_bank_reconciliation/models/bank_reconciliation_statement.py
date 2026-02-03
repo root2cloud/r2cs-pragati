@@ -135,7 +135,7 @@ class BankReconciliationStatementView(models.TransientModel):
         if not target_account:
             raise UserError(_("Please configure a Default Account on the selected Journal."))
 
-        # 1. Calculate Start Balance
+        # 1. Calculate Book Balance (As of End Date)
         closing_lines = self.env['account.move.line'].search([
             ('account_id', '=', target_account.id),
             ('date', '<=', self.date_to),
@@ -144,7 +144,7 @@ class BankReconciliationStatementView(models.TransientModel):
         start_balance = sum(closing_lines.mapped('balance'))
         self.book_balance = start_balance
 
-        # 2. Find Pending Items
+        # 2. Find Pending Items (Uncleared)
         domain = [
             ('account_id', '=', target_account.id),
             ('date', '<=', self.date_to),
@@ -153,7 +153,6 @@ class BankReconciliationStatementView(models.TransientModel):
             ('is_brs_cleared', '=', False),
             ('brs_clearance_date', '>', self.date_to)
         ]
-        # This supports "As on Date" (where date_from is empty)
         if self.date_from:
             domain.append(('date', '>=', self.date_from))
 
@@ -161,12 +160,12 @@ class BankReconciliationStatementView(models.TransientModel):
 
         # 3. BUILD TABLE
         lines_to_create = []
+
+        # Start with Book Balance
         running_bal = start_balance
 
-        # --- TOTAL VARIABLES ---
         total_debit = 0.0
         total_credit = 0.0
-        total_balance_sum = 0.0
         row_num = 1
 
         # A. HEADER ROW
@@ -186,11 +185,15 @@ class BankReconciliationStatementView(models.TransientModel):
         # B. TRANSACTION ROWS
         seq = 1
         for move in uncleared_items:
-            running_bal = running_bal + move.debit - move.credit
+            # --- FIX 1: REVERSED LOGIC (Book -> Bank) ---
+            # Uncleared Debit (Receipt): Deduct because it's in Book but not Bank.
+            # Uncleared Credit (Payment): Add because it's deducted from Book but still in Bank.
+            running_bal = running_bal - move.debit + move.credit
 
             total_debit += move.debit
             total_credit += move.credit
-            total_balance_sum += running_bal
+
+            # Note: We DO NOT sum running_bal into a 'total_balance_sum' anymore.
 
             narration_text = move.narration or move.ref or move.name
             if narration_text == '/':
@@ -214,6 +217,7 @@ class BankReconciliationStatementView(models.TransientModel):
             row_num += 1
 
         # C. FOOTER ROW
+        self.bank_balance = running_bal  # Final result
         lines_to_create.append({
             'statement_id': self.id,
             'sequence': seq + 1,
@@ -226,7 +230,6 @@ class BankReconciliationStatementView(models.TransientModel):
             'is_balance_row': True,
         })
         row_num += 1
-        self.bank_balance = running_bal
 
         # D. GRAND TOTAL ROW
         lines_to_create.append({
@@ -236,7 +239,7 @@ class BankReconciliationStatementView(models.TransientModel):
             'move_name': 'Grand Total',
             'debit': total_debit,
             'credit': total_credit,
-            'running_balance': total_balance_sum,
+            'running_balance': 0,  # --- FIX 2: Set to 0 (or empty) ---
             'narration': '',
             'reconciled_str': '',
             'is_bold': True,
