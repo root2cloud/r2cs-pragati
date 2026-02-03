@@ -216,7 +216,8 @@
         <field name="view_mode">form</field>
         <field name="target">inline</field>
     </record>
-
+    <menuitem id="menu_bank_reconciliation_root" name="Bank Reconciliation" parent="account.menu_finance_entries"
+              sequence="55"/>
     <menuitem id="menu_bank_reconciliation_console" name="Bank Reconciliation"
               action="action_bank_reconciliation_console" parent="menu_bank_reconciliation_root" sequence="1"/>
 </odoo>
