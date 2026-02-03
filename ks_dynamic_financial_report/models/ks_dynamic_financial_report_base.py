@@ -880,7 +880,8 @@ class ks_dynamic_financial_base(models.Model):
                     j.code AS lcode,
                     p.name AS partner_name,
                     m.name AS move_name,
-                    l.name AS lname,
+                    l.narration AS lname,  
+                    l.is_brs_cleared,  -- <=== ADD THIS LINE
                     COALESCE(l.debit,0) AS debit,
                     COALESCE(l.credit,0) AS credit,
                     (l.debit - l.credit) AS balance_change, -- Use a temporary alias for the change
@@ -2688,7 +2689,7 @@ class ks_dynamic_financial_base(models.Model):
                         j.code AS lcode,
                         l.currency_id,
                         --l.ref AS lref,
-                        l.name AS lname,
+                        l.narration AS lname,
                         m.id AS move_id,
                         m.name AS move_name,
                         c.symbol AS currency_symbol,
@@ -2784,10 +2785,11 @@ class ks_dynamic_financial_base(models.Model):
                     j.code AS lcode,
                     l.currency_id,
                     --l.ref AS lref,
-                    l.name AS lname,
+                    l.narration AS lname,
                     m.id AS move_id,
                     m.state AS move_state, 
                     m.name AS move_name,
+                    l.is_brs_cleared,   -- <=== ADD THIS LINE HERE
                     c.symbol AS currency_symbol,
                     c.position AS currency_position,
                     c.rounding AS currency_precision,
@@ -2808,7 +2810,7 @@ class ks_dynamic_financial_base(models.Model):
                 LEFT JOIN res_partner p ON (l.partner_id=p.id)
                 JOIN account_journal j ON (l.journal_id=j.id)
                 WHERE %s
-                GROUP BY l.id, l.account_id, l.date, j.code, l.currency_id, l.amount_currency, l.name, m.id, m.name, c.rounding, cc.id, cc.rounding, cc.position, c.position, c.symbol, cc.symbol, p.name
+                GROUP BY l.id, l.account_id, l.date, j.code, l.currency_id, l.amount_currency, l.name, m.id, m.name,l.is_brs_cleared, c.rounding, cc.id, cc.rounding, cc.position, c.position, c.symbol, cc.symbol, p.name
                 ORDER BY %s
                 OFFSET %s ROWS
                 FETCH FIRST %s ROWS ONLY
@@ -3408,7 +3410,7 @@ class ks_dynamic_financial_base(models.Model):
                                 l.currency_id,
                                 l.amount_currency,
                                 --l.ref AS lref,
-                                l.name AS lname,
+                                l.narration AS lname,
                                 m.id AS move_id,
                                 m.name AS move_name,
                                 c.symbol AS currency_symbol,
@@ -3487,7 +3489,7 @@ class ks_dynamic_financial_base(models.Model):
                             l.currency_id,
                             l.amount_currency,
                             --l.ref AS lref,
-                            l.name AS lname,
+                            l.narration AS lname,
                             m.id AS move_id,
                             m.name AS move_name,
                             c.symbol AS currency_symbol,

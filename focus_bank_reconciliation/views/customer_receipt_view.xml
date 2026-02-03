@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <record id="view_account_payment_receipt_tree" model="ir.ui.view">
+        <field name="name">account.payment.receipt.tree</field>
+        <field name="model">account.payment</field>
+        <field name="arch" type="xml">
+            <tree string="Customer Receipts" decoration-info="state == 'draft'" decoration-muted="state == 'cancel'"
+                  sample="1">
+                <field name="date"/>
+                <field name="name"/>
+                <field name="journal_id" string="Bank Account"/>
+                <field name="partner_id" string="Customer"/>
+                <field name="amount" sum="Total Amount"/>
+                <field name="state" widget="badge" decoration-info="state == 'draft'"
+                       decoration-success="state == 'posted'"/>
+                <field name="payment_type" invisible="1"/>
+            </tree>
+        </field>
+    </record>
+
+    <record id="action_customer_receipts" model="ir.actions.act_window">
+        <field name="name">Customer Receipts</field>
+        <field name="res_model">account.payment</field>
+        <field name="view_mode">tree,form</field>
+        <field name="view_id" ref="view_account_payment_receipt_tree"/>
+        <field name="domain">[('payment_type', '=', 'inbound'), ('partner_type', '=', 'customer')]</field>
+        <field name="context">{'default_payment_type': 'inbound', 'default_partner_type': 'customer'}</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                Create a new Customer Receipt
+            </p>
+        </field>
+    </record>
+
+    <menuitem id="menu_customer_receipts"
+              name="Customer Receipts"
+              action="action_customer_receipts"
+              parent="account.menu_finance_receivables"
+              sequence="20"/>
+
+</odoo>
