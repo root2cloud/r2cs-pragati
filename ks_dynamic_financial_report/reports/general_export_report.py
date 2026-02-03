@@ -136,6 +136,11 @@ class KsDynamicFinancialXlsxGLInherit(models.Model):
             row += 1
 
             # Loop through each line (transaction details)
+            # --- START FIX: Initialize running balance from the correctly calculated initial_balance ---
+            running_balance = initial_balance
+            # -------------------------------------------------------------------------------------------
+
+            # Loop through each line (transaction details)
             for line in account_data.get('lines', []):
                 # Skip initial balance and ending balance lines
                 if line.get('initial_bal') or line.get('ending_bal'):
@@ -145,6 +150,12 @@ class KsDynamicFinancialXlsxGLInherit(models.Model):
                 if date and isinstance(date, datetime.date):
                     date = date.strftime('%d-%m-%Y')
 
+                # --- START FIX: Calculate running balance manually ---
+                current_debit = float(line.get('debit', 0))
+                current_credit = float(line.get('credit', 0))
+                running_balance += current_debit - current_credit
+                # ---------------------------------------------------
+
                 # Write line details
                 sheet.write(row, 0, date or '', cell_center)
                 sheet.write(row, 1, line.get('lcode') or '', cell_center)
@@ -152,9 +163,13 @@ class KsDynamicFinancialXlsxGLInherit(models.Model):
                 sheet.write(row, 3, line.get('move_name') or '', cell_center)
                 sheet.write(row, 4, line.get('lname') or '', cell_left)
                 sheet.write(row, 5, '', cell_left)  # Empty - Initial Balance column for transaction rows
-                sheet.write_number(row, 6, float(line.get('debit', 0)), num_fmt)
-                sheet.write_number(row, 7, float(line.get('credit', 0)), num_fmt)
-                sheet.write_number(row, 8, float(line.get('balance', 0)), num_fmt)
+
+                sheet.write_number(row, 6, current_debit, num_fmt)
+                sheet.write_number(row, 7, current_credit, num_fmt)
+
+                # --- START FIX: Write the manually calculated running_balance ---
+                sheet.write_number(row, 8, running_balance, num_fmt)
+                # --------------------------------------------------------------
 
                 # ✅ Add Company Name
                 move = self.env['account.move'].browse(line.get('move_id')) if line.get('move_id') else False
