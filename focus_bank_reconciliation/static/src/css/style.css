@@ -1,0 +1,17 @@
+/* 1. Hide the delete button cell in every row */
+.hide_delete_button .o_list_record_remove {
+    display: none !important;
+    width: 0px !important;
+    padding: 0px !important;
+}
+
+/* 2. Hide the header (th) for the delete column */
+.hide_delete_button th.o_list_record_remove {
+    display: none !important;
+    width: 0px !important;
+    padding: 0px !important;
+}
+
+.force_hide_add_button .o_field_x2many_list_row_add {
+                    display: none !important;
+                    }

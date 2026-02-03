@@ -1,0 +1,4 @@
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+access_bank_reconciliation_console,bank.reconciliation.console,model_bank_reconciliation_console,,1,1,1,1
+access_bank_reconciliation_statement_view,bank.reconciliation.statement.view,model_bank_reconciliation_statement_view,,1,1,1,1
+access_bank_reconciliation_statement_line,bank.reconciliation.statement.line,model_bank_reconciliation_statement_line,,1,1,1,1
