@@ -1,195 +1,199 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <templates>
     <t t-name="ks_account_report_lines">
-    <div class="container-fluid my-4">
-        <table id="data-bs-lines" class="table ks_table_1 ks_table_2" cellspacing="0" width="100%">
-            <thead class="ks_thead">
-                <tr class="ks_report_lines_row">
-                    <th colspan="1"></th>
+        <div class="container-fluid my-4">
+            <table id="data-bs-lines" class="table ks_table_1 ks_table_2" cellspacing="0" width="100%">
+                <thead class="ks_thead">
+                    <tr class="ks_report_lines_row">
+                        <th colspan="1"></th>
 
-                    <!-- ✅ Initial Balance Header - FIRST POSITION (Balance Sheet only) -->
-                    <t t-if="ks_report_lines.length > 0 and ks_report_lines[0]['is_bs']">
-                        <th class="text-right" colspan="1">
-                            <span>Initial Balance</span>
-                        </th>
-                    </t>
-
-                    <!-- Debit/Credit columns -->
-                    <t t-if="ks_df_report_opt['ks_diff_filter']['ks_debit_credit_visibility']">
-                        <th class="text-right" colspan="1">
-                            <span>Debit</span>
-                        </th>
-                        <th class="text-right" colspan="1">
-                            <span>Credit</span>
-                        </th>
-                    </t>
-
-                    <!-- Comparison columns -->
-                    <t t-if="ks_df_report_opt['ks_diff_filter']['ks_diff_filter_enablity']">
-                        <t t-foreach="ks_report_lines[0]['balance_cmp']" t-as="current_interval">
+                        <!-- ✅ Initial Balance Header - FIRST POSITION (Balance Sheet only) -->
+                        <t t-if="ks_report_lines.length > 0 and ks_report_lines[0]['is_bs']">
                             <th class="text-right" colspan="1">
-                                <span>
-                                    <t t-esc="current_interval.split('comp_bal_')[1]"/>
-                                </span>
+                                <span>Initial Balance</span>
                             </th>
                         </t>
-                    </t>
 
-                    <!-- Balance column -->
-                    <th class="text-right" colspan="1">
-                        <span>Balance</span>
-                    </th>
-                </tr>
-            </thead>
-            <tbody>
-                <t t-foreach="ks_report_lines" t-as="a">
-                    <t t-if="!a['account']">
-                        <t t-set="style" t-value="'font-weight:bold;'"/>
-                    </t>
-                    <t t-if="a['account']">
-                        <t t-set="style" t-value="'font-weight:normal;border:none;'"/>
-                    </t>
-                    <t t-if="a['ks_level'] == 0">
-                        <t t-set="style_td" t-value="style + ''"/>
-                    </t>
-                    <t t-if="a['ks_level'] == 1">
-                        <t t-set="style_td" t-value="style + ''"/>
-                    </t>
-                    <t t-if="a['ks_level'] != 0 and a['ks_level'] != 1">
-                        <t t-set="style_td" t-value="style + ''"/>
-                    </t>
-
-                    <tr t-att-style="style"
-                        t-attf-class="ks_py-mline ks_level_{{a['ks_level']}} row-toggle a{{a['parent']}} "
-                        t-attf-data-bs-target=".a{{a['self_id']}}"
-                        data-bs-toggle="collapse">
-
-                        <!-- Name Column with Arrow Support -->
-                        <t t-if="a['account']">
-                            <td t-att-data-bs-account-id="a['account']" t-att-style="style_td">
-                                <div class="dropdown">
-                                    <t t-if="a['list_len']">
-                                        <t t-foreach="a['list_len']" t-as="i">
-                                            <span>&amp;nbsp;&amp;nbsp;</span>
-                                        </t>
-                                    </t>
-
-                                    <t t-if="a['ks_df_report_account_type'] == 'account_report' and (a['account_type'] == 'ks_coa_type')">
-                                        <i class="fa fa-caret-down" role="img" aria-label="Unfolded" title="Unfolded"></i>
-                                    </t>
-                                    <a data-bs-toggle="dropdown" href="#">
-                                        <span t-att-data-bs-account-id="a['account']">
-                                            <span t-att-style="style" t-esc="a['ks_name']"/>
-                                        </span>
-                                        <t t-if="a['account']">
-                                            <i class="fa fa-caret-right" role="img" aria-label="Unfolded" title="Unfolded"></i>
-                                        </t>
-                                    </a>
-                                    <span t-att-data-bs-account-id="a['account']"></span>
-                                    <t t-if="a['account']">
-                                        <ul class="dropdown-menu p-2" role="menu">
-                                            <t t-if="a['account']">
-                                                <li role="presentation">
-                                                    <a role="menuitem" class="ks_view-source" tabindex="-1"
-                                                       action="ks_show_df_journal_items"
-                                                       t-att-data-bs-account-id="a['account']">
-                                                        Journal Items
-                                                    </a>
-                                                </li>
-                                                <li role="presentation">
-                                                    <a role="menuitem" class="ks_view-source" tabindex="1"
-                                                       action="ks_show_df_general_ledger"
-                                                       t-att-data-bs-account-id="a['account']">
-                                                        General Ledger
-                                                    </a>
-                                                </li>
-                                            </t>
-                                        </ul>
-                                    </t>
-                                </div>
-                            </td>
-                        </t>
-                        <t t-else="">
-                            <td t-att-data-bs-account-id="a['account']" t-att-style="style_td">
-                                <div>
-                                    <t t-if="a['list_len']">
-                                        <t t-foreach="a['list_len']" t-as="i">
-                                            <span>&amp;nbsp;&amp;nbsp;</span>
-                                        </t>
-                                    </t>
-
-                                    <t t-if="a['ks_df_report_account_type'] == 'account_report' and (a['account_type'] == 'ks_coa_type')">
-                                        <i class="fa fa-caret-down" role="img" aria-label="Unfolded" title="Unfolded"></i>
-                                    </t>
-                                    <a>
-                                        <span t-att-data-bs-account-id="a['account']">
-                                            <span t-att-style="style" t-esc="a['ks_name']"/>
-                                        </span>
-                                        <t t-if="a['account']">
-                                            <i class="fa fa-caret-right" role="img" aria-label="Unfolded" title="Unfolded"></i>
-                                        </t>
-                                    </a>
-                                    <span t-att-data-bs-account-id="a['account']"></span>
-                                    <t t-if="a['account']">
-                                        <ul class="dropdown-menu p-2" role="menu">
-                                            <t t-if="a['account']">
-                                                <li role="presentation">
-                                                    <a role="menuitem" class="ks_view-source" tabindex="-1"
-                                                       action="ks_show_df_journal_items"
-                                                       t-att-data-bs-account-id="a['account']">
-                                                        Journal Items
-                                                    </a>
-                                                </li>
-                                                <li role="presentation">
-                                                    <a role="menuitem" class="ks_view-source" tabindex="1"
-                                                       action="ks_show_df_general_ledger"
-                                                       t-att-data-bs-account-id="a['account']">
-                                                        General Ledger
-                                                    </a>
-                                                </li>
-                                            </t>
-                                        </ul>
-                                    </t>
-                                </div>
-                            </td>
-                        </t>
-
-                        <!-- ✅ Initial Balance Column - FIRST POSITION (Balance Sheet only) -->
-                        <t t-if="a['is_bs']">
-                            <td t-att-style="style_td" class="ks_amt text-right">
-                                <span t-raw="a['initial_balance_formatted']"/>
-                            </td>
-                        </t>
-
-                        <!-- Debit/Credit Columns -->
+                        <!-- Debit/Credit columns -->
                         <t t-if="ks_df_report_opt['ks_diff_filter']['ks_debit_credit_visibility']">
-                            <td t-att-style="style_td" class="ks_amt text-right">
-                                <span t-raw="a['debit']"/>
-                            </td>
-                            <td t-att-style="style_td" class="ks_amt text-right">
-                                <span t-raw="a['credit']"/>
-                            </td>
+                            <th class="text-right" colspan="1">
+                                <span>Debit</span>
+                            </th>
+                            <th class="text-right" colspan="1">
+                                <span>Credit</span>
+                            </th>
                         </t>
 
-                        <!-- Comparison Columns -->
+                        <!-- Comparison columns -->
                         <t t-if="ks_df_report_opt['ks_diff_filter']['ks_diff_filter_enablity']">
-                            <t t-foreach="a['balance_cmp']" t-as="current_interval">
-                                <td t-att-style="style_td" class="ks_amt text-right">
-                                    <span t-raw="a['balance_cmp'][current_interval]"/>
-                                </td>
+                            <t t-foreach="ks_report_lines[0]['balance_cmp']" t-as="current_interval">
+                                <th class="text-right" colspan="1">
+                                    <span>
+                                        <t t-esc="current_interval.split('comp_bal_')[1]"/>
+                                    </span>
+                                </th>
                             </t>
                         </t>
 
-                        <!-- Balance Column -->
-                        <td t-att-style="style_td" class="ks_amt text-right">
-                            <t t-raw="a['balance']"/>
-                        </td>
+                        <!-- Balance column -->
+                        <th class="text-right" colspan="1">
+                            <span>Balance</span>
+                        </th>
                     </tr>
-                </t>
-            </tbody>
-        </table>
-    </div>
-</t>
+                </thead>
+                <tbody>
+                    <t t-foreach="ks_report_lines" t-as="a">
+                        <t t-if="!a['account']">
+                            <t t-set="style" t-value="'font-weight:bold;'"/>
+                        </t>
+                        <t t-if="a['account']">
+                            <t t-set="style" t-value="'font-weight:normal;border:none;'"/>
+                        </t>
+                        <t t-if="a['ks_level'] == 0">
+                            <t t-set="style_td" t-value="style + ''"/>
+                        </t>
+                        <t t-if="a['ks_level'] == 1">
+                            <t t-set="style_td" t-value="style + ''"/>
+                        </t>
+                        <t t-if="a['ks_level'] != 0 and a['ks_level'] != 1">
+                            <t t-set="style_td" t-value="style + ''"/>
+                        </t>
+
+                        <tr t-att-style="style"
+                            t-attf-class="ks_py-mline ks_level_{{a['ks_level']}} row-toggle a{{a['parent']}} "
+                            t-attf-data-bs-target=".a{{a['self_id']}}"
+                            data-bs-toggle="collapse">
+
+                            <!-- Name Column with Arrow Support -->
+                            <t t-if="a['account']">
+                                <td t-att-data-bs-account-id="a['account']" t-att-style="style_td">
+                                    <div class="dropdown">
+                                        <t t-if="a['list_len']">
+                                            <t t-foreach="a['list_len']" t-as="i">
+                                                <span>&amp;nbsp;&amp;nbsp;</span>
+                                            </t>
+                                        </t>
+
+                                        <t t-if="a['ks_df_report_account_type'] == 'account_report' and (a['account_type'] == 'ks_coa_type')">
+                                            <i class="fa fa-caret-down" role="img" aria-label="Unfolded"
+                                               title="Unfolded"></i>
+                                        </t>
+                                        <a data-bs-toggle="dropdown" href="#">
+                                            <span t-att-data-bs-account-id="a['account']">
+                                                <span t-att-style="style" t-esc="a['ks_name']"/>
+                                            </span>
+                                            <t t-if="a['account']">
+                                                <i class="fa fa-caret-right" role="img" aria-label="Unfolded"
+                                                   title="Unfolded"></i>
+                                            </t>
+                                        </a>
+                                        <span t-att-data-bs-account-id="a['account']"></span>
+                                        <t t-if="a['account']">
+                                            <ul class="dropdown-menu p-2" role="menu">
+                                                <t t-if="a['account']">
+                                                    <li role="presentation">
+                                                        <a role="menuitem" class="ks_view-source" tabindex="-1"
+                                                           action="ks_show_df_journal_items"
+                                                           t-att-data-bs-account-id="a['account']">
+                                                            Journal Items
+                                                        </a>
+                                                    </li>
+                                                    <li role="presentation">
+                                                        <a role="menuitem" class="ks_view-source" tabindex="1"
+                                                           action="ks_show_df_general_ledger"
+                                                           t-att-data-bs-account-id="a['account']">
+                                                            General Ledger
+                                                        </a>
+                                                    </li>
+                                                </t>
+                                            </ul>
+                                        </t>
+                                    </div>
+                                </td>
+                            </t>
+                            <t t-else="">
+                                <td t-att-data-bs-account-id="a['account']" t-att-style="style_td">
+                                    <div>
+                                        <t t-if="a['list_len']">
+                                            <t t-foreach="a['list_len']" t-as="i">
+                                                <span>&amp;nbsp;&amp;nbsp;</span>
+                                            </t>
+                                        </t>
+
+                                        <t t-if="a['ks_df_report_account_type'] == 'account_report' and (a['account_type'] == 'ks_coa_type')">
+                                            <i class="fa fa-caret-down" role="img" aria-label="Unfolded"
+                                               title="Unfolded"></i>
+                                        </t>
+                                        <a>
+                                            <span t-att-data-bs-account-id="a['account']">
+                                                <span t-att-style="style" t-esc="a['ks_name']"/>
+                                            </span>
+                                            <t t-if="a['account']">
+                                                <i class="fa fa-caret-right" role="img" aria-label="Unfolded"
+                                                   title="Unfolded"></i>
+                                            </t>
+                                        </a>
+                                        <span t-att-data-bs-account-id="a['account']"></span>
+                                        <t t-if="a['account']">
+                                            <ul class="dropdown-menu p-2" role="menu">
+                                                <t t-if="a['account']">
+                                                    <li role="presentation">
+                                                        <a role="menuitem" class="ks_view-source" tabindex="-1"
+                                                           action="ks_show_df_journal_items"
+                                                           t-att-data-bs-account-id="a['account']">
+                                                            Journal Items
+                                                        </a>
+                                                    </li>
+                                                    <li role="presentation">
+                                                        <a role="menuitem" class="ks_view-source" tabindex="1"
+                                                           action="ks_show_df_general_ledger"
+                                                           t-att-data-bs-account-id="a['account']">
+                                                            General Ledger
+                                                        </a>
+                                                    </li>
+                                                </t>
+                                            </ul>
+                                        </t>
+                                    </div>
+                                </td>
+                            </t>
+
+                            <!-- ✅ Initial Balance Column - FIRST POSITION (Balance Sheet only) -->
+                            <t t-if="a['is_bs']">
+                                <td t-att-style="style_td" class="ks_amt text-right">
+                                    <span t-raw="a['initial_balance_formatted']"/>
+                                </td>
+                            </t>
+
+                            <!-- Debit/Credit Columns -->
+                            <t t-if="ks_df_report_opt['ks_diff_filter']['ks_debit_credit_visibility']">
+                                <td t-att-style="style_td" class="ks_amt text-right">
+                                    <span t-raw="a['debit']"/>
+                                </td>
+                                <td t-att-style="style_td" class="ks_amt text-right">
+                                    <span t-raw="a['credit']"/>
+                                </td>
+                            </t>
+
+                            <!-- Comparison Columns -->
+                            <t t-if="ks_df_report_opt['ks_diff_filter']['ks_diff_filter_enablity']">
+                                <t t-foreach="a['balance_cmp']" t-as="current_interval">
+                                    <td t-att-style="style_td" class="ks_amt text-right">
+                                        <span t-raw="a['balance_cmp'][current_interval]"/>
+                                    </td>
+                                </t>
+                            </t>
+
+                            <!-- Balance Column -->
+                            <td t-att-style="style_td" class="ks_amt text-right">
+                                <t t-raw="a['balance']"/>
+                            </td>
+                        </tr>
+                    </t>
+                </tbody>
+            </table>
+        </div>
+    </t>
 
     <t t-name="ks_executive_summary_lines">
         <div class="container-fluid  my-4">
@@ -665,7 +669,7 @@
                         <th class="">Credit</th>
                         <th class="">Balance</th>
                         <th width="10%" class="">Balance in FC</th>
-<!--                        <th>Status</th>-->
+                        <!--                        <th>Status</th>-->
 
                     </tr>
                 </thead>
@@ -752,128 +756,155 @@
 
 
     <t t-name="ks_df_gl_subsection">
-    <div class="ks_py-mline-table-div">
-        <table class="table border ks_table_2" id="general_ledger_table">
-            <thead class="ks_thead">
-                <tr>
-                    <th>Date</th>
-                    <th>JRNL</th>
-                    <th>Partner</th>
-                    <th>Ref No</th>
-                    <th>Status</th>
-                    <th>Narration</th>
-                    <th>Opposite Accounts</th>
-                    <t t-if="ks_enable_ledger_in_bal">
-                        <th>Initial Balance</th>
-                    </t>
-                    <th>Debit</th>
-                    <th>Credit</th>
-                    <th>Balance</th>
-                </tr>
-            </thead>
-            <tbody>
-                <t t-foreach="account_data" t-as="account_line">
-                    <tr class="border-bottom"
-                        t-att-data-move-id="account_line.move_id or account_line.mmove_id"
-                        t-att-data-account-id="account_line.account_id">
-                        <td>
-                            <t t-if="account_line.ldate">
-                                <div class="dropdown">
-                                    <a data-bs-toggle="dropdown" href="#">
-                                        <span t-att-data-bs-move-id="account_line.move_id">
-                                            <t t-esc="account_line.ldate"/>
-                                        </span>
-                                        <i class="fa fa-caret-down"/>
-                                    </a>
-                                    <ul class="dropdown-menu p-2" role="menu">
-                                        <t t-if="account_line.move_name">
-                                            <li role="presentation">
-                                                <a role="menuitem" class="ks_view-source" tabindex="-1"
-                                                   action="ks_df_show_move_line"
-                                                   t-att-data-bs-move-id="account_line.move_id">
-                                                    Move Line
-                                                </a>
-                                            </li>
-                                        </t>
-                                    </ul>
-                                </div>
-                            </t>
-                        </td>
-                        <td><t t-esc="account_line.lcode"/></td>
-                        <td><t t-esc="account_line.partner_name"/></td>
-                        <td><t t-esc="account_line.move_name"/></td>
-                        <td><t t-esc="account_line.move_state"/></td>
-                        <td class="account-name-cell"><t t-esc="account_line.lname"/></td>
-                        <td class="all-accounts-cell text-muted small">Loading...</td>
+        <div class="ks_py-mline-table-div">
+            <table class="table border ks_table_2" id="general_ledger_table">
+                <thead class="ks_thead">
+                    <tr>
+                        <th>Date</th>
+                        <th>JRNL</th>
+                        <th>Partner</th>
+                        <th>Ref No</th>
+                        <th>Status</th>
+                        <th>BRS Status</th>
+                        <th>Narration</th>
+                        <th>Opposite Accounts</th>
                         <t t-if="ks_enable_ledger_in_bal">
-                            <td class="ks_amt"><t t-raw="account_line.initial_balance"/></td>
+                            <th>Initial Balance</th>
                         </t>
-                        <td class="ks_amt"><t t-raw="account_line.debit"/></td>
-                        <td class="ks_amt"><t t-raw="account_line.credit"/></td>
-                        <td class="ks_amt"><t t-raw="account_line.balance"/></td>
+                        <th>Debit</th>
+                        <th>Credit</th>
+                        <th>Balance</th>
                     </tr>
-                </t>
-            </tbody>
-        </table>
+                </thead>
+                <tbody>
+                    <t t-foreach="account_data" t-as="account_line">
+                        <tr class="border-bottom"
+                            t-att-data-move-id="account_line.move_id or account_line.mmove_id"
+                            t-att-data-account-id="account_line.account_id">
+                            <td>
+                                <t t-if="account_line.ldate">
+                                    <div class="dropdown">
+                                        <a data-bs-toggle="dropdown" href="#">
+                                            <span t-att-data-bs-move-id="account_line.move_id">
+                                                <t t-esc="account_line.ldate"/>
+                                            </span>
+                                            <i class="fa fa-caret-down"/>
+                                        </a>
+                                        <ul class="dropdown-menu p-2" role="menu">
+                                            <t t-if="account_line.move_name">
+                                                <li role="presentation">
+                                                    <a role="menuitem" class="ks_view-source" tabindex="-1"
+                                                       action="ks_df_show_move_line"
+                                                       t-att-data-bs-move-id="account_line.move_id">
+                                                        Move Line
+                                                    </a>
+                                                </li>
+                                            </t>
+                                        </ul>
+                                    </div>
+                                </t>
+                            </td>
+                            <td>
+                                <t t-esc="account_line.lcode"/>
+                            </td>
+                            <td>
+                                <t t-esc="account_line.partner_name"/>
+                            </td>
+                            <td>
+                                <t t-esc="account_line.move_name"/>
+                            </td>
+                            <td>
+                                <t t-esc="account_line.move_state"/>
+                            </td>
+                            <td>
+                                <t t-if="account_line.is_brs_cleared">
+                                    <span style="color: green; font-weight: bold;">Cleared</span>
+                                </t>
+                                <t t-else="">
+                                    <span style="color: orange;">Pending</span>
+                                </t>
+                            </td>
+                            <td class="account-name-cell">
+                                <t t-esc="account_line.lname"/>
+                            </td>
+                            <td class="all-accounts-cell text-muted small">Loading...</td>
+                            <t t-if="ks_enable_ledger_in_bal">
+                                <td class="ks_amt">
+                                    <t t-raw="account_line.initial_balance"/>
+                                </td>
+                            </t>
+                            <td class="ks_amt">
+                                <t t-raw="account_line.debit"/>
+                            </td>
+                            <td class="ks_amt">
+                                <t t-raw="account_line.credit"/>
+                            </td>
+                            <td class="ks_amt">
+                                <t t-raw="account_line.balance"/>
+                            </td>
+                        </tr>
+                    </t>
+                </tbody>
+            </table>
 
-        <script type="text/javascript">
-$(document).ready(function() {
+            <script type="text/javascript">
+                $(document).ready(function() {
 
-    // Run AFTER table loads
-    setTimeout(function() {
+                // Run AFTER table loads
+                setTimeout(function() {
 
-        var moveIds = [];
-        var rows = [];
+                var moveIds = [];
+                var rows = [];
 
-        $('#general_ledger_table tbody tr').each(function() {
-            var moveId = $(this).data('move-id');
-            if (!moveId) return;
+                $('#general_ledger_table tbody tr').each(function() {
+                var moveId = $(this).data('move-id');
+                if (!moveId) return;
 
-            var row = $(this);
+                var row = $(this);
 
-            // Current account ID on this row
-            var accountId = row.data('account-id');
+                // Current account ID on this row
+                var accountId = row.data('account-id');
 
-            // Extract account code from text
-            var accountText = row.find('.account-name-cell').text().trim();
-            var accountCode = null;
+                // Extract account code from text
+                var accountText = row.find('.account-name-cell').text().trim();
+                var accountCode = null;
 
-            // Match numeric prefix (100133 Cash, 200145 CGST, etc.)
-            var m = accountText.match(/^(\d{3,})/);
-            if (m) {
+                // Match numeric prefix (100133 Cash, 200145 CGST, etc.)
+                var m = accountText.match(/^(\d{3,})/);
+                if (m) {
                 accountCode = m[1];
-            }
+                }
 
-            moveIds.push(moveId);
+                moveIds.push(moveId);
 
-            rows.push({
+                rows.push({
                 row: row,
                 moveId: moveId,
                 accountId: accountId,
                 accountCode: accountCode
-            });
-        });
+                });
+                });
 
-        if (moveIds.length === 0) return;
+                if (moveIds.length === 0) return;
 
-        // RPC to fetch move lines for opposite accounts
-        $.ajax({
-            url: '/web/dataset/call_kw',
-            type: 'POST',
-            contentType: 'application/json',
-            data: JSON.stringify({
+                // RPC to fetch move lines for opposite accounts
+                $.ajax({
+                url: '/web/dataset/call_kw',
+                type: 'POST',
+                contentType: 'application/json',
+                data: JSON.stringify({
                 jsonrpc: '2.0',
                 method: 'call',
                 params: {
-                    model: 'account.move.line',
-                    method: 'search_read',
-                    args: [[['move_id', 'in', moveIds]]],
-                    kwargs: {
-                        fields: ['move_id', 'account_id', 'debit', 'credit']
-                    }
+                model: 'account.move.line',
+                method: 'search_read',
+                args: [[['move_id', 'in', moveIds]]],
+                kwargs: {
+                fields: ['move_id', 'account_id', 'debit', 'credit']
                 }
-            }),
-            success: function(result) {
+                }
+                }),
+                success: function(result) {
 
                 if (!result.result) return;
 
@@ -882,88 +913,87 @@ $(document).ready(function() {
                 // Group accounts by move_id
                 result.result.forEach(function(line) {
 
-                    if (!line.account_id || !line.account_id[1]) return;
+                if (!line.account_id || !line.account_id[1]) return;
 
-                    var moveId = line.move_id[0];
-                    if (!accountsByMove[moveId]) accountsByMove[moveId] = [];
+                var moveId = line.move_id[0];
+                if (!accountsByMove[moveId]) accountsByMove[moveId] = [];
 
-                    var accountName = line.account_id[1];
-                    var accountId = line.account_id[0];
+                var accountName = line.account_id[1];
+                var accountId = line.account_id[0];
 
-                    // Extract numeric code
-                    var codeMatch = accountName.match(/^(\d{3,})/);
-                    var accountCode = codeMatch ? codeMatch[1] : accountName;
+                // Extract numeric code
+                var codeMatch = accountName.match(/^(\d{3,})/);
+                var accountCode = codeMatch ? codeMatch[1] : accountName;
 
-                    var debit = line.debit || 0;
-                    var credit = line.credit || 0;
+                var debit = line.debit || 0;
+                var credit = line.credit || 0;
 
-                    var info = accountName;
-                    if (debit > 0) {
-                        info += ' (Dr: ₹ ' + debit.toLocaleString('en-IN', {minimumFractionDigits: 2}) + ')';
-                    } else if (credit > 0) {
-                        info += ' (Cr: ₹ ' + credit.toLocaleString('en-IN', {minimumFractionDigits: 2}) + ')';
-                    }
+                var info = accountName;
+                if (debit > 0) {
+                info += ' (Dr: ₹ ' + debit.toLocaleString('en-IN', {minimumFractionDigits: 2}) + ')';
+                } else if (credit > 0) {
+                info += ' (Cr: ₹ ' + credit.toLocaleString('en-IN', {minimumFractionDigits: 2}) + ')';
+                }
 
-                    accountsByMove[moveId].push({
-                        id: accountId,
-                        code: accountCode,
-                        info: info
-                    });
+                accountsByMove[moveId].push({
+                id: accountId,
+                code: accountCode,
+                info: info
+                });
                 });
 
                 // Update each row
                 rows.forEach(function(item) {
 
-                    var list = accountsByMove[item.moveId] || [];
+                var list = accountsByMove[item.moveId] || [];
 
-                    // STEP 1 → remove same account_id
-                    var filtered = list.filter(function(acc) {
-                        return acc.id !== item.accountId;
-                    });
-
-                    // STEP 2 → remove same account_code
-                    if (item.accountCode) {
-                        filtered = filtered.filter(function(acc) {
-                            return acc.code !== item.accountCode;
-                        });
-                    }
-
-                    // STEP 3 → remove duplicate codes
-                    var seen = {};
-                    var unique = [];
-
-                    filtered.forEach(function(acc) {
-                        if (!seen[acc.code]) {
-                            seen[acc.code] = true;
-                            unique.push(acc);
-                        }
-                    });
-
-                    // STEP 4 → sort by code
-                    unique.sort(function(a, b) {
-                        return a.code.localeCompare(b.code);
-                    });
-
-                    // Convert to string
-                    var display = unique.map(a => a.info).join(', ');
-
-                    // Update Opposite Accounts column
-                    item.row.find('.all-accounts-cell').text(display || '-');
+                // STEP 1 → remove same account_id
+                var filtered = list.filter(function(acc) {
+                return acc.id !== item.accountId;
                 });
-            },
 
-            error: function(err) {
+                // STEP 2 → remove same account_code
+                if (item.accountCode) {
+                filtered = filtered.filter(function(acc) {
+                return acc.code !== item.accountCode;
+                });
+                }
+
+                // STEP 3 → remove duplicate codes
+                var seen = {};
+                var unique = [];
+
+                filtered.forEach(function(acc) {
+                if (!seen[acc.code]) {
+                seen[acc.code] = true;
+                unique.push(acc);
+                }
+                });
+
+                // STEP 4 → sort by code
+                unique.sort(function(a, b) {
+                return a.code.localeCompare(b.code);
+                });
+
+                // Convert to string
+                var display = unique.map(a => a.info).join(', ');
+
+                // Update Opposite Accounts column
+                item.row.find('.all-accounts-cell').text(display || '-');
+                });
+                },
+
+                error: function(err) {
                 console.error(err);
                 $('#general_ledger_table tbody tr .all-accounts-cell').text('Error');
-            }
-        });
+                }
+                });
 
-    }, 500); // delay for rendering
-});
-</script>
-    </div>
-</t>
-
+                }, 500); // delay for rendering
+                });
+            </script>
+        </div>
+    </t>
 
 
     <t t-name="ks_df_rec0">
@@ -1126,246 +1156,311 @@ $(document).ready(function() {
     </t>
 
 
-<t t-name="ks_df_trial_balance">
+    <t t-name="ks_df_trial_balance">
 
 
-    <div class="container-fluid my-4">
-        <table id="data-bs-lines" class="ks_table_4 table border" cellspacing="0" width="100%">
-            <thead class="ks_thead">
-                <tr>
-                    <th colspan="1"></th>
-                    <th class="ks_in_bal" colspan="2">
-                        <span>Initial Balance</span>
-                    </th>
-                    <th class="ks_to_dates" colspan="2">
-                        <span>
-                            <t t-esc="ks_df_new_start_report_opt" />
-                            to
-                            <t t-esc="ks_df_new_end_report_opt" />
-                        </span>
-                    </th>
-                    <th class="ks_Ending_Bal" colspan="2">
-                        <span>Ending Balance</span>
-                    </th>
-                </tr>
-                <tr>
-                    <th class="ks_color_th_1">Account</th>
-                    <th class="ks_color_th_2">Debit</th>
-                    <th class="ks_color_th_2">Credit</th>
-<!--                    <th class="ks_color_th_2">Balance</th>-->
-                    <th class="ks_color_th_3">Debit</th>
-                    <th class="ks_color_th_3">Credit</th>
-<!--                    <th class="ks_color_th_3">Balance</th>-->
-                    <th class="ks_color_th_4">Debit</th>
-                    <th class="ks_color_th_4">Credit</th>
-<!--                    <th class="ks_color_th_4">Balance</th>-->
-                </tr>
-            </thead>
-            <tbody class="border">
-
-
-<t t-set="grouped_data" t-value="{}"/>
-
-<t t-set="grouped_data" t-value="{}"/>
-
-<t t-foreach="account_data" t-as="acc">
-    <t t-set="clean_main_name" t-value="account_data[acc]['main_type'] or 'Other'"/>
-    <t t-set="clean_acct_name" t-value="account_data[acc]['account_type'] or 'General'"/>
-    <t t-set="clean_sub_name" t-value="account_data[acc]['sub_type'] or 'All_Accounts'"/>
-
-    <t t-set="main"
-        t-value="('' + clean_main_name)
-               .replaceAll(' ', '_').replace('(', '_').replace(')', '_')
-               .replace('.', '_').replace('/', '_').replace('-', '_').replace('&amp;', '_')" />
-    <t t-set="acct"
-        t-value="('' + clean_acct_name)
-               .replaceAll(' ', '_').replace('(', '_').replace(')', '_')
-               .replace('.', '_').replace('/', '_').replace('-', '_').replace('&amp;', '_')" />
-    <t t-set="sub"
-        t-value="('' + clean_sub_name)
-               .replaceAll(' ', '_').replace('(', '_').replace(')', '_')
-               .replace('.', '_').replace('/', '_').replace('-', '_').replace('&amp;', '_')" />
-
-    <t t-if="!grouped_data[main]">
-        <t t-set="grouped_data[main]" t-value="{'total': {}, 'groups': {}, 'display_name': clean_main_name}"/>
-    </t>
-    <t t-set="main_group" t-value="grouped_data[main]"/>
-
-    <t t-if="!main_group['groups'][acct]">
-        <t t-set="main_group['groups'][acct]" t-value="{'total': {}, 'groups': {}, 'display_name': clean_acct_name}"/>
-    </t>
-    <t t-set="acct_group" t-value="main_group['groups'][acct]"/>
-
-    <t t-if="!acct_group['groups'][sub]">
-        <t t-set="acct_group['groups'][sub]"
-                t-value="{'total': {}, 'accounts': [], 'display_name': clean_sub_name}"/>
-    </t>
-    <t t-set="sub_group" t-value="acct_group['groups'][sub]"/>
-
-    <t t-set="sub_group['accounts']"
-       t-value="sub_group['accounts'].concat([acc])"/>
-
-    <t t-set="fields" t-value="['initial_debit', 'initial_credit', 'initial_balance', 'debit', 'credit', 'balance', 'ending_debit', 'ending_credit', 'ending_balance']"/>
-    <t t-foreach="fields" t-as="field">
-        <t t-set="value" t-value="account_data[acc][field] or 0.0"/>
-
-        <t t-set="main_group['total'][field]" t-value="(main_group['total'][field] or 0.0) + value"/>
-        <t t-set="acct_group['total'][field]" t-value="(acct_group['total'][field] or 0.0) + value"/>
-        <t t-set="sub_group['total'][field]" t-value="(sub_group['total'][field] or 0.0) + value"/>
-    </t>
-</t>
-
-<t t-foreach="grouped_data" t-as="main_group_name">
-    <t t-set="main_group" t-value="grouped_data[main_group_name]"/>
-    <t t-set="main_target" t-value="'main-' + main_group_name"/>
-
-    <tr style="background:#F3F0FF; cursor:pointer;"
-        data-bs-toggle="collapse"
-        t-att-data-bs-target="'.' + main_target"
-        t-att-id="main_target + '-header'">
-        <td style="padding-left:0px;">
-            <strong><t t-esc="main_group['display_name']"/></strong>
-        </td>
-        <td class="ks_amt ks_total_init_debit"><t t-esc="main_group['total']['initial_debit']"/></td>
-        <td class="ks_amt ks_total_init_credit"><t t-esc="main_group['total']['initial_credit']"/></td>
-<!--        <td class="ks_amt bld ks_total_init_balance"><t t-esc="main_group['total']['initial_balance']"/></td>-->
-        <td class="ks_amt ks_total_debit"><t t-esc="main_group['total']['debit']"/></td>
-        <td class="ks_amt ks_total_credit"><t t-esc="main_group['total']['credit']"/></td>
-<!--        <td class="ks_amt bld ks_total_balance"><t t-esc="main_group['total']['balance']"/></td>-->
-        <td class="ks_amt ks_total_end_debit"><t t-esc="main_group['total']['ending_debit']"/></td>
-        <td class="ks_amt ks_total_end_credit"><t t-esc="main_group['total']['ending_credit']"/></td>
-<!--        <td class="ks_amt bld ks_total_end_balance"><t t-esc="main_group['total']['ending_balance']"/></td>-->
-    </tr>
-
-    <t t-foreach="main_group['groups']" t-as="acct_group_name">
-        <t t-set="acct_group" t-value="main_group['groups'][acct_group_name]"/>
-        <t t-set="acct_target" t-value="'acct-' + main_group_name + '-' + acct_group_name"/>
-
-<!--                    t-att-data-bs-target="'.' + acct_target"-->
-
-
-        <tr style="background:#F0F8FF; cursor:pointer;"
-            data-bs-toggle="collapse"
-            t-att-class="main_target + ' collapse'"
-            t-att-id="acct_target + '-header'">
-            <td style="padding-left:20px;">
-                <strong><t t-esc="acct_group['display_name']"/></strong>
-            </td>
-            <td class="ks_amt ks_total_init_debit"><t t-esc="acct_group['total']['initial_debit']"/></td>
-            <td class="ks_amt ks_total_init_credit"><t t-esc="acct_group['total']['initial_credit']"/></td>
-<!--            <td class="ks_amt bld ks_total_init_balance"><t t-esc="acct_group['total']['initial_balance']"/></td>-->
-            <td class="ks_amt ks_total_debit"><t t-esc="acct_group['total']['debit']"/></td>
-            <td class="ks_amt ks_total_credit"><t t-esc="acct_group['total']['credit']"/></td>
-<!--            <td class="ks_amt bld ks_total_balance"><t t-esc="acct_group['total']['balance']"/></td>-->
-            <td class="ks_amt ks_total_end_debit"><t t-esc="acct_group['total']['ending_debit']"/></td>
-            <td class="ks_amt ks_total_end_credit"><t t-esc="acct_group['total']['ending_credit']"/></td>
-<!--            <td class="ks_amt bld ks_total_end_balance"><t t-esc="acct_group['total']['ending_balance']"/></td>-->
-        </tr>
-
-        <t t-foreach="acct_group['groups']" t-as="sub_group_name">
-            <t t-set="sub_group" t-value="acct_group['groups'][sub_group_name]"/>
-            <t t-set="sub_target" t-value="'sub-' + main_group_name + '-' + acct_group_name + '-' + sub_group_name"/>
-
-
-<!--                t-att-data-bs-target="'.' + sub_target"-->
-
-            <tr style="background:#F5FFFA; cursor:pointer;"
-                data-bs-toggle="collapse"
-                t-att-class="acct_target + ' ' + main_target + ' collapse'"
-                t-att-id="sub_target + '-header'">
-                <td style="padding-left:40px;">
-                    <strong><t t-esc="sub_group['display_name']"/></strong>
-                </td>
-                <td class="ks_amt ks_total_init_debit"><t t-esc="sub_group['total']['initial_debit']"/></td>
-                <td class="ks_amt ks_total_init_credit"><t t-esc="sub_group['total']['initial_credit']"/></td>
-<!--                <td class="ks_amt bld ks_total_init_balance"><t t-esc="sub_group['total']['initial_balance']"/></td>-->
-                <td class="ks_amt ks_total_debit"><t t-esc="sub_group['total']['debit']"/></td>
-                <td class="ks_amt ks_total_credit"><t t-esc="sub_group['total']['credit']"/></td>
-<!--                <td class="ks_amt bld ks_total_balance"><t t-esc="sub_group['total']['balance']"/></td>-->
-                <td class="ks_amt ks_total_end_debit"><t t-esc="sub_group['total']['ending_debit']"/></td>
-                <td class="ks_amt ks_total_end_credit"><t t-esc="sub_group['total']['ending_credit']"/></td>
-<!--                <td class="ks_amt bld ks_total_end_balance"><t t-esc="sub_group['total']['ending_balance']"/></td>-->
-            </tr>
-
-            <t t-foreach="sub_group['accounts']" t-as="account">
-                <tr t-att-class="sub_target + ' ' + acct_target + ' ' + main_target + ' collapse'">
-                    <td style="padding-left:60px;">
-                        <div class="dropdown">
-                            <a data-bs-toggle="dropdown" href="#">
-                                <span t-att-data-bs-account-id="account_data[account]['id']">
-                                    <t t-esc="account_data[account]['code']"/> - <t t-esc="account_data[account]['name']"/>
-                                </span>
-                                <i class="fa fa-angle-down" role="img" aria-label="Unfolded" title="Unfolded"></i>
-                            </a>
-                            <ul class="dropdown-menu p-2">
-                                <li>
-                                    <a class="ks_view-source" action="ks_show_df_journal_items" t-att-data-bs-account-id="account_data[account]['id']">Journal Items</a>
-                                </li>
-                                <li>
-                                    <a class="ks_view-source" action="ks_show_df_general_ledger" t-att-data-bs-account-id="account_data[account]['id']">General Ledger</a>
-                                </li>
-                            </ul>
-                        </div>
-                    </td>
-                    <td class="ks_amt"><t t-raw="account_data[account]['initial_debit']"/></td>
-                    <td class="ks_amt"><t t-raw="account_data[account]['initial_credit']"/></td>
-<!--                    <td class="ks_amt bld"><t t-raw="account_data[account]['initial_balance']"/></td>-->
-                    <td class="ks_amt"><t t-raw="account_data[account]['debit']"/></td>
-                    <td class="ks_amt"><t t-raw="account_data[account]['credit']"/></td>
-<!--                    <td class="ks_amt bld"><t t-raw="account_data[account]['balance']"/></td>-->
-                    <td class="ks_amt"><t t-raw="account_data[account]['ending_debit']"/></td>
-                    <td class="ks_amt"><t t-raw="account_data[account]['ending_credit']"/></td>
-<!--                    <td class="ks_amt bld"><t t-raw="account_data[account]['ending_balance']"/></td>-->
-                </tr>
-            </t>
-        </t>
-    </t>
-</t>
-
-
-
-                <t t-foreach="subtotal" t-as="account">
-                    <tr class="ks_py-mline" data-bs-toggle="collapse"
-                        t-attf-data-bs-id=".a{{subtotal[account]['id']}}">
-                        <td class="bld">
-                            <t t-esc="subtotal[account]['name']" />
-                        </td>
-                        <td class="">
-                            <t t-raw="subtotal[account]['initial_debit']" />
-                        </td>
-                        <td class="">
-                            <t t-raw="subtotal[account]['initial_credit']" />
-                        </td>
-<!--                        <td class="ks_amt bld">-->
-<!--                            <t t-raw="subtotal[account]['initial_balance']" />-->
-<!--                        </td>-->
-                        <td class="">
-                            <t t-raw="subtotal[account]['debit']" />
-                        </td>
-                        <td class="">
-                            <t t-raw="subtotal[account]['credit']" />
-                        </td>
-<!--                        <td class="ks_amt bld">-->
-<!--                            <t t-raw="subtotal[account]['balance']" />-->
-<!--                        </td>-->
-                        <td class="">
-                            <t t-raw="subtotal[account]['ending_debit']" />
-                        </td>
-                        <td class="">
-                            <t t-raw="subtotal[account]['ending_credit']" />
-                        </td>
-<!--                        <td class="ks_amt bld">-->
-<!--                            <t t-raw="subtotal[account]['ending_balance']" />-->
-<!--                        </td>-->
+        <div class="container-fluid my-4">
+            <table id="data-bs-lines" class="ks_table_4 table border" cellspacing="0" width="100%">
+                <thead class="ks_thead">
+                    <tr>
+                        <th colspan="1"></th>
+                        <th class="ks_in_bal" colspan="2">
+                            <span>Initial Balance</span>
+                        </th>
+                        <th class="ks_to_dates" colspan="2">
+                            <span>
+                                <t t-esc="ks_df_new_start_report_opt"/>
+                                to
+                                <t t-esc="ks_df_new_end_report_opt"/>
+                            </span>
+                        </th>
+                        <th class="ks_Ending_Bal" colspan="2">
+                            <span>Ending Balance</span>
+                        </th>
                     </tr>
-                </t>
-            </tbody>
-        </table>
-    </div>
-</t>
+                    <tr>
+                        <th class="ks_color_th_1">Account</th>
+                        <th class="ks_color_th_2">Debit</th>
+                        <th class="ks_color_th_2">Credit</th>
+                        <!--                    <th class="ks_color_th_2">Balance</th>-->
+                        <th class="ks_color_th_3">Debit</th>
+                        <th class="ks_color_th_3">Credit</th>
+                        <!--                    <th class="ks_color_th_3">Balance</th>-->
+                        <th class="ks_color_th_4">Debit</th>
+                        <th class="ks_color_th_4">Credit</th>
+                        <!--                    <th class="ks_color_th_4">Balance</th>-->
+                    </tr>
+                </thead>
+                <tbody class="border">
 
 
+                    <t t-set="grouped_data" t-value="{}"/>
 
+                    <t t-set="grouped_data" t-value="{}"/>
+
+                    <t t-foreach="account_data" t-as="acc">
+                        <t t-set="clean_main_name" t-value="account_data[acc]['main_type'] or 'Other'"/>
+                        <t t-set="clean_acct_name" t-value="account_data[acc]['account_type'] or 'General'"/>
+                        <t t-set="clean_sub_name" t-value="account_data[acc]['sub_type'] or 'All_Accounts'"/>
+
+                        <t t-set="main"
+                           t-value="('' + clean_main_name)
+               .replaceAll(' ', '_').replace('(', '_').replace(')', '_')
+               .replace('.', '_').replace('/', '_').replace('-', '_').replace('&amp;', '_')"/>
+                        <t t-set="acct"
+                           t-value="('' + clean_acct_name)
+               .replaceAll(' ', '_').replace('(', '_').replace(')', '_')
+               .replace('.', '_').replace('/', '_').replace('-', '_').replace('&amp;', '_')"/>
+                        <t t-set="sub"
+                           t-value="('' + clean_sub_name)
+               .replaceAll(' ', '_').replace('(', '_').replace(')', '_')
+               .replace('.', '_').replace('/', '_').replace('-', '_').replace('&amp;', '_')"/>
+
+                        <t t-if="!grouped_data[main]">
+                            <t t-set="grouped_data[main]"
+                               t-value="{'total': {}, 'groups': {}, 'display_name': clean_main_name}"/>
+                        </t>
+                        <t t-set="main_group" t-value="grouped_data[main]"/>
+
+                        <t t-if="!main_group['groups'][acct]">
+                            <t t-set="main_group['groups'][acct]"
+                               t-value="{'total': {}, 'groups': {}, 'display_name': clean_acct_name}"/>
+                        </t>
+                        <t t-set="acct_group" t-value="main_group['groups'][acct]"/>
+
+                        <t t-if="!acct_group['groups'][sub]">
+                            <t t-set="acct_group['groups'][sub]"
+                               t-value="{'total': {}, 'accounts': [], 'display_name': clean_sub_name}"/>
+                        </t>
+                        <t t-set="sub_group" t-value="acct_group['groups'][sub]"/>
+
+                        <t t-set="sub_group['accounts']"
+                           t-value="sub_group['accounts'].concat([acc])"/>
+
+                        <t t-set="fields"
+                           t-value="['initial_debit', 'initial_credit', 'initial_balance', 'debit', 'credit', 'balance', 'ending_debit', 'ending_credit', 'ending_balance']"/>
+                        <t t-foreach="fields" t-as="field">
+                            <t t-set="value" t-value="account_data[acc][field] or 0.0"/>
+
+                            <t t-set="main_group['total'][field]"
+                               t-value="(main_group['total'][field] or 0.0) + value"/>
+                            <t t-set="acct_group['total'][field]"
+                               t-value="(acct_group['total'][field] or 0.0) + value"/>
+                            <t t-set="sub_group['total'][field]" t-value="(sub_group['total'][field] or 0.0) + value"/>
+                        </t>
+                    </t>
+
+                    <t t-foreach="grouped_data" t-as="main_group_name">
+                        <t t-set="main_group" t-value="grouped_data[main_group_name]"/>
+                        <t t-set="main_target" t-value="'main-' + main_group_name"/>
+
+                        <tr style="background:#F3F0FF; cursor:pointer;"
+                            data-bs-toggle="collapse"
+                            t-att-data-bs-target="'.' + main_target"
+                            t-att-id="main_target + '-header'">
+                            <td style="padding-left:0px;">
+                                <strong>
+                                    <t t-esc="main_group['display_name']"/>
+                                </strong>
+                            </td>
+                            <td class="ks_amt ks_total_init_debit">
+                                <t t-esc="main_group['total']['initial_debit']"/>
+                            </td>
+                            <td class="ks_amt ks_total_init_credit">
+                                <t t-esc="main_group['total']['initial_credit']"/>
+                            </td>
+                            <!--        <td class="ks_amt bld ks_total_init_balance"><t t-esc="main_group['total']['initial_balance']"/></td>-->
+                            <td class="ks_amt ks_total_debit">
+                                <t t-esc="main_group['total']['debit']"/>
+                            </td>
+                            <td class="ks_amt ks_total_credit">
+                                <t t-esc="main_group['total']['credit']"/>
+                            </td>
+                            <!--        <td class="ks_amt bld ks_total_balance"><t t-esc="main_group['total']['balance']"/></td>-->
+                            <td class="ks_amt ks_total_end_debit">
+                                <t t-esc="main_group['total']['ending_debit']"/>
+                            </td>
+                            <td class="ks_amt ks_total_end_credit">
+                                <t t-esc="main_group['total']['ending_credit']"/>
+                            </td>
+                            <!--        <td class="ks_amt bld ks_total_end_balance"><t t-esc="main_group['total']['ending_balance']"/></td>-->
+                        </tr>
+
+                        <t t-foreach="main_group['groups']" t-as="acct_group_name">
+                            <t t-set="acct_group" t-value="main_group['groups'][acct_group_name]"/>
+                            <t t-set="acct_target" t-value="'acct-' + main_group_name + '-' + acct_group_name"/>
+
+                            <!--                    t-att-data-bs-target="'.' + acct_target"-->
+
+
+                            <tr style="background:#F0F8FF; cursor:pointer;"
+                                data-bs-toggle="collapse"
+                                t-att-class="main_target + ' collapse'"
+                                t-att-id="acct_target + '-header'">
+                                <td style="padding-left:20px;">
+                                    <strong>
+                                        <t t-esc="acct_group['display_name']"/>
+                                    </strong>
+                                </td>
+                                <td class="ks_amt ks_total_init_debit">
+                                    <t t-esc="acct_group['total']['initial_debit']"/>
+                                </td>
+                                <td class="ks_amt ks_total_init_credit">
+                                    <t t-esc="acct_group['total']['initial_credit']"/>
+                                </td>
+                                <!--            <td class="ks_amt bld ks_total_init_balance"><t t-esc="acct_group['total']['initial_balance']"/></td>-->
+                                <td class="ks_amt ks_total_debit">
+                                    <t t-esc="acct_group['total']['debit']"/>
+                                </td>
+                                <td class="ks_amt ks_total_credit">
+                                    <t t-esc="acct_group['total']['credit']"/>
+                                </td>
+                                <!--            <td class="ks_amt bld ks_total_balance"><t t-esc="acct_group['total']['balance']"/></td>-->
+                                <td class="ks_amt ks_total_end_debit">
+                                    <t t-esc="acct_group['total']['ending_debit']"/>
+                                </td>
+                                <td class="ks_amt ks_total_end_credit">
+                                    <t t-esc="acct_group['total']['ending_credit']"/>
+                                </td>
+                                <!--            <td class="ks_amt bld ks_total_end_balance"><t t-esc="acct_group['total']['ending_balance']"/></td>-->
+                            </tr>
+
+                            <t t-foreach="acct_group['groups']" t-as="sub_group_name">
+                                <t t-set="sub_group" t-value="acct_group['groups'][sub_group_name]"/>
+                                <t t-set="sub_target"
+                                   t-value="'sub-' + main_group_name + '-' + acct_group_name + '-' + sub_group_name"/>
+
+
+                                <!--                t-att-data-bs-target="'.' + sub_target"-->
+
+                                <tr style="background:#F5FFFA; cursor:pointer;"
+                                    data-bs-toggle="collapse"
+                                    t-att-class="acct_target + ' ' + main_target + ' collapse'"
+                                    t-att-id="sub_target + '-header'">
+                                    <td style="padding-left:40px;">
+                                        <strong>
+                                            <t t-esc="sub_group['display_name']"/>
+                                        </strong>
+                                    </td>
+                                    <td class="ks_amt ks_total_init_debit">
+                                        <t t-esc="sub_group['total']['initial_debit']"/>
+                                    </td>
+                                    <td class="ks_amt ks_total_init_credit">
+                                        <t t-esc="sub_group['total']['initial_credit']"/>
+                                    </td>
+                                    <!--                <td class="ks_amt bld ks_total_init_balance"><t t-esc="sub_group['total']['initial_balance']"/></td>-->
+                                    <td class="ks_amt ks_total_debit">
+                                        <t t-esc="sub_group['total']['debit']"/>
+                                    </td>
+                                    <td class="ks_amt ks_total_credit">
+                                        <t t-esc="sub_group['total']['credit']"/>
+                                    </td>
+                                    <!--                <td class="ks_amt bld ks_total_balance"><t t-esc="sub_group['total']['balance']"/></td>-->
+                                    <td class="ks_amt ks_total_end_debit">
+                                        <t t-esc="sub_group['total']['ending_debit']"/>
+                                    </td>
+                                    <td class="ks_amt ks_total_end_credit">
+                                        <t t-esc="sub_group['total']['ending_credit']"/>
+                                    </td>
+                                    <!--                <td class="ks_amt bld ks_total_end_balance"><t t-esc="sub_group['total']['ending_balance']"/></td>-->
+                                </tr>
+
+                                <t t-foreach="sub_group['accounts']" t-as="account">
+                                    <tr t-att-class="sub_target + ' ' + acct_target + ' ' + main_target + ' collapse'">
+                                        <td style="padding-left:60px;">
+                                            <div class="dropdown">
+                                                <a data-bs-toggle="dropdown" href="#">
+                                                    <span t-att-data-bs-account-id="account_data[account]['id']">
+                                                        <t t-esc="account_data[account]['code']"/>
+                                                        -
+                                                        <t t-esc="account_data[account]['name']"/>
+                                                    </span>
+                                                    <i class="fa fa-angle-down" role="img" aria-label="Unfolded"
+                                                       title="Unfolded"></i>
+                                                </a>
+                                                <ul class="dropdown-menu p-2">
+                                                    <li>
+                                                        <a class="ks_view-source" action="ks_show_df_journal_items"
+                                                           t-att-data-bs-account-id="account_data[account]['id']">
+                                                            Journal Items
+                                                        </a>
+                                                    </li>
+                                                    <li>
+                                                        <a class="ks_view-source" action="ks_show_df_general_ledger"
+                                                           t-att-data-bs-account-id="account_data[account]['id']">
+                                                            General Ledger
+                                                        </a>
+                                                    </li>
+                                                </ul>
+                                            </div>
+                                        </td>
+                                        <td class="ks_amt">
+                                            <t t-raw="account_data[account]['initial_debit']"/>
+                                        </td>
+                                        <td class="ks_amt">
+                                            <t t-raw="account_data[account]['initial_credit']"/>
+                                        </td>
+                                        <!--                    <td class="ks_amt bld"><t t-raw="account_data[account]['initial_balance']"/></td>-->
+                                        <td class="ks_amt">
+                                            <t t-raw="account_data[account]['debit']"/>
+                                        </td>
+                                        <td class="ks_amt">
+                                            <t t-raw="account_data[account]['credit']"/>
+                                        </td>
+                                        <!--                    <td class="ks_amt bld"><t t-raw="account_data[account]['balance']"/></td>-->
+                                        <td class="ks_amt">
+                                            <t t-raw="account_data[account]['ending_debit']"/>
+                                        </td>
+                                        <td class="ks_amt">
+                                            <t t-raw="account_data[account]['ending_credit']"/>
+                                        </td>
+                                        <!--                    <td class="ks_amt bld"><t t-raw="account_data[account]['ending_balance']"/></td>-->
+                                    </tr>
+                                </t>
+                            </t>
+                        </t>
+                    </t>
+
+
+                    <t t-foreach="subtotal" t-as="account">
+                        <tr class="ks_py-mline" data-bs-toggle="collapse"
+                            t-attf-data-bs-id=".a{{subtotal[account]['id']}}">
+                            <td class="bld">
+                                <t t-esc="subtotal[account]['name']"/>
+                            </td>
+                            <td class="">
+                                <t t-raw="subtotal[account]['initial_debit']"/>
+                            </td>
+                            <td class="">
+                                <t t-raw="subtotal[account]['initial_credit']"/>
+                            </td>
+                            <!--                        <td class="ks_amt bld">-->
+                            <!--                            <t t-raw="subtotal[account]['initial_balance']" />-->
+                            <!--                        </td>-->
+                            <td class="">
+                                <t t-raw="subtotal[account]['debit']"/>
+                            </td>
+                            <td class="">
+                                <t t-raw="subtotal[account]['credit']"/>
+                            </td>
+                            <!--                        <td class="ks_amt bld">-->
+                            <!--                            <t t-raw="subtotal[account]['balance']" />-->
+                            <!--                        </td>-->
+                            <td class="">
+                                <t t-raw="subtotal[account]['ending_debit']"/>
+                            </td>
+                            <td class="">
+                                <t t-raw="subtotal[account]['ending_credit']"/>
+                            </td>
+                            <!--                        <td class="ks_amt bld">-->
+                            <!--                            <t t-raw="subtotal[account]['ending_balance']" />-->
+                            <!--                        </td>-->
+                        </tr>
+                    </t>
+                </tbody>
+            </table>
+        </div>
+    </t>
 
 
     <t t-name="ks_df_cj0">

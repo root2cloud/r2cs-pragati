@@ -608,7 +608,6 @@ class ks_dynamic_financial_base(models.Model):
 
                             fy_debit, fy_credit = self.env.cr.fetchone() or (0.0, 0.0)
 
-
                     if is_balance_sheet:
                         ks_vals['debit'] = fy_debit
                         ks_vals['credit'] = fy_credit
@@ -873,29 +872,70 @@ class ks_dynamic_financial_base(models.Model):
             else:
                 KS_WHERE_CURRENT = WHERE + " AND l.date <= '%s'" % ks_end_date
 
+            # sql_current = ('''
+            #     SELECT
+            #         l.id AS lid,
+            #         l.date AS ldate,
+            #         j.code AS lcode,
+            #         p.name AS partner_name,
+            #         m.name AS move_name,
+            #         l.narration AS lname,
+            #         l.is_brs_cleared,  -- <=== ADD THIS LINE
+            #         COALESCE(l.debit,0) AS debit,
+            #         COALESCE(l.credit,0) AS credit,
+            #         (l.debit - l.credit) AS balance_change, -- Use a temporary alias for the change
+            #         COALESCE(l.amount_currency,0) AS amount_currency
+            #     FROM account_move_line l
+            #     JOIN account_move m ON (l.move_id=m.id)
+            #     JOIN account_account a ON (l.account_id=a.id)
+            #     LEFT JOIN res_currency c ON (l.currency_id=c.id)
+            #     LEFT JOIN res_currency cc ON (l.company_currency_id=cc.id)
+            #     LEFT JOIN res_partner p ON (l.partner_id=p.id)
+            #     JOIN account_journal j ON (l.journal_id=j.id)
+            #     WHERE %s AND a.code = %%s
+            #     ORDER BY l.date,l.create_date,l.id
+            # ''') % KS_WHERE_CURRENT
+            # --- MODIFIED SQL QUERY START ---
             sql_current = ('''
-                SELECT
-                    l.id AS lid,
-                    l.date AS ldate,
-                    j.code AS lcode,
-                    p.name AS partner_name,
-                    m.name AS move_name,
-                    l.name AS lname,
-                    COALESCE(l.debit,0) AS debit,
-                    COALESCE(l.credit,0) AS credit,
-                    (l.debit - l.credit) AS balance_change, -- Use a temporary alias for the change
-                    COALESCE(l.amount_currency,0) AS amount_currency
-                FROM account_move_line l
-                JOIN account_move m ON (l.move_id=m.id)
-                JOIN account_account a ON (l.account_id=a.id)
-                LEFT JOIN res_currency c ON (l.currency_id=c.id)
-                LEFT JOIN res_currency cc ON (l.company_currency_id=cc.id)
-                LEFT JOIN res_partner p ON (l.partner_id=p.id)
-                JOIN account_journal j ON (l.journal_id=j.id)
-                WHERE %s AND a.code = %%s
-                ORDER BY l.date,l.create_date,l.id
-            ''') % KS_WHERE_CURRENT
+                            SELECT
+                                l.id AS lid,
+                                l.date AS ldate,
+                                j.code AS lcode,
+                                p.name AS partner_name,
+                                m.name AS move_name,
+                                l.narration AS lname,  
+                                l.is_brs_cleared,
 
+                                -- NEW: Formatted String (Name : Amount (Dr/Cr))
+                                (
+                                    SELECT string_agg(
+                                        -- Format: "Code Name: Amount (Dr/Cr)"
+                                        aa.code || ' ' || aa.name || ': ' || 
+                                        TO_CHAR(ABS(aml_temp.debit - aml_temp.credit), 'FM999,999,999.00') || 
+                                        CASE WHEN (aml_temp.debit - aml_temp.credit) >= 0 THEN ' (Dr)' ELSE ' (Cr)' END, 
+                                        ', '
+                                    )
+                                    FROM account_move_line aml_temp
+                                    JOIN account_account aa ON aa.id = aml_temp.account_id
+                                    WHERE aml_temp.move_id = l.move_id
+                                    AND aml_temp.id != l.id
+                                ) AS corresponding_accounts,
+                                -- END NEW
+
+                                COALESCE(l.debit,0) AS debit,
+                                COALESCE(l.credit,0) AS credit,
+                                (l.debit - l.credit) AS balance_change,
+                                COALESCE(l.amount_currency,0) AS amount_currency
+                            FROM account_move_line l
+                            JOIN account_move m ON (l.move_id=m.id)
+                            JOIN account_account a ON (l.account_id=a.id)
+                            LEFT JOIN res_currency c ON (l.currency_id=c.id)
+                            LEFT JOIN res_currency cc ON (l.company_currency_id=cc.id)
+                            LEFT JOIN res_partner p ON (l.partner_id=p.id)
+                            JOIN account_journal j ON (l.journal_id=j.id)
+                            WHERE %s AND a.code = %%s
+                            ORDER BY l.date,l.create_date,l.id
+                        ''') % KS_WHERE_CURRENT
             cr.execute(sql_current, (ks_code,))  # Execute with parameter substitution
 
             ks_current_lines = cr.dictfetchall()
@@ -2688,7 +2728,7 @@ class ks_dynamic_financial_base(models.Model):
                         j.code AS lcode,
                         l.currency_id,
                         --l.ref AS lref,
-                        l.name AS lname,
+                        l.narration AS lname,
                         m.id AS move_id,
                         m.name AS move_name,
                         c.symbol AS currency_symbol,
@@ -2784,10 +2824,11 @@ class ks_dynamic_financial_base(models.Model):
                     j.code AS lcode,
                     l.currency_id,
                     --l.ref AS lref,
-                    l.name AS lname,
+                    l.narration AS lname,
                     m.id AS move_id,
                     m.state AS move_state, 
                     m.name AS move_name,
+                    l.is_brs_cleared,   -- <=== ADD THIS LINE HERE
                     c.symbol AS currency_symbol,
                     c.position AS currency_position,
                     c.rounding AS currency_precision,
@@ -2808,7 +2849,7 @@ class ks_dynamic_financial_base(models.Model):
                 LEFT JOIN res_partner p ON (l.partner_id=p.id)
                 JOIN account_journal j ON (l.journal_id=j.id)
                 WHERE %s
-                GROUP BY l.id, l.account_id, l.date, j.code, l.currency_id, l.amount_currency, l.name, m.id, m.name, c.rounding, cc.id, cc.rounding, cc.position, c.position, c.symbol, cc.symbol, p.name
+                GROUP BY l.id, l.account_id, l.date, j.code, l.currency_id, l.amount_currency, l.name, m.id, m.name,l.is_brs_cleared, c.rounding, cc.id, cc.rounding, cc.position, c.position, c.symbol, cc.symbol, p.name
                 ORDER BY %s
                 OFFSET %s ROWS
                 FETCH FIRST %s ROWS ONLY
@@ -3408,7 +3449,7 @@ class ks_dynamic_financial_base(models.Model):
                                 l.currency_id,
                                 l.amount_currency,
                                 --l.ref AS lref,
-                                l.name AS lname,
+                                l.narration AS lname,
                                 m.id AS move_id,
                                 m.name AS move_name,
                                 c.symbol AS currency_symbol,
@@ -3487,7 +3528,7 @@ class ks_dynamic_financial_base(models.Model):
                             l.currency_id,
                             l.amount_currency,
                             --l.ref AS lref,
-                            l.name AS lname,
+                            l.narration AS lname,
                             m.id AS move_id,
                             m.name AS move_name,
                             c.symbol AS currency_symbol,
@@ -4299,6 +4340,7 @@ class ks_dynamic_financial_base(models.Model):
                 info['ks_report_lines'] = new_lines
 
         return info
+
     # Get journal filters from model account.journal
     @api.model
     def ks_fetch_journal_filters(self):

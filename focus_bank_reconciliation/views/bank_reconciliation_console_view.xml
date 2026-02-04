@@ -1,0 +1,223 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_bank_reconciliation_console_form" model="ir.ui.view">
+        <field name="name">bank.reconciliation.console.form</field>
+        <field name="model">bank.reconciliation.console</field>
+        <field name="arch" type="xml">
+            <form string="Bank Reconciliation">
+                <style>
+
+                </style>
+                <sheet>
+                    <div class="oe_title">
+                        <h1>Bank Reconciliation</h1>
+                    </div>
+
+                    <group>
+                        <group>
+                            <field name="bank_journal_id" widget="selection"/>
+                            <field name="transaction_type" widget="radio" options="{'horizontal': true}"/>
+                            <field name="status_filter" widget="radio" options="{'horizontal': true}"/>
+                        </group>
+                        <group>
+                            <field name="date_from"/>
+                            <field name="date_to"/>
+                            <field name="search_text" placeholder="Search..." widget="text"/>
+                            <field name="currency_id" invisible="1"/>
+                        </group>
+                    </group>
+
+                    <div class="text-center mb-3">
+                        <button name="action_load_transactions" string="Load Transactions" type="object"
+                                class="btn-primary" icon="fa-refresh"/>
+                    </div>
+
+                    <field name="line_ids" class="hide_delete_button force_hide_add_button"
+                           options="{'no_open': True, 'no_create': True, 'no_create_edit': True}">
+                        <tree string="Transactions"
+                              default_order="date asc"
+                              create="0"
+                              delete="0"
+                              editable="false"
+                              limit="100000"
+                              decoration-muted="is_brs_cleared==True"
+                              decoration-bf="is_brs_cleared==True"
+                        >
+                            <field name="brs_serial_no" string="#" width="50px" readonly="1"/>
+                            <field name="is_brs_cleared" invisible="1"/>
+                            <button name="action_brs_clear_item"
+                                    type="object"
+                                    string="Pending"
+                                    class="btn btn-outline-warning btn-md rounded-pill shadow fw-bold px-1 py-1"
+                                    icon="fa-hourglass-o"
+                                    attrs="{'invisible': [('is_brs_cleared', '=', True)]}"/>
+
+
+                            <button name="action_brs_revert_item"
+                                    type="object"
+                                    string="Cleared"
+                                    class="btn btn-outline-success btn-md rounded-pill shadow fw-bold px-1 py-1"
+                                    icon="fa-check-square"
+                                    attrs="{'invisible': [('is_brs_cleared', '=', False)]}"/>
+
+                            <field name="brs_clearance_date" string="Clearance Date" widget="date"
+                                   attrs="{'readonly': [('is_brs_cleared', '=', False)]}"/>
+
+                            <field name="move_name" string="Document No" readonly="1"/>
+
+                            <field name="date" string="Document Date" readonly="1"/>
+
+                            <field name="debit" readonly="1" string="Debit Amount"
+                                   attrs="{'column_invisible': [('parent.transaction_type', '=', 'credit')]}"/>
+
+                            <field name="credit" readonly="1" string="Credit Amount"
+                                   attrs="{'column_invisible': [('parent.transaction_type', '=', 'debit')]}"/>
+
+                            <field name="cheque_number" string="Cheque No" readonly="1"/>
+
+                            <field name="brs_document_type" string="Document Type" readonly=""/>
+
+                            <field name="narration" string="Narration" readonly="1"/>
+
+                            <field name="brs_counterpart_account" string="Account" readonly="1"/>
+
+                        </tree>
+                    </field>
+
+                    <separator string="Reconciliation Summary" class="mt-4"/>
+
+                    <div class="container-fluid"
+                         style="background-color: #f9f9f9; border: 1px solid #ddd; padding: 15px; border-radius: 4px;">
+                        <div class="row">
+
+                            <div class="col-3" style="border-right: 2px solid #ccc; padding-right: 15px;">
+                                <div class="row">
+                                    <div class="col-6">
+                                        <strong>Book Balance:</strong>
+                                    </div>
+                                    <div class="col-6 text-end">
+                                        <field name="book_balance" widget="monetary"
+                                               options="{'currency_field': 'currency_id'}" nolabel="1"
+                                               style="font-weight: bold;"/>
+                                    </div>
+                                </div>
+                                <div class="row mt-2">
+                                    <div class="col-6">
+                                        <strong>Opening Balance:</strong>
+                                    </div>
+                                    <div class="col-6 text-end">
+                                        <field name="opening_balance" widget="monetary"
+                                               options="{'currency_field': 'currency_id'}" nolabel="1"
+                                               style="color: black;"/>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="col-3"
+                                 style="border-right: 2px solid #ccc; padding-left: 15px; padding-right: 15px;">
+                                <div class="row">
+                                    <div class="col-7">
+                                        <strong>Out Debits :</strong>
+                                    </div>
+                                    <div class="col-5 text-end">
+                                        <field name="uncleared_debit_amount" widget="monetary"
+                                               options="{'currency_field': 'currency_id'}" nolabel="1"
+                                               style="color: #d9534f;"/>
+                                    </div>
+                                </div>
+                                <div class="row mt-2">
+                                    <div class="col-7">
+                                        <strong>Debits Count :</strong>
+                                    </div>
+                                    <div class="col-5 text-end">
+                                        <field name="uncleared_debit_count" nolabel="1"
+                                               style="font-weight: bold; color: black;"/>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="col-3"
+                                 style="border-right: 2px solid #ccc; padding-left: 15px; padding-right: 15px;">
+                                <div class="row">
+                                    <div class="col-7">
+                                        <strong>Out Credits:</strong>
+                                    </div>
+                                    <div class="col-5 text-end">
+                                        <field name="uncleared_credit_amount" widget="monetary"
+                                               options="{'currency_field': 'currency_id'}" nolabel="1"
+                                               style="color: green;"/>
+                                    </div>
+                                </div>
+                                <div class="row mt-2">
+                                    <div class="col-7">
+                                        <strong>Credits Count:</strong>
+                                    </div>
+                                    <div class="col-5 text-end">
+                                        <field name="uncleared_credit_count" nolabel="1"
+                                               style="font-weight: bold; color: black;"/>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="col-3" style="padding-left: 15px;">
+                                <div class="row">
+                                    <div class="col-6">
+                                        <strong>Cleared Balance:</strong>
+                                    </div>
+                                    <div class="col-6 text-end">
+                                        <field name="cleared_balance" widget="monetary"
+                                               options="{'currency_field': 'currency_id'}" nolabel="1"
+                                               style="font-weight: bold; font-size: 1.1em; color: #2e6b30;"/>
+                                    </div>
+                                </div>
+                                <div class="row mt-1">
+                                    <div class="col-6">
+                                        <strong>Bank Balance:</strong>
+                                    </div>
+                                    <div class="col-6 text-end">
+                                        <field name="balance_end_real" widget="monetary"
+                                               options="{'currency_field': 'currency_id'}" nolabel="1"
+                                               style="border-bottom: 1px solid #ccc;"/>
+                                    </div>
+                                </div>
+                                <div class="row mt-2">
+                                    <div class="col-6">
+                                        <strong>Difference:</strong>
+                                    </div>
+                                    <div class="col-6 text-end">
+                                        <field name="unreconciled_variance" widget="monetary"
+                                               options="{'currency_field': 'currency_id'}" nolabel="1"
+                                               decoration-danger="unreconciled_variance != 0"
+                                               decoration-success="unreconciled_variance == 0"
+                                               style="font-weight: bold;"/>
+                                    </div>
+                                </div>
+                            </div>
+
+                        </div>
+
+                        <div class="row mt-3">
+                            <div class="col-12 text-center">
+                                <button name="action_recalculate_balances" string="Re-Calculate Balances" type="object"
+                                        class="btn btn-secondary btn-sm" icon="fa-calculator"/>
+                            </div>
+                        </div>
+                    </div>
+
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+
+    <record id="action_bank_reconciliation_console" model="ir.actions.act_window">
+        <field name="name">Bank Reconciliation</field>
+        <field name="res_model">bank.reconciliation.console</field>
+        <field name="view_mode">form</field>
+        <field name="target">inline</field>
+    </record>
+    <menuitem id="menu_bank_reconciliation_root" name="Bank Reconciliation" parent="account.menu_finance_entries"
+              sequence="55"/>
+    <menuitem id="menu_bank_reconciliation_console" name="Bank Reconciliation"
+              action="action_bank_reconciliation_console" parent="menu_bank_reconciliation_root" sequence="1"/>
+</odoo>

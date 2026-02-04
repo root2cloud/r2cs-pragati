@@ -38,6 +38,8 @@ class LedgerPayment(models.Model):
                               ('recocile', 'Reconciled'), ('cancel', 'Cancelled')], default='draft')
     ledger_or_bill = fields.Selection([('ledger', 'Ledger'), ('bill', 'Bill')], default='ledger')
     company_id = fields.Many2one('res.company', 'Company', default=lambda self: self.env.company)
+    narration = fields.Char(string='Narration')
+    cheque_number = fields.Char(string='Cheque Number')
 
     def _compute_journal_count(self):
         for rec in self:
@@ -158,6 +160,8 @@ class LedgerPayment(models.Model):
                 'ledger_payment_id': record.id,
 
                 'state': 'draft',  # Keep journal entry in draft state
+                'payment_narration': record.narration,  # <--- NEW LOCATION
+                'cheque_number': record.cheque_number,
             })
 
             # Create journal items for the entry
@@ -306,6 +310,8 @@ class LedgerPayment(models.Model):
             'date': self.date,
             'ref': self.name,
             'journal_id': self.journal_id.id,
+            'payment_narration': self.narration,  # <--- NEW LOCATION
+            'cheque_number': self.cheque_number,
         })
 
         # Update the journal items based on the new ledger payment data
