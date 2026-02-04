@@ -15,6 +15,7 @@ class KsDynamicFinancialXlsxGLInherit(models.Model):
         and include Company Name, with renamed columns:
         - 'Move' → 'Ref No'
         - 'Entry Label' → 'Narration'
+        - Added 'Corresp. Acc' column
 
         Now includes Initial Balance section at top with Initial Balance, Debit, Credit, Balance columns
         """
@@ -36,11 +37,12 @@ class KsDynamicFinancialXlsxGLInherit(models.Model):
         sheet.set_column(2, 2, 30)  # Partner
         sheet.set_column(3, 3, 18)  # Ref No
         sheet.set_column(4, 4, 50)  # Narration
-        sheet.set_column(5, 5, 20)  # Initial Balance
-        sheet.set_column(6, 6, 15)  # Debit
-        sheet.set_column(7, 7, 15)  # Credit
-        sheet.set_column(8, 8, 15)  # Balance
-        sheet.set_column(9, 9, 25)  # Company Name
+        sheet.set_column(5, 5, 40)  # NEW: Corresponding Accounts
+        sheet.set_column(6, 6, 20)  # Initial Balance (Shifted)
+        sheet.set_column(7, 7, 15)  # Debit (Shifted)
+        sheet.set_column(8, 8, 15)  # Credit (Shifted)
+        sheet.set_column(9, 9, 15)  # Balance (Shifted)
+        sheet.set_column(10, 10, 25)  # Company Name (Shifted)
 
         # Formats
         header_fmt = workbook.add_format({'bold': True, 'align': 'center', 'font_size': 10, 'font': 'Arial'})
@@ -60,11 +62,12 @@ class KsDynamicFinancialXlsxGLInherit(models.Model):
         sheet.write(row, 2, _('Partner'), header_fmt)
         sheet.write(row, 3, _('Ref No'), header_fmt)
         sheet.write(row, 4, _('Narration'), header_fmt)
-        sheet.write(row, 5, _('Initial Balance'), header_fmt)
-        sheet.write(row, 6, _('Debit'), header_fmt)
-        sheet.write(row, 7, _('Credit'), header_fmt)
-        sheet.write(row, 8, _('Balance'), header_fmt)
-        sheet.write(row, 9, _('Company'), header_fmt)
+        sheet.write(row, 5, _('Corresponding Accounts'), header_fmt)  # NEW COLUMN
+        sheet.write(row, 6, _('Initial Balance'), header_fmt)
+        sheet.write(row, 7, _('Debit'), header_fmt)
+        sheet.write(row, 8, _('Credit'), header_fmt)
+        sheet.write(row, 9, _('Balance'), header_fmt)
+        sheet.write(row, 10, _('Company'), header_fmt)
         row += 1
 
         # Ensure valid data
@@ -77,7 +80,7 @@ class KsDynamicFinancialXlsxGLInherit(models.Model):
         for account_key, account_data in move_lines[0].items():
             # Account header
             account_name = f"{account_data.get('code')} - {account_data.get('name')}"
-            sheet.merge_range(row, 0, row, 9, account_name, cell_left)
+            sheet.merge_range(row, 0, row, 10, account_name, cell_left)  # Merged across all 11 columns
             row += 1
 
             # ✅ EXTRACT INITIAL BALANCE VALUES
@@ -128,17 +131,16 @@ class KsDynamicFinancialXlsxGLInherit(models.Model):
             sheet.write(row, 2, '', cell_left)
             sheet.write(row, 3, '', cell_left)
             sheet.write(row, 4, _('Initial Balance'), header_light_fmt)
-            sheet.write_number(row, 5, initial_balance, num_fmt)  # ✅ Initial Balance
-            sheet.write_number(row, 6, initial_debit, num_fmt)  # ✅ Debit (accumulated)
-            sheet.write_number(row, 7, initial_credit, num_fmt)  # ✅ Credit (accumulated)
-            sheet.write_number(row, 8, initial_balance, num_fmt)  # ✅ Balance (same as initial)
-            sheet.write(row, 9, '', cell_left)
+            sheet.write(row, 5, '', cell_left)  # Empty Corresp Acc
+            sheet.write_number(row, 6, initial_balance, num_fmt)  # ✅ Initial Balance
+            sheet.write_number(row, 7, initial_debit, num_fmt)  # ✅ Debit (accumulated)
+            sheet.write_number(row, 8, initial_credit, num_fmt)  # ✅ Credit (accumulated)
+            sheet.write_number(row, 9, initial_balance, num_fmt)  # ✅ Balance (same as initial)
+            sheet.write(row, 10, '', cell_left)
             row += 1
 
-            # Loop through each line (transaction details)
-            # --- START FIX: Initialize running balance from the correctly calculated initial_balance ---
+            # Initialize running balance
             running_balance = initial_balance
-            # -------------------------------------------------------------------------------------------
 
             # Loop through each line (transaction details)
             for line in account_data.get('lines', []):
@@ -162,19 +164,20 @@ class KsDynamicFinancialXlsxGLInherit(models.Model):
                 sheet.write(row, 2, line.get('partner_name') or '', cell_left)
                 sheet.write(row, 3, line.get('move_name') or '', cell_center)
                 sheet.write(row, 4, line.get('lname') or '', cell_left)
-                sheet.write(row, 5, '', cell_left)  # Empty - Initial Balance column for transaction rows
 
-                sheet.write_number(row, 6, current_debit, num_fmt)
-                sheet.write_number(row, 7, current_credit, num_fmt)
+                # --- NEW COLUMN ---
+                sheet.write(row, 5, line.get('corresponding_accounts') or '', cell_left)
+                # ------------------
 
-                # --- START FIX: Write the manually calculated running_balance ---
-                sheet.write_number(row, 8, running_balance, num_fmt)
-                # --------------------------------------------------------------
+                sheet.write(row, 6, '', cell_left)  # Empty Initial Balance column for transaction rows
+                sheet.write_number(row, 7, current_debit, num_fmt)
+                sheet.write_number(row, 8, current_credit, num_fmt)
+                sheet.write_number(row, 9, running_balance, num_fmt)
 
                 # ✅ Add Company Name
                 move = self.env['account.move'].browse(line.get('move_id')) if line.get('move_id') else False
                 company_name = move.company_id.name if move and move.company_id else (ks_company_id.name or '')
-                sheet.write(row, 9, company_name, cell_left)
+                sheet.write(row, 10, company_name, cell_left)
 
                 row += 1
 
@@ -185,10 +188,11 @@ class KsDynamicFinancialXlsxGLInherit(models.Model):
             sheet.write(row, 3, '', cell_left)
             sheet.write(row, 4, _('Total:'), header_fmt)
             sheet.write(row, 5, '', cell_left)
-            sheet.write_number(row, 6, float(account_data.get('debit', 0)), total_fmt)
-            sheet.write_number(row, 7, float(account_data.get('credit', 0)), total_fmt)
-            sheet.write_number(row, 8, float(account_data.get('balance', 0)), total_fmt)
-            sheet.write(row, 9, '', cell_left)
+            sheet.write(row, 6, '', cell_left)
+            sheet.write_number(row, 7, float(account_data.get('debit', 0)), total_fmt)
+            sheet.write_number(row, 8, float(account_data.get('credit', 0)), total_fmt)
+            sheet.write_number(row, 9, float(account_data.get('balance', 0)), total_fmt)
+            sheet.write(row, 10, '', cell_left)
             row += 2
 
         workbook.close()
