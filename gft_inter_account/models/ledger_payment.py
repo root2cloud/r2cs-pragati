@@ -1,6 +1,14 @@
 from odoo import api, fields, models, _
 from odoo.exceptions import ValidationError, UserError
 
+READONLY_STATES = {
+    'submit': [('readonly', True)],
+    'approve': [('readonly', True)],
+    'post': [('readonly', True)],
+    'recocile': [('readonly', True)],
+    'cancel': [('readonly', True)],
+}
+
 
 class LedgerPayment(models.Model):
     _name = 'ledger.payment'
@@ -8,22 +16,22 @@ class LedgerPayment(models.Model):
     _description = 'Ledger Payment'
 
     # Define fields
-    date = fields.Date(string="Date", default=fields.datetime.now())
+    date = fields.Date(string="Date", default=fields.datetime.now(), states=READONLY_STATES)
     boole = fields.Selection([('send', 'Send'), ('receive', 'Receive')], string="Payment Type", default='send')
-    source_acc = fields.Many2one('account.account', string="Customer Account")
-    dest_acc = fields.Many2one('account.account', string="To Account")
-    amount = fields.Float(string="Amount")
+    source_acc = fields.Many2one('account.account', string="Customer Account", required=True, states=READONLY_STATES)
+    dest_acc = fields.Many2one('account.account', string="To Account", required=True, states=READONLY_STATES)
+    amount = fields.Float(string="Amount", states=READONLY_STATES)
     amount_paid = fields.Float(string="Amount paid")
     journal_id = fields.Many2one(
         'account.journal',
         string="Journal",
         readonly=0,
-        default=lambda self: self._default_journal_id()
-
+        default=lambda self: self._default_journal_id(),
+        required=True,
+        states=READONLY_STATES
     )
     is_complete_trans = fields.Boolean(string='Complete Transaction', default=False)
     transaction_id = fields.Many2one('account.bank.statement.line', string='Trans ID')
-    remarks = fields.Text(string='Remarks')
     name = fields.Char(string='Reference', required=True, copy=False, readonly=True, tracking=True,
                        default=lambda self: _('New'))
     journal_entries = fields.Integer(string='Journal Entries', compute='_compute_journal_count')
@@ -37,9 +45,10 @@ class LedgerPayment(models.Model):
     state = fields.Selection([('draft', 'Draft'), ('submit', 'Submit'), ('approve', 'Approved'), ('post', 'Posted'),
                               ('recocile', 'Reconciled'), ('cancel', 'Cancelled')], default='draft')
     ledger_or_bill = fields.Selection([('ledger', 'Ledger'), ('bill', 'Bill')], default='ledger')
-    company_id = fields.Many2one('res.company', 'Company', default=lambda self: self.env.company)
-    narration = fields.Char(string='Narration')
-    cheque_number = fields.Char(string='Cheque Number')
+    company_id = fields.Many2one('res.company', 'Company', default=lambda self: self.env.company,
+                                 states=READONLY_STATES)
+    narration = fields.Char(string='Narration', states=READONLY_STATES)
+    cheque_number = fields.Char(string='Cheque Number', states=READONLY_STATES)
 
     def _compute_journal_count(self):
         for rec in self:
@@ -50,6 +59,12 @@ class LedgerPayment(models.Model):
     def _default_journal_id(self):
         journal = self.env['account.journal'].search([('name', '=', 'HDFC Bank - 50200023192175')], limit=1)
         return journal.id if journal else None
+
+    @api.constrains('amount')
+    def _check_amount_positive(self):
+        for record in self:
+            if record.amount <= 0:
+                raise UserError(_("The amount must be greater than zero."))
 
     # @api.model_create_multi
     # def create(self, values_list):
@@ -133,7 +148,6 @@ class LedgerPayment(models.Model):
                     sequence = self.env['ir.sequence'].next_by_code('ledger.payment.ledger')
                     if sequence:
                         record.name = sequence
-                        print("pppppppppppppppppp", record.name)
                     else:
                         raise UserError(_("Send sequence not found."))
                 elif record.boole == 'send' and record.ledger_or_bill == 'bill':
