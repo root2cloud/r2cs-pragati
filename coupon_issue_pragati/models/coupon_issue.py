@@ -190,7 +190,10 @@ class CouponIssue(models.Model):
                 'approval_1_date': fields.Datetime.now(),
             })
 
+        self._done_my_activities()
+
         return True
+
 
     def action_approve_level2(self):
         self.ensure_one()
@@ -219,6 +222,7 @@ class CouponIssue(models.Model):
                 'state': 'approved',
                 'approval_2_date': fields.Datetime.now(),
             })
+        self._done_my_activities()
 
         return True
 
@@ -234,6 +238,7 @@ class CouponIssue(models.Model):
             'state': 'approved',
             'approval_3_date': fields.Datetime.now(),
         })
+        self._done_my_activities()
         return True
 
     def action_reject(self):
@@ -257,6 +262,7 @@ class CouponIssue(models.Model):
             'state': 'rejected',
             'rejection_date': fields.Datetime.now(),
         })
+        self._done_my_activities()
         return True
 
     def action_reset_to_draft(self):
@@ -372,6 +378,14 @@ class CouponIssue(models.Model):
         'coupon_issue_id',
         string='Attachments'
     )
+    def _done_my_activities(self):
+        activities = self.env['mail.activity'].search([
+            ('res_model', '=', self._name),
+            ('res_id', '=', self.id),
+            ('user_id', '=', self.env.user.id),
+            ('activity_type_id', '=', self.env.ref('mail.mail_activity_data_todo').id),
+        ])
+        activities.action_done()
 
 
 class CouponIssueAttachment(models.Model):
@@ -397,6 +411,9 @@ class CouponIssueAttachment(models.Model):
                    '&download=false' % self.id,
             'target': 'new',
         }
+
+
+
 
 
 

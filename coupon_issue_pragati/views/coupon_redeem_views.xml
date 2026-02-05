@@ -48,7 +48,9 @@
                             <field name="coupon_issue_id"
                                    attrs="{'readonly': [('state', '!=', 'draft')]}"
                                    placeholder="Select coupon from list..."/>
-                            <field name="no_of_persons"/>
+                            <field name="no_of_persons" invisible="1"/>
+                            <field name="no_of_adults"/>
+                            <field name="no_of_children"/>
 
                         </group>
                         <group>
@@ -56,7 +58,7 @@
                             <field name="coupon_value" readonly="1"/>
                             <field name="coupon_redeem"/>
                             <field name="mobile_number"/>
-                            <field name="designation" />
+                            <field name="designation"/>
                             <field name="remarks"
                                    string="Remarks"/>
                             <field name="redeemed_coupon_ids" invisible="1"/>
