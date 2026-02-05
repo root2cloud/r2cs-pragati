@@ -55,6 +55,14 @@ class CouponRedeem(models.Model):
     designation = fields.Char(string="Coupon Reedem Designation")
     coupon_redeem = fields.Char(string="Coupon Reedemeed BY")
     mobile_number = fields.Char(string="Coupon Reedemeed Mobile Number")
+    no_of_adults = fields.Integer(
+        string="No. of Adults",
+        default=0
+    )
+    no_of_children = fields.Integer(
+        string="No. of Children",
+        default=0
+    )
 
     # Redeem Details
     redeem_date = fields.Date(
