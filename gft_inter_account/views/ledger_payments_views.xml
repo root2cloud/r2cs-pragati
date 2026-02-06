@@ -30,7 +30,6 @@
                             <field name="boole" widget="radio" groups='base.group_no_one'/>
                             <field name="amount"/>
                             <field name="reconciled_amount" states='post,recocile'/>
-                            \
                             <field name="amount_paid" states='recocile'/>
 
                             <!-- <field name="relation_id"/> -->
@@ -39,14 +38,12 @@
                             <field name="source_acc"/>
                             <field name="dest_acc"/>
                             <field name="journal_id"/>
-                            <field name="company_id"/>
                             <field name="is_complete_trans" groups='base.group_no_one'/>
                             <field name="transaction_id" groups='base.group_no_one'/>
                         </group>
                         <group>
                             <field name="narration" placeholder="Enter narration for BRS..."/>
-                            <field name="cheque_number" attrs="{'readonly': [('state', 'in', ['post', 'recocile'])]}"/>
-                            <field name="remarks"/>
+                            <field name="cheque_number"/>
                         </group>
                     </group>
                     <notebook states='post,recocile'>
@@ -73,6 +70,11 @@
                         </page>
                     </notebook>
                 </sheet>
+                <div class="oe_chatter">
+                    <field name="message_follower_ids" widget="mail_followers"/>
+                    <field name="activity_ids" widget="mail_activity"/>
+                    <field name="message_ids" widget="mail_thread"/>
+                </div>
             </form>
         </field>
     </record>
@@ -87,9 +89,8 @@
                 <!-- <field name="patient_id"/> -->
                 <field name="name"/>
                 <!-- <field name="state"/> -->
-                <!-- <field name="company_id" groups="base.group_multi_company"/> -->
-<!--                <button name="submit_reconciliation_records" type="object" string="Reconcile" class="btn-primary"-->
-<!--                        states='post'/>-->
+                <!--                <button name="submit_reconciliation_records" type="object" string="Reconcile" class="btn-primary"-->
+                <!--                        states='post'/>-->
             </tree>
         </field>
     </record>
