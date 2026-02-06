@@ -2019,12 +2019,23 @@ class ks_dynamic_financial_base(models.Model):
                     ks_init_blns = cr.dictfetchone()
 
                 if ks_move_lines.get(ks_account.code, False):
-                    ks_move_lines[ks_account.code]['initial_balance'] = ks_init_blns.get('initial_balance', 0)
-                    ks_move_lines[ks_account.code]['initial_debit'] = ks_init_blns.get('initial_debit', 0)
-                    ks_move_lines[ks_account.code]['initial_credit'] = ks_init_blns.get('initial_credit', 0)
+                    initial_balance = ks_init_blns.get('initial_balance', 0)
+                    ks_move_lines[ks_account.code]['initial_balance'] = initial_balance
 
-                    ks_total_init_deb += ks_init_blns.get('initial_debit', 0)
-                    ks_total_init_cre += ks_init_blns.get('initial_credit', 0)
+                    # Netting: Assign to Debit if positive, Credit if negative
+                    if initial_balance > 0:
+                        ks_move_lines[ks_account.code]['initial_debit'] = initial_balance
+                        ks_move_lines[ks_account.code]['initial_credit'] = 0.0
+                    elif initial_balance < 0:
+                        ks_move_lines[ks_account.code]['initial_debit'] = 0.0
+                        ks_move_lines[ks_account.code]['initial_credit'] = abs(initial_balance)
+                    else:
+                        ks_move_lines[ks_account.code]['initial_debit'] = 0.0
+                        ks_move_lines[ks_account.code]['initial_credit'] = 0.0
+
+                    # Use the netted values for the total to keep the report consistent
+                    ks_total_init_deb += ks_move_lines[ks_account.code]['initial_debit']
+                    ks_total_init_cre += ks_move_lines[ks_account.code]['initial_credit']
                     ks_total_init_bal += ks_init_blns.get('initial_balance', 0)
 
                     if not self.ks_dif_filter_bool:
@@ -2067,8 +2078,17 @@ class ks_dynamic_financial_base(models.Model):
                     ks_move_lines[ks_account.code]['balance'] = ks_bln
 
                     ks_end_blns = ks_init_blns.get('initial_balance', 0) + ks_bln
-                    ks_end_cr = ks_init_blns.get('initial_credit', 0) + ks_cre
-                    ks_end_dr = ks_init_blns.get('initial_debit', 0) + ks_deb
+
+                    # Netting the Ending Balance columns
+                    if ks_end_blns > 0:
+                        ks_end_dr = ks_end_blns
+                        ks_end_cr = 0.0
+                    elif ks_end_blns < 0:
+                        ks_end_dr = 0.0
+                        ks_end_cr = abs(ks_end_blns)
+                    else:
+                        ks_end_dr = 0.0
+                        ks_end_cr = 0.0
 
                     ks_move_lines[ks_account.code]['ending_balance'] = ks_end_blns
                     ks_move_lines[ks_account.code]['ending_credit'] = ks_end_cr
