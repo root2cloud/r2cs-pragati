@@ -508,11 +508,17 @@
     </t>
 
     <t t-name="ks_df_gl">
-        <div class="container-fluid  my-4">
+        <div class="container-fluid my-4">
             <table id="data-bs-lines" class="table ks_table_1" cellspacing="0" width="100%">
                 <thead class="ks_thead">
                     <tr>
-                        <th colspan="8">Account</th>
+                        <!-- Split the Account column into 4 separate columns -->
+                        <th>Main Group</th>
+                        <th>Account Type</th>
+                        <th>Sub Type</th>
+                        <th>Account Code</th>
+                        <th>Account</th>
+
                         <t t-if="ks_enable_ledger_in_bal">
                             <th class="">Initial Balance</th>
                         </t>
@@ -525,37 +531,68 @@
                 <tbody>
                     <t t-foreach="ks_report_lines" t-as="account">
                         <t t-set="common_id" t-value=""/>
-                        <tr style="background:#efefef" class="ks_py-mline ks_row_first " data-bs-toggle="collapse"
+
+                        <!-- Main account row with collapse functionality -->
+                        <tr style="background:#efefef" class="ks_py-mline ks_row_first" data-bs-toggle="collapse"
                             t-att-data-bs-account-id="ks_report_lines[account]['id']"
                             t-attf-data-bs-target=".a{{ks_report_lines[account]['id']}}">
-                            <td colspan="8">
+
+                            <!-- Main Group column -->
+                            <td>
                                 <i class="fa fa-caret-down" role="img" aria-label="Unfolded" title="Unfolded"></i>
-                                <span>
-                                    <t t-esc="ks_report_lines[account]['code']"/>
-                                    -
-                                    <t t-esc="ks_report_lines[account]['name']"/>
-                                </span>
+                                <t t-esc="ks_report_lines[account]['main_group']"/>
                             </td>
+
+                            <!-- Account Type column -->
+                            <td>
+                                <t t-esc="ks_report_lines[account]['account_type']"/>
+                            </td>
+
+                            <!-- Sub Type column -->
+                            <td>
+                                <t t-esc="ks_report_lines[account]['sub_type']"/>
+                            </td>
+
+                            <!-- Account column (code + name) -->
+                            <td>
+                                <t t-esc="ks_report_lines[account]['code']"/>
+                            </td>
+                            <td>
+                                <t t-esc="ks_report_lines[account]['name']"/>
+                            </td>
+
+                            <!-- Initial Balance (conditional) -->
                             <t t-if="ks_enable_ledger_in_bal">
                                 <td colspan="1" class="ks_amt">
                                     <t t-raw="ks_report_lines[account]['initial_balance']"/>
                                 </td>
                             </t>
+
+                            <!-- Debit -->
                             <td colspan="1" class="ks_amt">
                                 <t t-raw="ks_report_lines[account]['debit']"/>
                             </td>
+
+                            <!-- Credit -->
                             <td colspan="1" class="ks_amt">
                                 <t t-raw="ks_report_lines[account]['credit']"/>
                             </td>
+
+                            <!-- Balance -->
                             <td colspan="1" class="ks_amt">
                                 <t t-raw="ks_report_lines[account]['balance']"/>
                             </td>
+
+                            <!-- Empty column -->
                             <td colspan="1" class="ks_amt"></td>
+
                             <t t-set="common_id" t-value="'a'+ks_report_lines[account]['id']"/>
                         </tr>
+
+                        <!-- Pagination/Collapse row -->
                         <tr t-attf-class="collapse a{{ks_report_lines[account]['id']}}">
                             <td class="p-0" colspan="12">
-                                <ul class="ks_py-mline-ul m-0  ">
+                                <ul class="ks_py-mline-ul m-0">
                                     <t t-if="!ks_report_lines[account]['single_page']">
                                         <t t-foreach="ks_report_lines[account]['pages']" t-as="i">
                                             <li>

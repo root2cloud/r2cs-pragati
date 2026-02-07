@@ -769,6 +769,40 @@ class ks_dynamic_financial_base(models.Model):
             ks_filter_context['date_from'] = False
         return ks_filter_context
 
+    def _ks_get_account_hierarchy(self, account):
+        """
+        Odoo 16 compatible hierarchy for General Ledger
+        """
+        MAIN_GROUP_MAP = {
+            'asset': 'Assets',
+            'liability': 'Liabilities',
+            'equity': 'Equity',
+            'income': 'Income',
+            'expense': 'Expenses',
+            'off_balance': 'Off Balance',
+        }
+
+        # Main group
+        main_group = MAIN_GROUP_MAP.get(account.internal_group, 'Others')
+
+        # Account type (selection label)
+        account_type = dict(account._fields['account_type'].selection).get(
+            account.account_type, ''
+        )
+
+        # 3️⃣ Sub-Type (🔥 THIS IS THE FIX 🔥)
+        sub_type = (
+            account.sub_sub_group_id.name
+            if account.sub_sub_group_id
+            else ''
+        )
+
+        return {
+            'main_group': main_group,
+            'account_type': account_type,
+            'sub_sub_group_id': sub_type,
+        }
+
     # Method to fetch data for General ledger
     def ks_process_general_ledger(self, ks_df_informations):
         '''
@@ -794,17 +828,47 @@ class ks_dynamic_financial_base(models.Model):
         ks_company_id = self.env['res.company'].sudo().browse(ks_df_informations.get('company_id'))
         FETCH_RANGE = 50  # Assuming FETCH_RANGE is defined elsewhere, setting a placeholder.
 
-        ks_move_lines = {
-            x.code: {
+        # ks_move_lines = {
+        #     x.code: {
+        #         'name': x.name,
+        #         'code': x.code,
+        #         'company_currency_id': (x.company_id.currency_id or ks_company_id.currency_id).id,
+        #         'company_currency_symbol': (x.company_id.currency_id or ks_company_id.currency_id).symbol,
+        #         'company_currency_precision': (x.company_id.currency_id or ks_company_id.currency_id).rounding,
+        #         'company_currency_position': (x.company_id.currency_id or ks_company_id.currency_id).position,
+        #         'id': x.id,
+        #         'lines': [],
+        #         # Initialize balance keys
+        #         'initial_balance': 0.0,
+        #         'debit': 0.0,
+        #         'credit': 0.0,
+        #         'balance': 0.0,
+        #         'count': 0,
+        #         'pages': [],
+        #         'single_page': True,
+        #     } for x in sorted(ks_account_ids, key=lambda a: a.code)
+        # }
+
+        ks_move_lines = {}
+        for x in sorted(ks_account_ids, key=lambda a: a.code):
+            hierarchy = self._ks_get_account_hierarchy(x)
+
+            ks_move_lines[x.code] = {
                 'name': x.name,
                 'code': x.code,
+
+                # 🔥 NEW FIELDS (from Trial Balance logic)
+                'main_group': hierarchy['main_group'],
+                'account_type': hierarchy['account_type'],
+                'sub_type': hierarchy['sub_sub_group_id'],
+
+                # existing fields (UNCHANGED)
                 'company_currency_id': (x.company_id.currency_id or ks_company_id.currency_id).id,
                 'company_currency_symbol': (x.company_id.currency_id or ks_company_id.currency_id).symbol,
                 'company_currency_precision': (x.company_id.currency_id or ks_company_id.currency_id).rounding,
                 'company_currency_position': (x.company_id.currency_id or ks_company_id.currency_id).position,
                 'id': x.id,
                 'lines': [],
-                # Initialize balance keys
                 'initial_balance': 0.0,
                 'debit': 0.0,
                 'credit': 0.0,
@@ -812,8 +876,7 @@ class ks_dynamic_financial_base(models.Model):
                 'count': 0,
                 'pages': [],
                 'single_page': True,
-            } for x in sorted(ks_account_ids, key=lambda a: a.code)
-        }
+            }
 
         KS_ORDER_BY_CURRENT = 'l.date, l.move_id'
 
