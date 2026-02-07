@@ -69,6 +69,14 @@ class FreightChargeAdvice(models.Model):
         default='draft',
         tracking=True,
     )
+    # --- 1. Add these fields to your model class ---
+    l1_done = fields.Boolean(string="L1 Done", default=False, copy=False)
+    l2_done = fields.Boolean(string="L2 Done", default=False, copy=False)
+    l3_done = fields.Boolean(string="L3 Done", default=False, copy=False)
+
+    # 2. COMPUTED VISIBILITY (Precise Sequence)
+    show_approve_button = fields.Boolean(compute='_compute_approval_visibility')
+    show_reject_button = fields.Boolean(compute='_compute_approval_visibility')
 
     approval_level_1 = fields.Many2one('res.users', string='Approver Level 1', domain="[('share', '=', False)]",
                                        readonly=True, tracking=True)
@@ -100,10 +108,6 @@ class FreightChargeAdvice(models.Model):
     partner_balance_amount = fields.Float(string='Partner Balance Amount', compute='_compute_partner_balance_amount',
                                           store=True, states=READONLY_STATES)
 
-    show_approve_button = fields.Boolean(string='Show Approve Button', compute='_compute_show_approve_button',
-                                         tracking=True)
-    show_reject_button = fields.Boolean(string='Show Reject Button', compute='_compute_show_approve_button',
-                                        tracking=True)
     terms = fields.Text(string='Terms & Conditions', tracking=True, states=READONLY_STATES)
 
     order_line_ids = fields.One2many('freight.charge.advice.line', 'advice_id', string="Order Lines")
@@ -133,6 +137,31 @@ class FreightChargeAdvice(models.Model):
             self.approval_level_1 = False
             self.approval_level_2 = False
             self.approval_level_3 = False
+
+    @api.depends('state', 'approval_level_1', 'approval_level_2', 'approval_level_3', 'l1_done', 'l2_done', 'l3_done')
+    def _compute_approval_visibility(self):
+        current_user = self.env.user
+        for rec in self:
+            show = False
+            if rec.state == 'submitted':
+                # Level 1 Turn: If assigned and NOT done
+                if rec.approval_level_1 == current_user and not rec.l1_done:
+                    show = True
+
+                # Level 2 Turn: If assigned, NOT done, and (L1 is not needed OR L1 is done)
+                elif rec.approval_level_2 == current_user and not rec.l2_done:
+                    if not rec.approval_level_1 or rec.l1_done:
+                        show = True
+
+                # Level 3 Turn: If assigned, NOT done, and (L1 and L2 are clear)
+                elif rec.approval_level_3 == current_user and not rec.l3_done:
+                    l1_ok = not rec.approval_level_1 or rec.l1_done
+                    l2_ok = not rec.approval_level_2 or rec.l2_done
+                    if l1_ok and l2_ok:
+                        show = True
+
+            rec.show_approve_button = show
+            rec.show_reject_button = show
 
     @api.depends('department_id')
     def _compute_approval_readonly(self):
@@ -296,61 +325,62 @@ class FreightChargeAdvice(models.Model):
     # self.order_line_ids = order_lines
     # new code end
 
-    @api.depends('approval_level_1', 'state')
-    def _compute_show_approve_button(self):
-        for record in self:
-            if record.state == 'submitted' and record.approval_level_1 == self.env.user:
-                record.show_approve_button = True
-                record.show_reject_button = True
-            else:
-                record.show_approve_button = False
-                record.show_reject_button = False
-
+    # --- 3. UPDATED SUBMIT LOGIC ---
     def action_submit(self):
-        self.write({'state': 'submitted'})
-        if not self.approval_level_1:
-            raise UserError("Please select an approver before submitting.")
+        for rec in self:
+            if not rec.approval_level_1 and not rec.approval_level_2 and not rec.approval_level_3:
+                raise UserError(_("Please assign at least one approver."))
 
-            # Send an activity notification to the approver
-        self.activity_schedule(
-            'mail.mail_activity_data_todo',
-            user_id=self.approval_level_1.id,
-            note=_("Please review and approve Freight Charge Advice: %s" % self.document_number)
-        )
+            rec.write({'state': 'submitted'})
+
+            # Identify the START of the chain
+            first_user = rec.approval_level_1 or rec.approval_level_2 or rec.approval_level_3
+
+            rec.activity_schedule(
+                'mail.mail_activity_data_todo',
+                user_id=first_user.id,
+                summary=_("Approval Required: %s") % rec.document_number,
+                note=_("You are the current approver for this request.")
+            )
 
     def action_approve(self):
-        if self.approval_level_1 != self.env.user:
-            raise UserError("You are not authorized to approve this record.")
-        activity = self.env['mail.activity'].search([
-            ('res_model', '=', 'freight.charge.advice'),
-            ('res_id', '=', self.id),
-            ('activity_type_id', '=', self.env.ref('mail.mail_activity_data_todo').id),
-            ('user_id', '=', self.approval_level_1.id),
-        ], limit=1)
-        if activity:
-            activity.action_done()
-        self.write({'state': 'approved'})
-        self.message_post(
-            body=_("The Freight Charge Advice has been approved by %s." % self.env.user.name),
-            subtype_xmlid="mail.mt_comment",
-        )
-        # return self.action_register_payment()
-        # Create bill and register payment
+        current_user = self.env.user
+        for rec in self:
+            # 1. Update the 'Done' flags
+            if rec.approval_level_1 == current_user:
+                rec.write({'l1_done': True})
+            elif rec.approval_level_2 == current_user:
+                rec.write({'l2_done': True})
+            elif rec.approval_level_3 == current_user:
+                rec.write({'l3_done': True})
+
+            # 2. CLEAR the current user's activity
+            rec.activity_ids.filtered(lambda a: a.user_id == current_user).action_feedback(feedback=_("Approved"))
+
+            # 3. FIND the next person who needs to act
+            next_user = False
+            if rec.l1_done and rec.approval_level_2 and not rec.l2_done:
+                next_user = rec.approval_level_2
+            elif (rec.l2_done or not rec.approval_level_2) and rec.approval_level_3 and not rec.l3_done:
+                next_user = rec.approval_level_3
+
+            # 4. TRIGGER the next notification
+            if next_user:
+                rec.activity_schedule(
+                    'mail.mail_activity_data_todo',
+                    user_id=next_user.id,
+                    summary=_("Approval Required: %s") % rec.document_number,
+                    note=_("Previous level approved. It is now your turn.")
+                )
+            else:
+                # Final state change if no one is left
+                rec.write({'state': 'approved'})
+
+    # 4. REJECT ACTION (Clears everything)
 
     def action_reject(self):
-        activity = self.env['mail.activity'].search([
-            ('res_model', '=', 'freight.charge.advice'),
-            ('res_id', '=', self.id),
-            ('activity_type_id', '=', self.env.ref('mail.mail_activity_data_todo').id),
-            ('user_id', '=', self.approval_level_1.id),
-        ], limit=1)
-        if activity:
-            activity.action_done()
-        self.write({'state': 'rejected'})
-        self.message_post(
-            body=_("The Freight Charge Advice has been rejected by %s." % self.env.user.name),
-            subtype_xmlid="mail.mt_comment",
-        )
+        for rec in self:
+            rec.write({'state': 'rejected', 'l1_done': False, 'l2_done': False, 'l3_done': False})
 
     def open_pdf_viewer(self):
         return {
