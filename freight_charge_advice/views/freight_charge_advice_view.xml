@@ -31,27 +31,27 @@
             <field name="arch" type="xml">
                 <form string="Freight Charge Advice">
                     <header>
+                        <button name="action_submit" string="Submit" type="object" states="draft" class="oe_highlight"/>
+                        <button name="action_approve" string="Approve" type="object"
+                                class="oe_highlight"
+                                attrs="{'invisible': [('show_approve_button', '=', False)]}"/>
+
+                        <button name="action_reject" string="Reject" type="object"
+                                class="btn-danger"
+                                attrs="{'invisible': [('show_reject_button', '=', False)]}"/>
+
+                        <button name="action_register_payment" string="Register Payment" type="object"
+                                states="approved" class="oe_highlight"/>
+
                         <field name="state" widget="statusbar"
                                statusbar_visible="draft,submitted,approved,payment,rejected"/>
-
-                        <!-- Submit Button -->
-                        <button name="action_submit" type="object" string="Submit"
-                                class="btn-primary"
-                                attrs="{'invisible': [('state', '!=', 'draft')]}"/>
-
-                        <!-- Approve Button -->
-                        <button name="action_approve" type="object" string="Approve"
-                                class="btn-primary"
-                                attrs="{'invisible': [('state', '!=', 'submitted')]}"/>
-
-                        <!-- Reject Button -->
-                        <button name="action_reject" type="object" string="Reject"
-                                class="btn-primary"
-                                attrs="{'invisible': [('state', '!=', 'submitted')]}"/>
-                        <button name="action_register_payment" type="object" string="Register Payment"
-                                class="oe_highlight" states="approved"/>
                     </header>
                     <sheet>
+                        <field name="show_approve_button" invisible="1"/>
+                        <field name="show_reject_button" invisible="1"/>
+                        <field name="l1_done" invisible="1"/>
+                        <field name="l2_done" invisible="1"/>
+                        <field name="l3_done" invisible="1"/>
                         <div name="button_box" class="oe_button_box">
                             <button name="button_open_payments" type="object"
                                     class="oe_stat_button" icon="fa-bars"
