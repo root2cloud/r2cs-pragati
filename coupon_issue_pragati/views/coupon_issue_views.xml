@@ -1,0 +1,153 @@
+<odoo>
+
+    <!-- TREE VIEW -->
+    <record id="view_coupon_issue_trees" model="ir.ui.view">
+        <field name="name">coupon.issue.tree</field>
+        <field name="model">coupon.issue</field>
+        <field name="arch" type="xml">
+            <tree>
+                <field name="name"/>
+                <field name="coupon_code"/>
+                <field name="customer_id"/>
+                <field name="coupon_value"/>
+                <field name="issue_date"/>
+                <field name="expiry_date"/>
+                <field name="designation"/>
+                <field name="state"/>
+            </tree>
+        </field>
+    </record>
+
+    <!-- FORM VIEW -->
+
+    <record id="view_coupon_issue_forms" model="ir.ui.view">
+        <field name="name">coupon.issue.form</field>
+        <field name="model">coupon.issue</field>
+        <field name="arch" type="xml">
+            <form string="Coupon Issue">
+                <header>
+                    <field name="has_attachment" invisible="1"/>
+                    <!-- Statusbar -->
+                    <field name="state" widget="statusbar"
+                           statusbar_visible="draft,level1,level2,level3,approved,rejected"
+                           clickable="true"/>
+
+                    <!-- Hidden computed fields for button visibility -->
+                    <field name="show_submit_button" invisible="1"/>
+                    <field name="show_approve_level1_button" invisible="1"/>
+                    <field name="show_approve_level2_button" invisible="1"/>
+                    <field name="show_approve_level3_button" invisible="1"/>
+                    <field name="show_reject_button" invisible="1"/>
+                    <field name="show_reset_button" invisible="1"/>
+
+                    <!-- Action Buttons -->
+                    <button name="action_submit" string="Submit" type="object"
+                            class="btn-primary" attrs="{'invisible': [('show_submit_button', '=', False)]}"/>
+
+                    <button name="action_approve_level1" string="Approve Level 1" type="object"
+                            class="btn-success"
+                            attrs="{'invisible': [('show_approve_level1_button', '=', False)]}"/>
+
+                    <button name="action_approve_level2" string="Approve Level 2" type="object"
+                            class="btn-success"
+                            attrs="{'invisible': [('show_approve_level2_button', '=', False)]}"/>
+
+                    <button name="action_approve_level3" string="Approve Level 3" type="object"
+                            class="btn-success"
+                            attrs="{'invisible': [('show_approve_level3_button', '=', False)]}"/>
+
+                    <!-- Simple Reject Button -->
+                    <button name="action_reject" string="Reject" type="object"
+                            class="btn-danger"
+                            attrs="{'invisible': [('show_reject_button', '=', False)]}"
+                            confirm="Are you sure you want to reject this coupon issue?"/>
+
+                    <button name="action_reset_to_draft" string="Reset to Draft" type="object"
+                            class="btn-secondary"
+                            attrs="{'invisible': [('show_reset_button', '=', False)]}"/>
+                </header>
+
+                <sheet>
+                    <div class="oe_button_box" name="button_box">
+                        <!-- Quick status summary -->
+                    </div>
+
+                    <group>
+                        <group>
+                            <field name="name" readonly="1"/>
+                            <field name="customer_id"/>
+                            <field name="mobile"/>
+                            <field name="address"/>
+                        </group>
+
+                        <group>
+                            <field name="coupon_code"/>
+                            <field name="coupon_value"/>
+                            <field name="issue_date"/>
+                            <field name="expiry_date"/>
+
+                        </group>
+                    </group>
+
+                    <group>
+                        <group>
+                            <field name="company_id" invisible="1"/>
+                            <field name="company_name"/>
+                            <field name="designation"/>
+                            <field name="department_id"/>
+                            <field name="salesperson_id" invisible="1"/>
+                            <field name="salespersons_name"/>
+                        </group>
+
+                        <group>
+                            <!-- Make approvers editable in draft state -->
+                            <field name="approval_1_id" readonly="1"/>
+                            <field name="approval_2_id" readonly="1"/>
+                            <field name="approval_3_id" readonly="1"/>
+                        </group>
+                    </group>
+
+                    <notebook>
+                        <page string="Attachments">
+
+                                <field name="attachment_ids" >
+                                    <tree editable="bottom">
+                                        <field name="attachment_file"
+                                               filename="attachment_filename"/>
+                                        <button name="action_view_attachment"
+                                                type="object"
+                                                string="View"
+                                                class="btn-secondary"/>
+                                    </tree>
+                                </field>
+
+                        </page>
+                    </notebook>
+                </sheet>
+
+
+                <div class="oe_chatter">
+                    <field name="message_follower_ids" widget="mail_followers"/>
+                    <field name="activity_ids" widget="mail_activity"/>
+                    <field name="message_ids" widget="mail_thread"/>
+                </div>
+            </form>
+        </field>
+    </record>
+
+
+    <!-- ACTION -->
+    <record id="action_coupon_issue" model="ir.actions.act_window">
+        <field name="name">Coupon Issues</field>
+        <field name="res_model">coupon.issue</field>
+        <field name="view_mode">tree,form</field>
+    </record>
+
+    <!-- MENU -->
+    <menuitem id="menu_coupon_issue_sales"
+              name="Coupon Issues"
+              parent="sale.sale_order_menu"
+              action="action_coupon_issue"
+              sequence="30"/>
+
+</odoo>
