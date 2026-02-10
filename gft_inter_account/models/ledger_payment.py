@@ -14,8 +14,8 @@ class LedgerPayment(models.Model):
     _name = 'ledger.payment'
     _inherit = ['mail.thread', 'mail.activity.mixin']
     _description = 'Ledger Payment'
+    _order = 'date desc, id desc'
 
-    # Define fields
     date = fields.Date(string="Date", default=fields.datetime.now(), states=READONLY_STATES)
     boole = fields.Selection([('send', 'Send'), ('receive', 'Receive')], string="Payment Type", default='send')
     source_acc = fields.Many2one('account.account', string="Customer Account", required=True, states=READONLY_STATES)
