@@ -5,9 +5,13 @@
         <field name="model">bank.reconciliation.console</field>
         <field name="arch" type="xml">
             <form string="Bank Reconciliation">
-                <style>
+                <header>
+                    <button name="action_print_pdf" string="Print PDF" type="object"
+                            class="btn-primary" icon="fa-print"/>
 
-                </style>
+                    <button name="action_print_excel" string="Export Excel" type="object"
+                            class="btn-success" icon="fa-file-excel-o"/>
+                </header>
                 <sheet>
                     <div class="oe_title">
                         <h1>Bank Reconciliation</h1>

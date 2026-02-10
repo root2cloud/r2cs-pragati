@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 from odoo import models, fields, api, _
 from odoo.exceptions import UserError
+import json
 
 
 class BankReconciliationConsole(models.Model):
@@ -76,6 +77,7 @@ class BankReconciliationConsole(models.Model):
 
     def action_load_transactions(self):
         self.ensure_one()
+        # 1. IDENTIFY ACCOUNT (Only Default Bank Account)
         target_account = self.bank_journal_id.default_account_id
         if not target_account:
             raise UserError(f"Journal '{self.bank_journal_id.name}' has no Bank Account set.")
@@ -83,58 +85,57 @@ class BankReconciliationConsole(models.Model):
         self.currency_id = self.bank_journal_id.currency_id or self.env.company.currency_id
 
         # ---------------------------------------------------------
-        # 1. Opening Balance -> FORCED TO ZERO (As per your request)
+        # 1. CALCULATE OPENING BALANCE (Cumulative < Date From)
         # ---------------------------------------------------------
-        # We ignore everything before Date From
-        self.opening_balance = 0.0
-
-        # ---------------------------------------------------------
-        # 2. Book Balance -> STRICTLY DATE RANGE
-        # ---------------------------------------------------------
-        # Only sum transactions created between From Date and To Date
-        range_lines = self.env['account.move.line'].search([
+        # Sum of all posted moves BEFORE the start date
+        opening_lines = self.env['account.move.line'].search([
             ('account_id', '=', target_account.id),
-            ('date', '>=', self.date_from),  # <--- Strict Start
-            ('date', '<=', self.date_to),  # <--- Strict End
+            ('date', '<', self.date_from),
             ('parent_state', '=', 'posted')
         ])
-        self.book_balance = sum(range_lines.mapped('balance'))
+        self.opening_balance = sum(opening_lines.mapped('balance'))
 
         # ---------------------------------------------------------
-        # 3. Calculate "Out" Items (TOTAL Activity in Date Range)
+        # 2. GET RANGE LINES (Date From <= Date <= Date To)
         # ---------------------------------------------------------
-        # CHANGED: Now includes BOTH Pending and Cleared items in the range.
-        # We use the 'range_lines' variable we created in Step 2.
+        range_lines = self.env['account.move.line'].search([
+            ('account_id', '=', target_account.id),
+            ('date', '>=', self.date_from),
+            ('date', '<=', self.date_to),
+            ('parent_state', '=', 'posted')
+        ])
 
-        # 'range_lines' contains all posted moves between Date From and Date To
+        # ---------------------------------------------------------
+        # 3. CALCULATE BOOK BALANCE (Opening + Range Activity)
+        # ---------------------------------------------------------
+        # This matches the GL "Closing Balance" as of 'date_to'
+        activity_in_range = sum(range_lines.mapped('balance'))
+        self.book_balance = self.opening_balance + activity_in_range
 
+        # ---------------------------------------------------------
+        # 4. CALCULATE "OUT" ITEMS (Uncleared/Pending in Range)
+        # ---------------------------------------------------------
         u_debits = range_lines.filtered(lambda r: r.debit > 0)
         u_credits = range_lines.filtered(lambda r: r.credit > 0)
 
-        # Sum of ALL Debits in range (Pending + Cleared)
         self.uncleared_debit_amount = sum(u_debits.mapped('debit'))
         self.uncleared_debit_count = len(u_debits)
 
-        # Sum of ALL Credits in range (Pending + Cleared)
         self.uncleared_credit_amount = sum(u_credits.mapped('credit'))
         self.uncleared_credit_count = len(u_credits)
 
         # ---------------------------------------------------------
-        # 4. Calculate Cleared Balance (Strictly Range Based)
+        # 5. CALCULATE CLEARED BALANCE (Logic Adjustment)
         # ---------------------------------------------------------
-        # Logic: Sum of ONLY the Cleared items within this specific date range.
-        # It does NOT include Opening Balance.
+        # Cleared Balance = Opening Balance + (Cleared Debits - Cleared Credits in Range)
+        cleared_in_range = range_lines.filtered(lambda r: r.is_brs_cleared)
+        cleared_debits = sum(cleared_in_range.mapped('debit'))
+        cleared_credits = sum(cleared_in_range.mapped('credit'))
 
-        cleared_lines = range_lines.filtered(lambda r: r.is_brs_cleared)
-
-        cleared_debits = sum(cleared_lines.mapped('debit'))
-        cleared_credits = sum(cleared_lines.mapped('credit'))
-
-        # If you haven't cleared anything in this range, this will be 0.
-        self.cleared_balance = cleared_debits - cleared_credits
+        self.cleared_balance = self.opening_balance + (cleared_debits - cleared_credits)
 
         # ---------------------------------------------------------
-        # 5. Load Visual List
+        # 6. LOAD VISUAL LIST
         # ---------------------------------------------------------
         domain = [
             ('account_id', '=', target_account.id),
@@ -148,7 +149,6 @@ class BankReconciliationConsole(models.Model):
         elif self.transaction_type == 'credit':
             domain.append(('credit', '>', 0))
 
-        # IMPORTANT: This filter affects the LIST only, not the Summary Boxes above
         if self.status_filter == 'pending':
             domain.append(('is_brs_cleared', '=', False))
         elif self.status_filter == 'cleared':
@@ -156,23 +156,21 @@ class BankReconciliationConsole(models.Model):
 
         if self.search_text:
             domain += ['|', '|', '|',
-                       ('cheque_reference', 'ilike', self.search_text),
+                       ('cheque_number', 'ilike', self.search_text),
                        ('name', 'ilike', self.search_text),
                        ('ref', 'ilike', self.search_text),
                        ('partner_id.name', 'ilike', self.search_text)]
 
         transactions = self.env['account.move.line'].search(domain).sorted(key=lambda r: r.date)
 
-        # 2. UPDATE SERIAL NUMBERS (Fast SQL Method)
-        # We loop and update the 'brs_serial_no' on the actual lines
+        # Update Serial Numbers via SQL (Single Account ID)
         if transactions:
             self.env.cr.execute("UPDATE account_move_line SET brs_serial_no=0 WHERE account_id=%s",
                                 (target_account.id,))
 
-            # Write new numbers 1, 2, 3...
-            # We use SQL for speed instead of looping .write()
             for i, line_id in enumerate(transactions.ids, start=1):
                 self.env.cr.execute("UPDATE account_move_line SET brs_serial_no=%s WHERE id=%s", (i, line_id))
+
         self.line_ids = [(6, 0, transactions.ids)]
         return True
 
@@ -183,3 +181,15 @@ class BankReconciliationConsole(models.Model):
     def _compute_diff(self):
         for rec in self:
             rec.unreconciled_variance = rec.balance_end_real - rec.cleared_balance
+
+    def action_print_pdf(self):
+        """ Triggers the QWeb PDF Report """
+        self.ensure_one()
+        # This reference must match the ID in your XML file (step 4 below)
+        return self.env.ref('focus_bank_reconciliation.action_report_bank_reconciliation').report_action(self)
+
+    def action_print_excel(self):
+        """ Triggers the Excel Report logic """
+        self.ensure_one()
+        # This calls the abstract model we will create in Step 3
+        return self.env['report.focus_bank_reconciliation.report_bank_xlsx'].create_xlsx_report(self)
