@@ -1,20 +1,20 @@
 # -*- coding: utf-8 -*-
-#╔══════════════════════════════════════════════════════════════════════╗
-#║                                                                      ║
-#║                  ╔═══╦╗       ╔╗  ╔╗     ╔═══╦═══╗                   ║
-#║                  ║╔═╗║║       ║║ ╔╝╚╗    ║╔═╗║╔═╗║                   ║
-#║                  ║║ ║║║╔╗╔╦╦══╣╚═╬╗╔╬╗ ╔╗║║ ╚╣╚══╗                   ║
-#║                  ║╚═╝║║║╚╝╠╣╔╗║╔╗║║║║║ ║║║║ ╔╬══╗║                   ║
-#║                  ║╔═╗║╚╣║║║║╚╝║║║║║╚╣╚═╝║║╚═╝║╚═╝║                   ║
-#║                  ╚╝ ╚╩═╩╩╩╩╩═╗╠╝╚╝╚═╩═╗╔╝╚═══╩═══╝                   ║
-#║                            ╔═╝║     ╔═╝║                             ║
-#║                            ╚══╝     ╚══╝                             ║
-#║                  SOFTWARE DEVELOPED AND SUPPORTED BY                 ║
-#║                ALMIGHTY CONSULTING SOLUTIONS PVT. LTD.               ║
-#║                      COPYRIGHT (C) 2016 - TODAY                      ║
-#║                      https://www.almightycs.com                      ║
-#║                                                                      ║
-#╚══════════════════════════════════════════════════════════════════════╝
+# ╔══════════════════════════════════════════════════════════════════════╗
+# ║                                                                      ║
+# ║                  ╔═══╦╗       ╔╗  ╔╗     ╔═══╦═══╗                   ║
+# ║                  ║╔═╗║║       ║║ ╔╝╚╗    ║╔═╗║╔═╗║                   ║
+# ║                  ║║ ║║║╔╗╔╦╦══╣╚═╬╗╔╬╗ ╔╗║║ ╚╣╚══╗                   ║
+# ║                  ║╚═╝║║║╚╝╠╣╔╗║╔╗║║║║║ ║║║║ ╔╬══╗║                   ║
+# ║                  ║╔═╗║╚╣║║║║╚╝║║║║║╚╣╚═╝║║╚═╝║╚═╝║                   ║
+# ║                  ╚╝ ╚╩═╩╩╩╩╩═╗╠╝╚╝╚═╩═╗╔╝╚═══╩═══╝                   ║
+# ║                            ╔═╝║     ╔═╝║                             ║
+# ║                            ╚══╝     ╚══╝                             ║
+# ║                  SOFTWARE DEVELOPED AND SUPPORTED BY                 ║
+# ║                ALMIGHTY CONSULTING SOLUTIONS PVT. LTD.               ║
+# ║                      COPYRIGHT (C) 2016 - TODAY                      ║
+# ║                      https://www.almightycs.com                      ║
+# ║                                                                      ║
+# ╚══════════════════════════════════════════════════════════════════════╝
 {
     'name': 'Clinic - Hospital Management System ( HMS by AlmightyCS )',
     'summary': 'Hospital Management System for managing Hospital and medical facilities flows',
@@ -77,7 +77,7 @@
     'website': 'https://www.almightycs.com',
     'live_test_url': 'https://www.youtube.com/watch?v=hiumJoDEHxI',
     'license': 'OPL-1',
-    'depends': ['acs_hms_base', 'web_timer_widget', 'website', 'digest','account'],
+    'depends': ['acs_hms_base', 'web_timer_widget', 'website', 'digest', 'account', 'base_accounting_kit'],
     'data': [
         'security/security.xml',
         'security/ir.model.access.csv',
@@ -95,7 +95,7 @@
         'data/mail_template.xml',
         'data/hms_data.xml',
         'data/digest_data.xml',
-        
+
         'wizard/cancel_reason_view.xml',
         'wizard/pain_level_view.xml',
         'wizard/reschedule_appointments_view.xml',
