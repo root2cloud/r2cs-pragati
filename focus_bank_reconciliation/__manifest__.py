@@ -28,6 +28,7 @@
         'views/bank_reconciliation_statement_view.xml',
         'views/account_move_view.xml',
         # 'views/account_payment_view.xml',
+        'report/bank_reconciliation_report.xml'
     ],
     'assets': {
         'web.assets_backend': [
