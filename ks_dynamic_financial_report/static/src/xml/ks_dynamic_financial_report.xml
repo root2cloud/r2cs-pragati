@@ -523,6 +523,9 @@
                         <th class="">Debit</th>
                         <th class="">Credit</th>
                         <th class="">Balance</th>
+                        <th class="">Main Group</th>
+                        <th class="">Sub Group</th>
+                        <th class="">Sub Sub Group</th>
                         <th class=""></th>
                     </tr>
                 </thead>
@@ -554,12 +557,21 @@
                             <td colspan="1" class="ks_amt">
                                 <t t-raw="ks_report_lines[account]['balance']"/>
                             </td>
+                            <td colspan="1" class="ks_name">
+                                <span t-esc="ks_report_lines[account]['main_group']"/>
+                            </td>
+                            <td colspan="1" class="ks_name">
+                                <span t-esc="ks_report_lines[account]['sub_group']"/>
+                            </td>
+                            <td colspan="1" class="ks_name">
+                                <span t-esc="ks_report_lines[account]['sub_sub_group']"/>
+                            </td>
                             <td colspan="1" class="ks_amt"></td>
                             <t t-set="common_id" t-value="'a'+ks_report_lines[account]['id']"/>
                         </tr>
                         <tr t-attf-class="collapse a{{ks_report_lines[account]['id']}}">
-                            <td class="p-0" colspan="12">
-                                <ul class="ks_py-mline-ul m-0  ">
+                            <td class="p-0" colspan="15">
+                                <ul class="ks_py-mline-ul m-0">
                                     <t t-if="!ks_report_lines[account]['single_page']">
                                         <t t-foreach="ks_report_lines[account]['pages']" t-as="i">
                                             <li>
@@ -757,15 +769,20 @@
 
     <t t-name="ks_df_gl_subsection">
         <div class="ks_py-mline-table-div">
+            <t t-set="is_bank_acc"
+               t-value="account_data and account_data.length > 0 and account_data[0]['is_bank_account']"/>
             <table class="table border ks_table_2" id="general_ledger_table">
                 <thead class="ks_thead">
                     <tr>
                         <th>Date</th>
-                        <th>JRNL</th>
+                        <th>Journal</th>
                         <th>Partner</th>
                         <th>Ref No</th>
                         <th>Status</th>
-                        <th>BRS Status</th>
+                        <t t-if="is_bank_acc">
+                            <th>BRS Status</th>
+                        </t>
+                        <th>Reference</th>
                         <th>Narration</th>
                         <th>Opposite Accounts</th>
                         <t t-if="ks_enable_ledger_in_bal">
@@ -814,32 +831,56 @@
                                 <t t-esc="account_line.move_name"/>
                             </td>
                             <td>
-                                <t t-esc="account_line.move_state"/>
-                            </td>
-                            <td>
-                                <t t-if="account_line.is_brs_cleared">
-                                    <span style="color: green; font-weight: bold;">Cleared</span>
+                                <t t-if="!account_line['initial_bal']">
+                                    <t t-esc="account_line.move_state"/>
                                 </t>
-                                <t t-else="">
-                                    <span style="color: orange;">Pending</span>
+                            </td>
+
+                            <t t-if="is_bank_acc">
+                                <td>
+                                    <t t-if="!account_line['initial_bal']">
+                                        <t t-if="account_line.is_brs_cleared">
+                                            <span style="color: green; font-weight: bold;">Cleared</span>
+                                        </t>
+                                        <t t-else="">
+                                            <span style="color: orange;">Pending</span>
+                                        </t>
+                                    </t>
+                                </td>
+                            </t>
+                            <td>
+                                <t t-if="!account_line['initial_bal']">
+                                    <t t-esc="account_line.lref"/>
                                 </t>
                             </td>
                             <td class="account-name-cell">
                                 <t t-esc="account_line.lname"/>
                             </td>
-                            <td class="all-accounts-cell text-muted small">Loading...</td>
+
+                            <td style="white-space: nowrap;">
+                                <t t-if="!account_line['initial_bal']">
+                                    <span class="all-accounts-cell text-muted small">Loading...</span>
+                                </t>
+                            </td>
                             <t t-if="ks_enable_ledger_in_bal">
-                                <td class="ks_amt">
+                                <td class="ks_amt" style="white-space: nowrap;">
                                     <t t-raw="account_line.initial_balance"/>
                                 </td>
                             </t>
-                            <td class="ks_amt">
-                                <t t-raw="account_line.debit"/>
+
+                            <td class="ks_amt" style="white-space: nowrap;">
+                                <t t-if="!account_line['initial_bal']">
+                                    <t t-raw="account_line.debit"/>
+                                </t>
                             </td>
-                            <td class="ks_amt">
-                                <t t-raw="account_line.credit"/>
+
+                            <td class="ks_amt" style="white-space: nowrap;">
+                                <t t-if="!account_line['initial_bal']">
+                                    <t t-raw="account_line.credit"/>
+                                </t>
                             </td>
-                            <td class="ks_amt">
+
+                            <td class="ks_amt" style="white-space: nowrap;">
                                 <t t-raw="account_line.balance"/>
                             </td>
                         </tr>
@@ -975,11 +1016,11 @@
                 return a.code.localeCompare(b.code);
                 });
 
-                // Convert to string
-                var display = unique.map(a => a.info).join(', ');
+                // Convert to string (Join with HTML line break)
+                var display = unique.map(a => a.info).join('<br/>');
 
                 // Update Opposite Accounts column
-                item.row.find('.all-accounts-cell').text(display || '-');
+                item.row.find('.all-accounts-cell').html(display || '-');
                 });
                 },
 
