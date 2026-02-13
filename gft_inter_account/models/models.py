@@ -6,6 +6,7 @@ class InternalTransactions(models.Model):
     _name = 'internal.transaction'
     _inherit = ['mail.thread', 'mail.activity.mixin']
     _description = 'Internal Transaction'
+    _order = 'id desc'
 
     # Fields
     name = fields.Char(string='Reference', required=True, copy=False, readonly=True, tracking=True,

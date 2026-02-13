@@ -872,29 +872,6 @@ class ks_dynamic_financial_base(models.Model):
             else:
                 KS_WHERE_CURRENT = WHERE + " AND l.date <= '%s'" % ks_end_date
 
-            # sql_current = ('''
-            #     SELECT
-            #         l.id AS lid,
-            #         l.date AS ldate,
-            #         j.code AS lcode,
-            #         p.name AS partner_name,
-            #         m.name AS move_name,
-            #         l.narration AS lname,
-            #         l.is_brs_cleared,  -- <=== ADD THIS LINE
-            #         COALESCE(l.debit,0) AS debit,
-            #         COALESCE(l.credit,0) AS credit,
-            #         (l.debit - l.credit) AS balance_change, -- Use a temporary alias for the change
-            #         COALESCE(l.amount_currency,0) AS amount_currency
-            #     FROM account_move_line l
-            #     JOIN account_move m ON (l.move_id=m.id)
-            #     JOIN account_account a ON (l.account_id=a.id)
-            #     LEFT JOIN res_currency c ON (l.currency_id=c.id)
-            #     LEFT JOIN res_currency cc ON (l.company_currency_id=cc.id)
-            #     LEFT JOIN res_partner p ON (l.partner_id=p.id)
-            #     JOIN account_journal j ON (l.journal_id=j.id)
-            #     WHERE %s AND a.code = %%s
-            #     ORDER BY l.date,l.create_date,l.id
-            # ''') % KS_WHERE_CURRENT
             # --- MODIFIED SQL QUERY START ---
             sql_current = ('''
                             SELECT
@@ -903,6 +880,8 @@ class ks_dynamic_financial_base(models.Model):
                                 j.code AS lcode,
                                 p.name AS partner_name,
                                 m.name AS move_name,
+                                m.state AS move_state,
+                                l.ref AS lref,
                                 l.narration AS lname,  
                                 l.is_brs_cleared,
 
@@ -2747,7 +2726,7 @@ class ks_dynamic_financial_base(models.Model):
                         l.date AS ldate,
                         j.code AS lcode,
                         l.currency_id,
-                        --l.ref AS lref,
+                        l.ref AS lref,
                         l.narration AS lname,
                         m.id AS move_id,
                         m.name AS move_name,
@@ -2779,10 +2758,10 @@ class ks_dynamic_financial_base(models.Model):
             cr.execute(ks_initial_bal_sql)
             ks_dict = cr.dictfetchall()
             ks_temp_dict = {
-                'lcode': 'Initial Balance',
-                'partner_name': "-",
-                'move_name': "-",
-                'lname': "-",
+                'lcode': '',
+                'partner_name': "",
+                'move_name': "",
+                'lname': "",
                 'currency_id': False,
                 'currency_symbol': False,
                 'currency_position': False,
@@ -2793,6 +2772,7 @@ class ks_dynamic_financial_base(models.Model):
                 'debit': 0,
                 'credit': 0,
                 'balance': 0,
+                'initial_bal': True,  # <--- CRITICAL MISSING LINE
             }
             for row in ks_dict:
                 current_balance = row['balance']
@@ -2807,8 +2787,8 @@ class ks_dynamic_financial_base(models.Model):
                 ks_temp_dict['company_currency_symbol'] = row['company_currency_symbol']
                 ks_temp_dict['company_currency_id'] = row['company_currency_id']
 
-                ks_temp_dict['debit'] += row['debit']
-                ks_temp_dict['credit'] += row['credit']
+                ks_temp_dict['debit'] = 0.0
+                ks_temp_dict['credit'] = 0.0
                 ks_temp_dict['balance'] = row['balance']
                 ks_temp_dict['initial_balance'] = row['balance']
                 ks_temp_dict['amount_currency'] += row['amount_currency']
@@ -2832,9 +2812,14 @@ class ks_dynamic_financial_base(models.Model):
                 ''') % KS_WHERE_INIT
             cr.execute(sql)
             for ks_row in cr.dictfetchall():
-                ks_row['move_name'] = 'Initial Balance'
+                ks_row['move_name'] = ''
                 ks_row['account_id'] = ks_account
                 ks_row['company_currency_id'] = ks_currency_id.id
+                # --- FIX: Set the flag and force zero values ---
+                ks_row['initial_bal'] = True
+                ks_row['debit'] = 0.0
+                ks_row['credit'] = 0.0
+                # -----------------------------------------------
                 ks_move_lines.append(ks_row)
         sql = ('''
                 SELECT
@@ -2843,7 +2828,7 @@ class ks_dynamic_financial_base(models.Model):
                     l.date AS ldate,
                     j.code AS lcode,
                     l.currency_id,
-                    --l.ref AS lref,
+                    l.ref AS lref,
                     l.narration AS lname,
                     m.id AS move_id,
                     m.state AS move_state, 

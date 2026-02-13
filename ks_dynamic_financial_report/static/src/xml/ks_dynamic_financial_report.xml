@@ -766,6 +766,7 @@
                         <th>Ref No</th>
                         <th>Status</th>
                         <th>BRS Status</th>
+                        <th>Reference</th>
                         <th>Narration</th>
                         <th>Opposite Accounts</th>
                         <t t-if="ks_enable_ledger_in_bal">
@@ -814,32 +815,54 @@
                                 <t t-esc="account_line.move_name"/>
                             </td>
                             <td>
-                                <t t-esc="account_line.move_state"/>
+                                <t t-if="!account_line['initial_bal']">
+                                    <t t-esc="account_line.move_state"/>
+                                </t>
+                            </td>
+
+                            <td>
+                                <t t-if="!account_line['initial_bal']">
+                                    <t t-if="account_line.is_brs_cleared">
+                                        <span style="color: green; font-weight: bold;">Cleared</span>
+                                    </t>
+                                    <t t-else="">
+                                        <span style="color: orange;">Pending</span>
+                                    </t>
+                                </t>
                             </td>
                             <td>
-                                <t t-if="account_line.is_brs_cleared">
-                                    <span style="color: green; font-weight: bold;">Cleared</span>
-                                </t>
-                                <t t-else="">
-                                    <span style="color: orange;">Pending</span>
+                                <t t-if="!account_line['initial_bal']">
+                                    <t t-esc="account_line.lref"/>
                                 </t>
                             </td>
                             <td class="account-name-cell">
                                 <t t-esc="account_line.lname"/>
                             </td>
-                            <td class="all-accounts-cell text-muted small">Loading...</td>
+
+                            <td style="white-space: nowrap;">
+                                <t t-if="!account_line['initial_bal']">
+                                    <span class="all-accounts-cell text-muted small">Loading...</span>
+                                </t>
+                            </td>
                             <t t-if="ks_enable_ledger_in_bal">
-                                <td class="ks_amt">
+                                <td class="ks_amt" style="white-space: nowrap;">
                                     <t t-raw="account_line.initial_balance"/>
                                 </td>
                             </t>
-                            <td class="ks_amt">
-                                <t t-raw="account_line.debit"/>
+
+                            <td class="ks_amt" style="white-space: nowrap;">
+                                <t t-if="!account_line['initial_bal']">
+                                    <t t-raw="account_line.debit"/>
+                                </t>
                             </td>
-                            <td class="ks_amt">
-                                <t t-raw="account_line.credit"/>
+
+                            <td class="ks_amt" style="white-space: nowrap;">
+                                <t t-if="!account_line['initial_bal']">
+                                    <t t-raw="account_line.credit"/>
+                                </t>
                             </td>
-                            <td class="ks_amt">
+
+                            <td class="ks_amt" style="white-space: nowrap;">
                                 <t t-raw="account_line.balance"/>
                             </td>
                         </tr>
@@ -975,11 +998,11 @@
                 return a.code.localeCompare(b.code);
                 });
 
-                // Convert to string
-                var display = unique.map(a => a.info).join(', ');
+                // Convert to string (Join with HTML line break)
+                var display = unique.map(a => a.info).join('<br/>');
 
                 // Update Opposite Accounts column
-                item.row.find('.all-accounts-cell').text(display || '-');
+                item.row.find('.all-accounts-cell').html(display || '-');
                 });
                 },
 
