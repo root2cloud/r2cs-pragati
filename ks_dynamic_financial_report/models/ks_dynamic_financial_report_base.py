@@ -797,6 +797,9 @@ class ks_dynamic_financial_base(models.Model):
             x.code: {
                 'name': x.name,
                 'code': x.code,
+                'main_group': dict(x._fields['main_group'].selection).get(x.main_group) or '',
+                'sub_group': dict(x._fields['account_type'].selection).get(x.account_type) or '',
+                'sub_sub_group': x.sub_sub_group_id.name or '',
                 'company_currency_id': (x.company_id.currency_id or ks_company_id.currency_id).id,
                 'company_currency_symbol': (x.company_id.currency_id or ks_company_id.currency_id).symbol,
                 'company_currency_precision': (x.company_id.currency_id or ks_company_id.currency_id).rounding,
@@ -877,7 +880,7 @@ class ks_dynamic_financial_base(models.Model):
                             SELECT
                                 l.id AS lid,
                                 l.date AS ldate,
-                                j.code AS lcode,
+                                j.name AS lcode,
                                 p.name AS partner_name,
                                 m.name AS move_name,
                                 m.state AS move_state,
@@ -2724,7 +2727,7 @@ class ks_dynamic_financial_base(models.Model):
                         l.id AS lid,
                         l.account_id AS account_id,
                         l.date AS ldate,
-                        j.code AS lcode,
+                        j.name AS lcode,
                         l.currency_id,
                         l.ref AS lref,
                         l.narration AS lname,
@@ -2750,7 +2753,7 @@ class ks_dynamic_financial_base(models.Model):
                     LEFT JOIN res_partner p ON (l.partner_id=p.id)
                     JOIN account_journal j ON (l.journal_id=j.id)
                     WHERE %s
-                    GROUP BY l.id, l.account_id, l.date, j.code, l.currency_id, l.amount_currency, l.name, m.id, m.name, c.rounding, cc.id, cc.rounding, cc.position, c.position, c.symbol, cc.symbol, p.name
+                    GROUP BY l.id, l.account_id, l.date, j.name, l.currency_id, l.amount_currency, l.name, m.id, m.name, c.rounding, cc.id, cc.rounding, cc.position, c.position, c.symbol, cc.symbol, p.name
                     ORDER BY %s
                     OFFSET %s ROWS
                     FETCH FIRST %s ROWS ONLY
@@ -2773,6 +2776,7 @@ class ks_dynamic_financial_base(models.Model):
                 'credit': 0,
                 'balance': 0,
                 'initial_bal': True,  # <--- CRITICAL MISSING LINE
+                'account_id': ks_account,  # <--- ADD THIS LINE
             }
             for row in ks_dict:
                 current_balance = row['balance']
@@ -2826,7 +2830,7 @@ class ks_dynamic_financial_base(models.Model):
                     l.id AS lid,
                     l.account_id AS account_id,
                     l.date AS ldate,
-                    j.code AS lcode,
+                    j.name AS lcode,
                     l.currency_id,
                     l.ref AS lref,
                     l.narration AS lname,
@@ -2854,7 +2858,7 @@ class ks_dynamic_financial_base(models.Model):
                 LEFT JOIN res_partner p ON (l.partner_id=p.id)
                 JOIN account_journal j ON (l.journal_id=j.id)
                 WHERE %s
-                GROUP BY l.id, l.account_id, l.date, j.code, l.currency_id, l.amount_currency, l.name, m.id, m.name,l.is_brs_cleared, c.rounding, cc.id, cc.rounding, cc.position, c.position, c.symbol, cc.symbol, p.name
+                GROUP BY l.id, l.account_id, l.date, j.name, l.currency_id, l.amount_currency, l.name, m.id, m.name,l.is_brs_cleared, c.rounding, cc.id, cc.rounding, cc.position, c.position, c.symbol, cc.symbol, p.name
                 ORDER BY %s
                 OFFSET %s ROWS
                 FETCH FIRST %s ROWS ONLY
@@ -2896,6 +2900,20 @@ class ks_dynamic_financial_base(models.Model):
             ks_move_lines[-1]['initial_balance'] = ks_initial_bal_data
             # ks_move_lines[-1]['debit'] = ks_initial_bal_data
             ks_move_lines[-1]['balance'] += ks_initial_bal_data
+            # <--- ADD THIS BLOCK --->
+            # Identify Bank Accounts
+        bank_journals = self.env['account.journal'].search([('type', '=', 'bank')])
+        bank_account_ids = bank_journals.mapped('default_account_id').ids
+
+        for line in ks_move_lines:
+            # Check if the line's account is a Bank Account
+            # Use simple True/False or 1/0
+            if line.get('account_id') in bank_account_ids:
+                line['is_bank_account'] = True
+            else:
+                line['is_bank_account'] = False
+            # <--- CORRECTED BLOCK END --->
+
         return count, ks_offset_count, ks_move_lines
 
     def ks_fetch_page_list(self, ks_total_count):
