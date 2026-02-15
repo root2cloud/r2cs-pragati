@@ -57,8 +57,6 @@ class KsDynamicFinancialXlsxGLInherit(models.Model):
         # --- 2. FORMATS ---
         header_fmt = workbook.add_format(
             {'bold': True, 'align': 'center', 'font_size': 10, 'font': 'Arial', 'border': 1, 'bg_color': '#D3D3D3'})
-        header_light_fmt = workbook.add_format(
-            {'bold': True, 'align': 'center', 'font_size': 9, 'font': 'Arial', 'bg_color': '#D3D3D3'})
         cell_left = workbook.add_format({'align': 'left', 'font_size': 10, 'font': 'Arial', 'border': 1})
         cell_center = workbook.add_format({'align': 'center', 'font_size': 10, 'font': 'Arial', 'border': 1})
         cell_text_wrap = workbook.add_format(
@@ -68,6 +66,26 @@ class KsDynamicFinancialXlsxGLInherit(models.Model):
         total_fmt = workbook.add_format(
             {'align': 'right', 'font_size': 10, 'font': 'Arial', 'bold': True, 'border': 1, 'top': 2,
              'num_format': '[$₹-4009] #,##0.00'})
+
+        # --- NEW FORMATS FOR Dr/Cr (Add these) ---
+        # Format: Positive (Dr); Negative (Cr)
+        balance_fmt = workbook.add_format({
+            'align': 'right',
+            'font_size': 10,
+            'font': 'Arial',
+            'border': 1,
+            'num_format': '[$₹-4009] #,##0.00 "Dr";[$₹-4009] #,##0.00 "Cr"'
+        })
+
+        total_balance_fmt = workbook.add_format({
+            'align': 'right',
+            'font_size': 10,
+            'font': 'Arial',
+            'bold': True,
+            'border': 1,
+            'top': 2,
+            'num_format': '[$₹-4009] #,##0.00 "Dr";[$₹-4009] #,##0.00 "Cr"'
+        })
         account_header_fmt = workbook.add_format(
             {'bold': True, 'align': 'left', 'font_size': 10, 'font': 'Arial', 'border': 1, 'bg_color': '#F2F2F2'})
 
@@ -176,10 +194,10 @@ class KsDynamicFinancialXlsxGLInherit(models.Model):
             sheet.write(row, 6, '', cell_left)  # Ref
             sheet.write(row, 7, '', cell_left)  # Narration
             sheet.write(row, 8, '', cell_left)  # Corresp Acc
-            sheet.write_number(row, 9, initial_balance, num_fmt)  # Initial Balance
+            sheet.write_number(row, 9, initial_balance, balance_fmt)  # Initial Balance
             sheet.write(row, 10, '', cell_left)  # Debit (Empty as per view)
             sheet.write(row, 11, '', cell_left)  # Credit (Empty as per view)
-            sheet.write_number(row, 12, initial_balance, num_fmt)  # Balance
+            sheet.write_number(row, 12, initial_balance, balance_fmt)  # Balance
 
             # Write empty cells for Groups and Company
             sheet.write(row, 13, '', cell_left)
@@ -227,7 +245,7 @@ class KsDynamicFinancialXlsxGLInherit(models.Model):
                 sheet.write(row, 9, '', cell_left)  # Init Bal (Empty)
                 sheet.write_number(row, 10, current_debit, num_fmt)
                 sheet.write_number(row, 11, current_credit, num_fmt)
-                sheet.write_number(row, 12, running_balance, num_fmt)
+                sheet.write_number(row, 12, running_balance, balance_fmt)
 
                 move = self.env['account.move'].browse(line.get('move_id')) if line.get('move_id') else False
                 company_name = move.company_id.name if move and move.company_id else (ks_company_id.name or '')
@@ -255,7 +273,7 @@ class KsDynamicFinancialXlsxGLInherit(models.Model):
             sheet.write(row, 9, _('Total:'), header_fmt)
             sheet.write_number(row, 10, float(account_data.get('debit', 0)), total_fmt)
             sheet.write_number(row, 11, float(account_data.get('credit', 0)), total_fmt)
-            sheet.write_number(row, 12, float(account_data.get('balance', 0)), total_fmt)
+            sheet.write_number(row, 12, float(account_data.get('balance', 0)), balance_fmt)
 
             # Fill empty cells for new columns
             sheet.write(row, 13, '', cell_left)
