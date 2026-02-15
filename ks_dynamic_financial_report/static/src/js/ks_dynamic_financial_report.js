@@ -499,8 +499,28 @@ odoo.define('ks_dynamic_financial_report.dynamic_report', function (require) {
                         };
                         k.debit = self.ksFormatCurrencySign(k.debit, ksFormatConfigurations, k.debit < 0 ? '-' : '');
                         k.credit = self.ksFormatCurrencySign(k.credit, ksFormatConfigurations, k.credit < 0 ? '-' : '');
-                        k.balance = self.ksFormatCurrencySign(k.balance, ksFormatConfigurations, k.balance < 0 ? '-' : '');
-                        k.initial_balance = self.ksFormatCurrencySign(k.initial_balance, ksFormatConfigurations, k.initial_balance < 0 ? '-' : '');
+                        // --- Start Modification for Dr/Cr ---
+
+                        // 1. Format Balance with Dr/Cr
+                        if (k.balance) {
+    // If balance exists (not 0), checks if negative (Cr) or positive (Dr)
+                        var bal_suffix = k.balance < 0 ? ' Cr' : ' Dr';
+    // Pass empty string '' as sign to get absolute value (no minus sign), then append suffix
+                        k.balance = self.ksFormatCurrencySign(k.balance, ksFormatConfigurations, '') + bal_suffix;
+                        } else {
+    // If balance is 0, keep standard formatting (usually '-')
+                        k.balance = self.ksFormatCurrencySign(k.balance, ksFormatConfigurations, '');
+                        }
+
+// 2. Format Initial Balance with Dr/Cr
+if (k.initial_balance) {
+    var init_suffix = k.initial_balance < 0 ? ' Cr' : ' Dr';
+    k.initial_balance = self.ksFormatCurrencySign(k.initial_balance, ksFormatConfigurations, '') + init_suffix;
+} else {
+    k.initial_balance = self.ksFormatCurrencySign(k.initial_balance, ksFormatConfigurations, '');
+}
+
+// --- End Modification ---
                         k.ldate = field_utils.format.date(field_utils.parse.date(k.ldate, {}, {
                             isUTC: true
                         }));
@@ -1430,17 +1450,33 @@ odoo.define('ks_dynamic_financial_report.dynamic_report', function (require) {
                 };
 //                    k.debit = self.ksFormatCurrencySign(k.debit, ksFormatConfigurations, k.debit < 0 ? '-' : '');
 //                    k.credit = self.ksFormatCurrencySign(k.credit, ksFormatConfigurations, k.credit < 0 ? '-' : '');
-                if (self.controlPanelProps.action.xml_id == _t('ks_dynamic_financial_report.ks_df_tb_action')) {
+                // ... inside _.each loop ...
 
-                } else {
-                    k.initial_balance = self.ksFormatCurrencySign(k.initial_balance, ksFormatConfigurations, k.initial_balance < 0 ? '-' : '');
-                }
-                //  changed the values of balance
-                if (!k['percentage']) {
-//                        k.balance = self.ksFormatCurrencySign(k.balance, ksFormatConfigurations, k.balance < 0 ? '-' : '');
-                } else {
-                    k.balance = String(Math.round(k.balance)) + "%";
-                }
+// 1. Logic for Initial Balance (Main Lines)
+if (self.controlPanelProps.action.xml_id == _t('ks_dynamic_financial_report.ks_df_tb_action')) {
+    // Trial balance logic (leave empty if not needed)
+} else {
+    if (k.initial_balance) {
+        var init_suffix = k.initial_balance < 0 ? ' Cr' : ' Dr';
+        // Pass '' as 3rd arg to get absolute value (no minus), then add suffix
+        k.initial_balance = self.ksFormatCurrencySign(k.initial_balance, ksFormatConfigurations, '') + init_suffix;
+    } else {
+        k.initial_balance = self.ksFormatCurrencySign(k.initial_balance, ksFormatConfigurations, '');
+    }
+}
+
+// 2. Logic for Final Balance (Main Lines)
+if (!k['percentage']) {
+    // Uncommented and updated logic
+    if (k.balance) {
+        var bal_suffix = k.balance < 0 ? ' Cr' : ' Dr';
+        k.balance = self.ksFormatCurrencySign(k.balance, ksFormatConfigurations, '') + bal_suffix;
+    } else {
+        k.balance = self.ksFormatCurrencySign(k.balance, ksFormatConfigurations, '');
+    }
+} else {
+    k.balance = String(Math.round(k.balance)) + "%";
+}
 
                 for (const prop in k.balance_cmp) {
                     k.balance_cmp[prop] = self.ksFormatCurrencySign(k.balance_cmp[prop], ksFormatConfigurations, k.balance[prop] < 0 ? '-' : '');
