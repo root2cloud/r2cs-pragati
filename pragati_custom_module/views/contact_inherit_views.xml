@@ -64,4 +64,15 @@
 
         </field>
     </record>
+
+    <record id="view_partner_property_form_no_required_payable" model="ir.ui.view">
+    <field name="name">res.partner.property.form.inherit.automation</field>
+    <field name="model">res.partner</field>
+    <field name="inherit_id" ref="account.view_partner_property_form"/>
+    <field name="arch" type="xml">
+        <xpath expr="//field[@name='property_account_payable_id']" position="attributes">
+            <attribute name="required">0</attribute>
+        </xpath>
+    </field>
+</record>
 </odoo>
