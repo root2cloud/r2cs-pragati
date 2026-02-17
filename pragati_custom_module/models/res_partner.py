@@ -123,6 +123,7 @@ class ResPartner(models.Model):
                         _logger.info(f"✓ Activity created for {approver.name}")
 
         return partners
+
     # ============================================
     # COMPUTE METHODS
     # ============================================
@@ -158,7 +159,7 @@ class ResPartner(models.Model):
     # ============================================
 
     def action_approve(self):
-        """Approve vendor - Unarchive + Approved"""
+        """Approve vendor - Unarchive Partner AND Enable Account"""
         self.ensure_one()
         self._check_is_vendor()
         self._check_is_approver()
@@ -169,11 +170,20 @@ class ResPartner(models.Model):
         if self.activity_ids:
             self.activity_ids.action_done()
 
-        # Unarchive and approve
-        self.with_context(bypass_vendor_lock=True).write({
+        # 1. Unarchive the Partner
+        # 2. Set State to Approved
+        vals = {
             'active': True,
             'state': 'approved'
-        })
+        }
+
+        # 3. Enable the Account (Make it usable)
+        if self.property_account_payable_id:
+            # We must use sudo() because normal users might not have rights to edit accounts
+            self.property_account_payable_id.sudo().write({'deprecated': False})
+            _logger.info(f"✓ Account {self.property_account_payable_id.code} is now ACTIVE")
+
+        self.with_context(bypass_vendor_lock=True).write(vals)
         self.env.cr.commit()
 
         _logger.info(f"✓ Vendor '{self.name}' APPROVED and unarchived")
@@ -183,7 +193,7 @@ class ResPartner(models.Model):
             'tag': 'display_notification',
             'params': {
                 'title': 'Approved',
-                'message': f"Vendor '{self.name}' approved and now active!",
+                'message': f"Vendor '{self.name}' and Account Active!",
                 'type': 'success',
                 'sticky': False,
             }
@@ -262,6 +272,7 @@ class ResPartner(models.Model):
                         'account_type': 'liability_payable',
                         'reconcile': True,
                         'company_id': company.id,
+                        'deprecated': True,
                     })
 
                     self.sudo().write({'property_account_payable_id': payable_account.id})
