@@ -52,7 +52,6 @@ class KsDynamicFinancialXlsxGLInherit(models.Model):
         sheet.set_column(13, 13, 20)  # Main Group
         sheet.set_column(14, 14, 20)  # Sub Group
         sheet.set_column(15, 15, 20)  # Sub Sub Group
-        sheet.set_column(16, 16, 25)  # Company (Shifted to 16)
 
         # --- 2. FORMATS ---
         header_fmt = workbook.add_format(
@@ -94,6 +93,12 @@ class KsDynamicFinancialXlsxGLInherit(models.Model):
 
         # --- 3. HEADER ROW ---
         row = 0
+        ks_company_name = ks_company_id.name if ks_company_id else ''
+        company_header_fmt = workbook.add_format({'bold': True, 'font_size': 16, 'font': 'Arial', 'align': 'center'})
+        sheet.merge_range(row, 0, row, 15, ks_company_name, company_header_fmt)
+        row += 2
+        # <--- END BLOCK --->
+
         # <--- INSERT THIS BLOCK --->
         if ks_df_informations.get('date'):
             lang = self.env.user.lang
@@ -103,17 +108,20 @@ class KsDynamicFinancialXlsxGLInherit(models.Model):
             ks_start_date = ks_df_informations['date'].get('ks_start_date')
             ks_end_date = ks_df_informations['date'].get('ks_end_date')
 
-            if ks_start_date:
+            # Create a centered format for the date range
+            date_center_fmt = workbook.add_format({'font_size': 11, 'font': 'Arial', 'align': 'center', 'bold': True})
+            date_str = ""
+            if ks_start_date and ks_end_date:
                 start_date_obj = datetime.datetime.strptime(ks_start_date, '%Y-%m-%d').date()
-                formatted_start = start_date_obj.strftime(date_format)
-                sheet.write(row, 0, _('Date from:'), date_header_fmt)
-                sheet.write(row, 1, formatted_start, date_val_fmt)
-
-            if ks_end_date:
                 end_date_obj = datetime.datetime.strptime(ks_end_date, '%Y-%m-%d').date()
-                formatted_end = end_date_obj.strftime(date_format)
-                sheet.write(row, 2, _('Date to:'), date_header_fmt)
-                sheet.write(row, 3, formatted_end, date_val_fmt)
+                date_str = _("Period: %s To %s") % (start_date_obj.strftime(date_format),
+                                                    end_date_obj.strftime(date_format))
+            elif ks_end_date:
+                end_date_obj = datetime.datetime.strptime(ks_end_date, '%Y-%m-%d').date()
+                date_str = _("As of Date: %s") % end_date_obj.strftime(date_format)
+
+            if date_str:
+                sheet.merge_range(row, 0, row, 15, date_str, date_center_fmt)
 
             row += 2  # Add spacing before table headers
         # <--- END INSERT --->
@@ -124,9 +132,7 @@ class KsDynamicFinancialXlsxGLInherit(models.Model):
             _('Narration'), _('Corresponding Accounts'),
             _('Initial Balance'), _('Debit'), _('Credit'), _('Balance'),
             # Added new Headers
-            _('Main Group'), _('Sub Group'), _('Sub Sub Group'),
-            _('Company')
-        ]
+            _('Main Group'), _('Sub Group'), _('Sub Sub Group'), ]
 
         for col, header in enumerate(headers):
             sheet.write(row, col, header, header_fmt)
@@ -149,7 +155,6 @@ class KsDynamicFinancialXlsxGLInherit(models.Model):
             sheet.write(row, 13, account_data.get('main_group') or '', cell_center)
             sheet.write(row, 14, account_data.get('sub_group') or '', cell_center)
             sheet.write(row, 15, account_data.get('sub_sub_group') or '', cell_center)
-            sheet.write(row, 16, '', cell_left)  # Empty Company on header
 
             row += 1
 
@@ -203,7 +208,6 @@ class KsDynamicFinancialXlsxGLInherit(models.Model):
             sheet.write(row, 13, '', cell_left)
             sheet.write(row, 14, '', cell_left)
             sheet.write(row, 15, '', cell_left)
-            sheet.write(row, 16, '', cell_left)
             row += 1
 
             running_balance = initial_balance
@@ -247,16 +251,10 @@ class KsDynamicFinancialXlsxGLInherit(models.Model):
                 sheet.write_number(row, 11, current_credit, num_fmt)
                 sheet.write_number(row, 12, running_balance, balance_fmt)
 
-                move = self.env['account.move'].browse(line.get('move_id')) if line.get('move_id') else False
-                company_name = move.company_id.name if move and move.company_id else (ks_company_id.name or '')
-
                 # Write Empty for Groups on transaction lines
                 sheet.write(row, 13, '', cell_left)
                 sheet.write(row, 14, '', cell_left)
                 sheet.write(row, 15, '', cell_left)
-
-                # Write Company Name at column 16
-                sheet.write(row, 16, company_name, cell_left)
 
                 row += 1
 
@@ -279,7 +277,6 @@ class KsDynamicFinancialXlsxGLInherit(models.Model):
             sheet.write(row, 13, '', cell_left)
             sheet.write(row, 14, '', cell_left)
             sheet.write(row, 15, '', cell_left)
-            sheet.write(row, 16, '', cell_left)
             row += 2
 
         workbook.close()
