@@ -789,6 +789,11 @@ class ks_dynamic_financial_base(models.Model):
 
         ks_account_ids = self.env['account.account'].sudo().search(account_domain)
 
+        # --- NEW BRS LOGIC STEP 1: Get all Bank Account IDs ---
+        bank_journals = self.env['account.journal'].search([('type', '=', 'bank')])
+        bank_account_ids = bank_journals.mapped('default_account_id').ids
+        # ------------------------------------------------------
+
         # Pre-fetch currency and company info for efficiency outside the loop
         ks_company_id = self.env['res.company'].sudo().browse(ks_df_informations.get('company_id'))
         FETCH_RANGE = 50  # Assuming FETCH_RANGE is defined elsewhere, setting a placeholder.
@@ -832,6 +837,9 @@ class ks_dynamic_financial_base(models.Model):
         for ks_account in ks_account_ids:
             ks_code = ks_account.code
             account_lines = ks_move_lines[ks_code]['lines']
+
+            # Check if THIS account is a Bank Account
+            is_bank_account = ks_account.id in bank_account_ids
 
             # Determine currency details once per account
             ks_currency = ks_account.company_id.currency_id or ks_company_id.currency_id
@@ -927,6 +935,16 @@ class ks_dynamic_financial_base(models.Model):
             for ks_row in ks_current_lines:
                 ks_row['initial_bal'] = False
                 ks_row['ending_bal'] = False
+
+                # --- NEW BRS LOGIC STEP 2: Set the Status String ---
+                if is_bank_account:
+                    if ks_row.get('is_brs_cleared'):
+                        ks_row['brs_status_en'] = 'Cleared'
+                    else:
+                        ks_row['brs_status_en'] = 'Pending'
+                else:
+                    ks_row['brs_status_en'] = ''  # Empty for non-bank accounts
+                # ---------------------------------------------------
 
                 # Calculate cumulative balance iteratively
                 balance_change = ks_row.pop('balance_change')
