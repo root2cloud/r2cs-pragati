@@ -11,13 +11,14 @@ class KsDynamicFinancialXlsxGLInherit(models.Model):
     @api.model
     def ks_get_xlsx_general_ledger(self, ks_df_informations):
         """
-        Inherited to always include detailed move lines (dropdown-like) in the General Ledger XLSX export,
-        and include Company Name, with renamed columns:
-        - 'Move' → 'Ref No'
-        - 'Entry Label' → 'Narration'
-        - Added 'Corresp. Acc' column
+        Inherited to customize the General Ledger Excel export.
 
-        Now includes Initial Balance section at top with Initial Balance, Debit, Credit, Balance columns
+        Modifications:
+        1. Split 'Account' column into separate 'Account Code' and 'Account Name' columns.
+        2. Shifted all subsequent data columns by 2 positions to accommodate the split.
+        3. Included detailed move lines (forced 'ks_report_with_lines').
+        4. Added Company Name and Date Range headers.
+        5. Added extra grouping columns (Main Group, Sub Group, Sub Sub Group).
         """
 
         # Force "With Lines" mode so ks_process_general_ledger() returns transaction details
@@ -31,29 +32,38 @@ class KsDynamicFinancialXlsxGLInherit(models.Model):
 
         # Create worksheet
         sheet = workbook.add_worksheet('General Ledger')
-        # <--- ADD THIS --->
+
+        # Fetch bank accounts to identify BRS status
         bank_journals = self.env['account.journal'].search([('type', '=', 'bank')])
         bank_account_ids = bank_journals.mapped('default_account_id').ids
-        # <--- END --->
 
-        # --- 1. SET COLUMN WIDTHS ---
-        sheet.set_column(0, 0, 12)  # Date
-        sheet.set_column(1, 1, 25)  # JRNL
-        sheet.set_column(2, 2, 25)  # Partner
-        sheet.set_column(3, 3, 18)  # Ref No
-        sheet.set_column(4, 4, 10)  # Status
-        sheet.set_column(5, 5, 12)  # BRS Status
-        sheet.set_column(6, 6, 25)  # Reference
-        sheet.set_column(7, 7, 30)  # Narration
-        sheet.set_column(8, 8, 40)  # Corresponding Accounts
-        sheet.set_column(9, 12, 15)  # Amounts: Init Bal, Debit, Credit, Balance
+        # ====================================================================================
+        # 1. SET COLUMN WIDTHS
+        # ====================================================================================
+        # NEW: Added specific widths for Code (0) and Name (1)
+        sheet.set_column(0, 0, 15)  # Col 0: Account Code
+        sheet.set_column(1, 1, 30)  # Col 1: Account Name
 
-        # --- NEW COLUMNS WIDTHS ---
-        sheet.set_column(13, 13, 20)  # Main Group
-        sheet.set_column(14, 14, 20)  # Sub Group
-        sheet.set_column(15, 15, 20)  # Sub Sub Group
+        # SHIFTED: All original columns shifted right by 2 positions (Original 0 -> New 2, etc.)
+        sheet.set_column(2, 2, 12)  # Date
+        sheet.set_column(3, 3, 20)  # Journal
+        sheet.set_column(4, 4, 25)  # Partner
+        sheet.set_column(5, 5, 18)  # Ref No
+        sheet.set_column(6, 6, 10)  # Status
+        sheet.set_column(7, 7, 12)  # BRS Status
+        sheet.set_column(8, 8, 25)  # Reference
+        sheet.set_column(9, 9, 30)  # Narration
+        sheet.set_column(10, 10, 40)  # Corresponding Accounts
+        sheet.set_column(11, 14, 15)  # Amounts: Init Bal, Debit, Credit, Balance
 
-        # --- 2. FORMATS ---
+        # NEW: Extra Grouping Columns
+        sheet.set_column(15, 15, 20)  # Main Group
+        sheet.set_column(16, 16, 20)  # Sub Group
+        sheet.set_column(17, 17, 20)  # Sub Sub Group
+
+        # ====================================================================================
+        # 2. DEFINE FORMATS
+        # ====================================================================================
         header_fmt = workbook.add_format(
             {'bold': True, 'align': 'center', 'font_size': 10, 'font': 'Arial', 'border': 1, 'bg_color': '#D3D3D3'})
         cell_left = workbook.add_format({'align': 'left', 'font_size': 10, 'font': 'Arial', 'border': 1})
@@ -66,7 +76,6 @@ class KsDynamicFinancialXlsxGLInherit(models.Model):
             {'align': 'right', 'font_size': 10, 'font': 'Arial', 'bold': True, 'border': 1, 'top': 2,
              'num_format': '[$₹-4009] #,##0.00'})
 
-        # --- NEW FORMATS FOR Dr/Cr (Add these) ---
         # Format: Positive (Dr); Negative (Cr)
         balance_fmt = workbook.add_format({
             'align': 'right',
@@ -91,15 +100,17 @@ class KsDynamicFinancialXlsxGLInherit(models.Model):
         date_header_fmt = workbook.add_format({'bold': True, 'font_size': 10, 'font': 'Arial', 'align': 'left'})
         date_val_fmt = workbook.add_format({'font_size': 10, 'font': 'Arial', 'align': 'left'})
 
-        # --- 3. HEADER ROW ---
+        # ====================================================================================
+        # 3. REPORT HEADER (Company & Date)
+        # ====================================================================================
         row = 0
         ks_company_name = ks_company_id.name if ks_company_id else ''
         company_header_fmt = workbook.add_format({'bold': True, 'font_size': 16, 'font': 'Arial', 'align': 'center'})
-        sheet.merge_range(row, 0, row, 15, ks_company_name, company_header_fmt)
-        row += 2
-        # <--- END BLOCK --->
 
-        # <--- INSERT THIS BLOCK --->
+        # Merge range extended to 17 (Total columns = 18)
+        sheet.merge_range(row, 0, row, 17, ks_company_name, company_header_fmt)
+        row += 2
+
         if ks_df_informations.get('date'):
             lang = self.env.user.lang
             lang_rec = self.env['res.lang'].search([('code', '=', lang)], limit=1)
@@ -108,7 +119,6 @@ class KsDynamicFinancialXlsxGLInherit(models.Model):
             ks_start_date = ks_df_informations['date'].get('ks_start_date')
             ks_end_date = ks_df_informations['date'].get('ks_end_date')
 
-            # Create a centered format for the date range
             date_center_fmt = workbook.add_format({'font_size': 11, 'font': 'Arial', 'align': 'center', 'bold': True})
             date_str = ""
             if ks_start_date and ks_end_date:
@@ -121,18 +131,26 @@ class KsDynamicFinancialXlsxGLInherit(models.Model):
                 date_str = _("As of Date: %s") % end_date_obj.strftime(date_format)
 
             if date_str:
-                sheet.merge_range(row, 0, row, 15, date_str, date_center_fmt)
+                # Merge range extended to 17
+                sheet.merge_range(row, 0, row, 17, date_str, date_center_fmt)
 
-            row += 2  # Add spacing before table headers
-        # <--- END INSERT --->
+            row += 2
 
+        # ====================================================================================
+        # 4. TABLE HEADERS
+        # ====================================================================================
         headers = [
+            # CHANGE: Added explicit Code and Name headers first
+            _('Account Code'),
+            _('Account Name'),
+            # SHIFTED: Previous headers moved down
             _('Date'), _('Journal'), _('Partner'), _('Ref No'),
             _('Status'), _('BRS Status'), _('Reference'),
             _('Narration'), _('Corresponding Accounts'),
             _('Initial Balance'), _('Debit'), _('Credit'), _('Balance'),
-            # Added new Headers
-            _('Main Group'), _('Sub Group'), _('Sub Sub Group'), ]
+            # NEW: Grouping headers
+            _('Main Group'), _('Sub Group'), _('Sub Sub Group'),
+        ]
 
         for col, header in enumerate(headers):
             sheet.write(row, col, header, header_fmt)
@@ -143,32 +161,40 @@ class KsDynamicFinancialXlsxGLInherit(models.Model):
             output.seek(0)
             return output.read()
 
-        # Loop through accounts
+        # ====================================================================================
+        # 5. DATA LOOPS
+        # ====================================================================================
         for account_key, account_data in move_lines[0].items():
-            # Account header
-            account_name = f"{account_data.get('code')} - {account_data.get('name')}"
 
-            # Merge up to Balance column (Index 12)
-            sheet.merge_range(row, 0, row, 12, account_name, account_header_fmt)
+            # --------------------------------------------------------------------------------
+            # 5.1 ACCOUNT HEADER ROW (Gray Separator)
+            # --------------------------------------------------------------------------------
+            # CHANGE: Write 'Code' and 'Name' in separate columns (0 & 1) instead of merging
+            sheet.write(row, 0, account_data.get('code') or '', account_header_fmt)
+            sheet.write(row, 1, account_data.get('name') or '', account_header_fmt)
 
-            # --- WRITE GROUP DATA IN THE ACCOUNT HEADER ROW ---
-            sheet.write(row, 13, account_data.get('main_group') or '', cell_center)
-            sheet.write(row, 14, account_data.get('sub_group') or '', cell_center)
-            sheet.write(row, 15, account_data.get('sub_sub_group') or '', cell_center)
+            # Merge the remaining "transaction" space (Col 2 to 14) with empty gray background
+            sheet.merge_range(row, 2, row, 14, '', account_header_fmt)
 
+            # Write Groups in the new columns (15-17)
+            sheet.write(row, 15, account_data.get('main_group') or '', cell_center)
+            sheet.write(row, 16, account_data.get('sub_group') or '', cell_center)
+            sheet.write(row, 17, account_data.get('sub_sub_group') or '', cell_center)
             row += 1
 
-            # --- CALCULATE INITIAL BALANCE ---
+            # --------------------------------------------------------------------------------
+            # 5.2 CALCULATE INITIAL BALANCE
+            # --------------------------------------------------------------------------------
             initial_balance = 0.0
             found_initial = False
 
-            # Method 1
+            # Method 1: Direct key
             if isinstance(account_data.get('initial_bal'), dict):
                 initial_data = account_data.get('initial_bal', {})
                 initial_balance = float(initial_data.get('balance', 0))
                 found_initial = True
 
-            # Method 2
+            # Method 2: From lines
             if not found_initial:
                 for line in account_data.get('lines', []):
                     if line.get('initial_bal'):
@@ -176,7 +202,7 @@ class KsDynamicFinancialXlsxGLInherit(models.Model):
                         found_initial = True
                         break
 
-            # Method 3
+            # Method 3: Computation
             if not found_initial:
                 total_debit = float(account_data.get('debit', 0))
                 total_credit = float(account_data.get('credit', 0))
@@ -189,30 +215,34 @@ class KsDynamicFinancialXlsxGLInherit(models.Model):
                         lines_credit += float(line.get('credit', 0))
                 initial_balance = total_balance - (lines_debit - lines_credit)
 
-            # --- 4. WRITE INITIAL BALANCE ROW ---
+            # --------------------------------------------------------------------------------
+            # 5.3 WRITE INITIAL BALANCE ROW
+            # --------------------------------------------------------------------------------
+            # CHANGE: Col 0 & 1 are empty for Code/Name
             sheet.write(row, 0, '', cell_left)
             sheet.write(row, 1, '', cell_left)
-            sheet.write(row, 2, '', cell_left)
-            sheet.write(row, 3, '', cell_left)
-            sheet.write(row, 4, '', cell_left)  # Status
-            sheet.write(row, 5, '', cell_left)  # BRS
-            sheet.write(row, 6, '', cell_left)  # Ref
-            sheet.write(row, 7, '', cell_left)  # Narration
-            sheet.write(row, 8, '', cell_left)  # Corresp Acc
-            sheet.write_number(row, 9, initial_balance, balance_fmt)  # Initial Balance
-            sheet.write(row, 10, '', cell_left)  # Debit (Empty as per view)
-            sheet.write(row, 11, '', cell_left)  # Credit (Empty as per view)
-            sheet.write_number(row, 12, initial_balance, balance_fmt)  # Balance
 
-            # Write empty cells for Groups and Company
-            sheet.write(row, 13, '', cell_left)
-            sheet.write(row, 14, '', cell_left)
+            # Fill empty transaction columns (2-10)
+            for i in range(2, 11):
+                sheet.write(row, i, '', cell_left)
+
+            # Write Amounts (Indices shifted +2)
+            sheet.write_number(row, 11, initial_balance, balance_fmt)  # Was 9
+            sheet.write(row, 12, '', cell_left)  # Was 10
+            sheet.write(row, 13, '', cell_left)  # Was 11
+            sheet.write_number(row, 14, initial_balance, balance_fmt)  # Was 12
+
+            # Fill empty group columns (15-17)
             sheet.write(row, 15, '', cell_left)
+            sheet.write(row, 16, '', cell_left)
+            sheet.write(row, 17, '', cell_left)
             row += 1
 
             running_balance = initial_balance
 
-            # Loop through lines
+            # --------------------------------------------------------------------------------
+            # 5.4 TRANSACTION LINES LOOP
+            # --------------------------------------------------------------------------------
             for line in account_data.get('lines', []):
                 if line.get('initial_bal') or line.get('ending_bal'):
                     continue
@@ -225,58 +255,60 @@ class KsDynamicFinancialXlsxGLInherit(models.Model):
                 current_credit = float(line.get('credit', 0))
                 running_balance += current_debit - current_credit
 
-                # Format Corresponding Accounts (Line by line)
+                # Format Corresponding Accounts
                 corr_accounts = line.get('corresponding_accounts') or ''
                 if corr_accounts:
                     corr_accounts = corr_accounts.replace(', ', '\n')
 
-                # Check if this account is a bank account
+                # BRS Status
                 if account_data.get('id') in bank_account_ids:
                     brs_status = 'Cleared' if line.get('is_brs_cleared') else 'Pending'
                 else:
-                    brs_status = ''  # Empty for non-bank accounts
-                # --- 5. WRITE TRANSACTION LINE ---
-                sheet.write(row, 0, date or '', cell_center)
-                sheet.write(row, 1, line.get('lcode') or '', cell_center)
-                sheet.write(row, 2, line.get('partner_name') or '', cell_left)
-                sheet.write(row, 3, line.get('move_name') or '', cell_center)
-                sheet.write(row, 4, line.get('move_state') or '', cell_center)
-                sheet.write(row, 5, brs_status, cell_center)
-                sheet.write(row, 6, line.get('lref') or '', cell_text_wrap)
-                sheet.write(row, 7, line.get('lname') or '', cell_text_wrap)
-                sheet.write(row, 8, corr_accounts, cell_text_wrap)
+                    brs_status = ''
 
-                sheet.write(row, 9, '', cell_left)  # Init Bal (Empty)
-                sheet.write_number(row, 10, current_debit, num_fmt)
-                sheet.write_number(row, 11, current_credit, num_fmt)
-                sheet.write_number(row, 12, running_balance, balance_fmt)
+                # CHANGE: Shifted all data writing by +2 columns
+                sheet.write(row, 0, '', cell_left)  # Empty Code
+                sheet.write(row, 1, '', cell_left)  # Empty Name
 
-                # Write Empty for Groups on transaction lines
-                sheet.write(row, 13, '', cell_left)
-                sheet.write(row, 14, '', cell_left)
+                sheet.write(row, 2, date or '', cell_center)  # Was 0
+                sheet.write(row, 3, line.get('lcode') or '', cell_center)  # Was 1
+                sheet.write(row, 4, line.get('partner_name') or '', cell_left)  # Was 2
+                sheet.write(row, 5, line.get('move_name') or '', cell_center)  # Was 3
+                sheet.write(row, 6, line.get('move_state') or '', cell_center)  # Was 4
+                sheet.write(row, 7, brs_status, cell_center)  # Was 5
+                sheet.write(row, 8, line.get('lref') or '', cell_text_wrap)  # Was 6
+                sheet.write(row, 9, line.get('lname') or '', cell_text_wrap)  # Was 7
+                sheet.write(row, 10, corr_accounts, cell_text_wrap)  # Was 8
+
+                sheet.write(row, 11, '', cell_left)  # Init Bal
+                sheet.write_number(row, 12, current_debit, num_fmt)  # Debit
+                sheet.write_number(row, 13, current_credit, num_fmt)  # Credit
+                sheet.write_number(row, 14, running_balance, balance_fmt)  # Balance
+
+                # Empty Groups
                 sheet.write(row, 15, '', cell_left)
+                sheet.write(row, 16, '', cell_left)
+                sheet.write(row, 17, '', cell_left)
 
                 row += 1
 
-            # --- 6. ACCOUNT TOTALS ---
-            sheet.write(row, 0, '', cell_left)
-            sheet.write(row, 1, '', cell_left)
-            sheet.write(row, 2, '', cell_left)
-            sheet.write(row, 3, '', cell_left)
-            sheet.write(row, 4, '', cell_left)
-            sheet.write(row, 5, '', cell_left)
-            sheet.write(row, 6, '', cell_left)
-            sheet.write(row, 7, '', cell_left)
-            sheet.write(row, 8, '', cell_left)
-            sheet.write(row, 9, _('Total:'), header_fmt)
-            sheet.write_number(row, 10, float(account_data.get('debit', 0)), total_fmt)
-            sheet.write_number(row, 11, float(account_data.get('credit', 0)), total_fmt)
-            sheet.write_number(row, 12, float(account_data.get('balance', 0)), balance_fmt)
+            # --------------------------------------------------------------------------------
+            # 5.5 ACCOUNT TOTALS
+            # --------------------------------------------------------------------------------
+            # Write empty cells for 0-9
+            for i in range(10):
+                sheet.write(row, i, '', cell_left)
 
-            # Fill empty cells for new columns
-            sheet.write(row, 13, '', cell_left)
-            sheet.write(row, 14, '', cell_left)
+            sheet.write(row, 10, _('Total:'), header_fmt)  # Label
+            # Amounts shifted +2
+            sheet.write_number(row, 12, float(account_data.get('debit', 0)), total_fmt)
+            sheet.write_number(row, 13, float(account_data.get('credit', 0)), total_fmt)
+            sheet.write_number(row, 14, float(account_data.get('balance', 0)), balance_fmt)
+
+            # Empty Groups
             sheet.write(row, 15, '', cell_left)
+            sheet.write(row, 16, '', cell_left)
+            sheet.write(row, 17, '', cell_left)
             row += 2
 
         workbook.close()

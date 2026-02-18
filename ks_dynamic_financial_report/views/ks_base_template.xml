@@ -656,9 +656,11 @@
 
                         <t t-if="request.env['ir.config_parameter'].sudo().get_param('ks_enable_ledger_in_bal')">
                             <table class="pims_report_line_table table border mb-0 ks_table_1_pdf pims_report_content"
-                                   style="width: 100%; font-size: 10px;">
+                                   style="width: 100%; font-size: 9px;">
                                 <thead class="thead-light">
                                     <tr style="page-break-inside: avoid;" class="text-center">
+                                        <th style="text-align:left;">Account Code</th>
+                                        <th style="text-align:left;">Account Name</th>
                                         <th style="text-align:left; white-space: nowrap;">Date</th>
                                         <th style="text-align:left;">Journal</th>
                                         <th style="text-align:left;">Partner</th>
@@ -683,11 +685,14 @@
 
                                     <tr style="page-break-inside: avoid; background-color: #f0f0f0; font-weight: bold;"
                                         class="pims_report_line_main_tr">
-                                        <td colspan="8">
+                                        <td>
                                             <span style="color: #f0f0f0;" t-esc="'..'"/>
-                                            <span t-esc="js_data['ks_report_lines'][line]['name']"/>
+                                            <span t-esc="js_data['ks_report_lines'][line].get('code')"/>
                                         </td>
-
+                                        <td>
+                                            <span t-esc="js_data['ks_report_lines'][line].get('name')"/>
+                                        </td>
+                                        <td colspan="8"></td>
                                         <td class="text-right">
                                             <t t-if="js_data['ks_report_lines'][line]['initial_balance']">
                                                 <span t-esc="abs(accumulated_balance)"
@@ -729,6 +734,7 @@
                                     <t t-foreach="js_data['ks_report_lines'][line]['lines']" t-as="sub_line">
                                         <t t-if="sub_line['initial_bal']">
                                             <tr style="page-break-inside: avoid;" class="pims_report_line_initial_tr">
+                                                <td colspan="2"></td>
                                                 <td colspan="8" class="text-right">
                                                     <span>Initial Balance</span>
                                                 </td>
@@ -766,6 +772,8 @@
                                                t-value="accumulated_balance + row_debit - row_credit"/>
 
                                             <tr style="page-break-inside: avoid;" class="pims_report_line_data_tr">
+                                                <td></td>
+                                                <td></td>
                                                 <td style="white-space: nowrap;">
                                                     <t t-esc="sub_line.get('ldate')"/>
                                                 </td>
