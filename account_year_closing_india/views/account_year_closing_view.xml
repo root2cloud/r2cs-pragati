@@ -1,0 +1,127 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <record id="view_account_year_closing_form" model="ir.ui.view">
+        <field name="name">account.year.closing.form</field>
+        <field name="model">account.year.closing</field>
+        <field name="arch" type="xml">
+            <form string="Fiscal Year Closing">
+                <header>
+                    <button name="action_calculate_balances" string="Compute Balances" type="object"
+                            class="oe_highlight" states="draft,calculated"/>
+                    <button name="action_post_closing_entry" string="Post Closing Entry" type="object"
+                            class="oe_highlight" states="calculated"
+                            confirm="This will post the closing entry. Proceed?"/>
+                    <button name="action_reset_draft" string="Reset to Draft" type="object"
+                            states="posted,cancel,calculated"/>
+                    <field name="state" widget="statusbar" statusbar_visible="draft,calculated,posted"/>
+                </header>
+                <sheet>
+                    <field name="net_pl_type" invisible="1"/>
+                    <field name="company_id" invisible="1"/>
+                    <field name="currency_id" invisible="1"/>
+                    <field name="move_id" invisible="1"/>
+
+                    <div class="oe_button_box" name="button_box">
+                        <button name="action_view_move" type="object" class="oe_stat_button" icon="fa-book"
+                                attrs="{'invisible': [('move_id', '=', False)]}">
+                            <div class="o_stat_info">
+                                <span class="o_stat_text">Journal Entry</span>
+                            </div>
+                        </button>
+                    </div>
+
+                    <div class="oe_title">
+                        <h1>
+                            <field name="name"/>
+                        </h1>
+                    </div>
+
+                    <div class="row mt16 mb16"
+                         style="background-color: #f9f9f9; padding: 20px; border-radius: 5px; border: 1px solid #e0e0e0; text-align: center;">
+                        <div class="col-12">
+                            <label for="net_pl_amount" style="font-weight: bold; font-size: 16px; color: #555;"/>
+                            <h2 style="font-weight: bold;">
+                                <field name="net_pl_amount" widget="monetary"
+                                       options="{'currency_field': 'currency_id'}"
+                                       decoration-success="net_pl_type == 'profit'"
+                                       decoration-danger="net_pl_type == 'loss'"/>
+
+                                <span class="badge badge-pill badge-success ml-2"
+                                      attrs="{'invisible': [('net_pl_type', '!=', 'profit')]}">Net Profit
+                                </span>
+                                <span class="badge badge-pill badge-danger ml-2"
+                                      attrs="{'invisible': [('net_pl_type', '!=', 'loss')]}">Net Loss
+                                </span>
+                            </h2>
+                        </div>
+                    </div>
+
+                    <group>
+                        <group string="Audit Information">
+                            <field name="fiscal_year_label" placeholder="e.g. FY 2025-26"/>
+                            <field name="date_start"/>
+                            <field name="date_end"/>
+                            <field name="journal_id" invisible="1"/>
+                        </group>
+                        <group string="Closing Target">
+                            <field name="retained_earnings_account_id" string="Transfer To (Control A/c)"
+                                   placeholder="Select Reserves Account"/>
+                        </group>
+                    </group>
+
+                    <notebook>
+                        <page string="Detailed Ledger Balances">
+                            <field name="closing_line_ids">
+                                <tree create="0" delete="0" limit="1000" decoration-bf="True">
+                                    <field name="account_id"/>
+                                    <field name="account_type"/>
+                                    <field name="transaction_count" string="# Txns" optional="show"/>
+                                    <field name="amount_display" string="Closing Balance" widget="monetary"/>
+                                    <field name="dr_cr_display" string="" widget="badge"
+                                           decoration-info="dr_cr_display == 'dr'"
+                                           decoration-warning="dr_cr_display == 'cr'"/>
+                                    <field name="currency_id" invisible="1"/>
+                                </tree>
+                            </field>
+                        </page>
+                    </notebook>
+                </sheet>
+                <div class="oe_chatter">
+                    <field name="message_follower_ids"/>
+                    <field name="activity_ids"/>
+                    <field name="message_ids"/>
+                </div>
+            </form>
+        </field>
+    </record>
+
+    <record id="view_account_year_closing_tree" model="ir.ui.view">
+        <field name="name">account.year.closing.tree</field>
+        <field name="model">account.year.closing</field>
+        <field name="arch" type="xml">
+            <tree string="Year End Closings">
+                <field name="name"/>
+                <field name="fiscal_year_label"/>
+                <field name="date_end"/>
+                <field name="net_pl_amount" string="Net Result"/>
+                <field name="net_pl_type" widget="badge" decoration-success="net_pl_type == 'profit'"
+                       decoration-danger="net_pl_type == 'loss'"/>
+                <field name="state" widget="badge" decoration-success="state == 'posted'"/>
+            </tree>
+        </field>
+    </record>
+
+    <record id="action_account_year_closing" model="ir.actions.act_window">
+        <field name="name">Year-End Closing</field>
+        <field name="res_model">account.year.closing</field>
+        <field name="view_mode">tree,form</field>
+    </record>
+
+    <menuitem id="menu_account_year_closing"
+              name="Year-End Closing"
+              parent="account.menu_finance_entries_actions"
+              action="action_account_year_closing"
+              sequence="50"/>
+
+</odoo>

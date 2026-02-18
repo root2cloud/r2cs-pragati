@@ -1,6 +1,7 @@
 from odoo import models, fields, api, _
 from odoo.exceptions import UserError, ValidationError
 from datetime import datetime, timedelta
+from num2words import num2words
 
 
 class PaymentAdvice(models.Model):
@@ -428,9 +429,35 @@ class PaymentAdvice(models.Model):
     @api.depends('approve_amount', 'currency_id')
     def _compute_amount_in_words(self):
         for order in self:
-            if order.approve_amount:
-                amount_words = order.currency_id.amount_to_text(order.approve_amount)
-                order.amount_in_words = amount_words.title()  # Capitalize the first letter
+            if order.approve_amount and order.currency_id:
+                try:
+                    amount = order.approve_amount
+                    currency = order.currency_id
+
+                    integer_part = int(amount)
+                    decimal_part = int(round((amount - integer_part) * 100))
+
+                    # Convert main amount in Indian format
+                    amount_words = num2words(integer_part, lang='en_IN').title()
+
+                    # Get currency unit label (Rupees / Dollars etc.)
+                    currency_name = currency.currency_unit_label or currency.name
+
+                    if decimal_part:
+                        paise_words = num2words(decimal_part, lang='en_IN').title()
+                        sub_currency = currency.currency_subunit_label or "Paise"
+
+                        final_words = (
+                            f"{amount_words} {currency_name} "
+                            f"And {paise_words} {sub_currency} Only"
+                        )
+                    else:
+                        final_words = f"{amount_words} {currency_name} Only"
+
+                    order.amount_in_words = final_words
+
+                except Exception:
+                    order.amount_in_words = ""
             else:
                 order.amount_in_words = ""
 
