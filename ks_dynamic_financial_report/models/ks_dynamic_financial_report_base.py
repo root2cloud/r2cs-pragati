@@ -1914,7 +1914,15 @@ class ks_dynamic_financial_base(models.Model):
     # Method to fetch data for trial balance
 
     def ks_process_trial_balance(self, ks_df_informations):
-        # print("ks_df_informations",ks_df_informations)
+        """
+        Process trial balance with separate columns for:
+        - Main Group
+        - Account Type
+        - Sub Type
+        - Account Code
+        - Account Name
+        All previous functionality maintained including Journal Items and General Ledger dropdowns
+        """
         ks_domain = False
         ksaccount_ids = []
 
@@ -1944,7 +1952,6 @@ class ks_dynamic_financial_base(models.Model):
                 for ksaccountid in ksaccount_ids:
                     ksaccount = self.env['account.account'].sudo().browse(int(ksaccountid))
                     if ksaccount.account_type.name == 'Current Year Earnings':
-
                         ks_account_type_ids = self.env['account.account'].search(
                             ["|", ('account_type', 'ilike', 'Income'), ('account_type', 'ilike', 'Expenses ')])
                         for ks_account_type_id in ks_account_type_ids:
@@ -1956,37 +1963,55 @@ class ks_dynamic_financial_base(models.Model):
             ks_company_id = self.env['res.company'].sudo().browse(ks_df_informations.get('company_id'))
             ks_company_currency_id = ks_company_id.currency_id
 
-            ks_move_lines = {x.code: {'name': x.name, 'code': x.code, 'id': x.id, 'group': x.group_id.name,
-                                      'initial_debit': 0.0, 'initial_credit': 0.0, 'initial_balance': 0.0,
-                                      'debit': 0.0, 'credit': 0.0, 'balance': 0.0,
-                                      'ending_credit': 0.0, 'ending_debit': 0.0, 'ending_balance': 0.0,
-                                      'company_currency_id': ks_company_currency_id.id} for x in
-                             ks_account_ids}  # base for accounts to display
+            # Initialize move_lines dictionary with all account information
+            ks_move_lines = {
+                x.code: {
+                    'name': x.name,
+                    'code': x.code,
+                    'id': x.id,
+                    'group': x.group_id.name,
+                    'main_type': dict(x._fields['main_group'].selection).get(x.main_group) or '',
+                    'account_type': dict(x._fields['account_type'].selection).get(x.account_type) or '',
+                    'sub_type': x.sub_sub_group_id.name if x.sub_sub_group_id else '',
+                    'initial_debit': 0.0,
+                    'initial_credit': 0.0,
+                    'initial_balance': 0.0,
+                    'debit': 0.0,
+                    'credit': 0.0,
+                    'balance': 0.0,
+                    'ending_credit': 0.0,
+                    'ending_debit': 0.0,
+                    'ending_balance': 0.0,
+                    'company_currency_id': ks_company_currency_id.id
+                } for x in ks_account_ids
+            }
 
             ks_account_type_id = self.env['account.account'].search(
                 [('account_type', 'ilike', 'Current Year Earnings')], limit=1)
             ks_initial_account_code = []
+
             if ks_account_type_id.id:
-                ks_initial_account_line = {'name': ks_account_type_id.name,
-                                           'code': ks_account_type_id.code,
-                                           'id': ks_account_type_id.id,
-                                           'group': ks_account_type_id,
-                                           'main_type': dict(ks_account_type_id._fields['main_group'].selection).get(
-                                               ks_account_type_id.main_group) or False,
-                                           'account_type': dict(
-                                               ks_account_type_id._fields['account_type'].selection).get(
-                                               ks_account_type_id.account_type) or False,
-                                           'sub_type': ks_account_type_id.sub_sub_group_id.name,
-                                           'initial_debit': 0.0,
-                                           'initial_credit': 0.0,
-                                           'initial_balance': 0.0,
-                                           'debit': 0.0,
-                                           'credit': 0.0,
-                                           'balance': 0.0,
-                                           'ending_credit': 0.0,
-                                           'ending_debit': 0.0,
-                                           'ending_balance': 0.0,
-                                           'company_currency_id': ks_company_currency_id.id}
+                ks_initial_account_line = {
+                    'name': ks_account_type_id.name,
+                    'code': ks_account_type_id.code,
+                    'id': ks_account_type_id.id,
+                    'group': ks_account_type_id,
+                    'main_type': dict(ks_account_type_id._fields['main_group'].selection).get(
+                        ks_account_type_id.main_group) or '',
+                    'account_type': dict(ks_account_type_id._fields['account_type'].selection).get(
+                        ks_account_type_id.account_type) or '',
+                    'sub_type': ks_account_type_id.sub_sub_group_id.name if ks_account_type_id.sub_sub_group_id else '',
+                    'initial_debit': 0.0,
+                    'initial_credit': 0.0,
+                    'initial_balance': 0.0,
+                    'debit': 0.0,
+                    'credit': 0.0,
+                    'balance': 0.0,
+                    'ending_credit': 0.0,
+                    'ending_debit': 0.0,
+                    'ending_balance': 0.0,
+                    'company_currency_id': ks_company_currency_id.id
+                }
 
             ks_retained = {}
             ks_total_deb = 0.0
@@ -1995,26 +2020,26 @@ class ks_dynamic_financial_base(models.Model):
             ks_total_init_deb = 0.0
             ks_total_init_cre = 0.0
             ks_total_init_bal = 0.0
+
             for ks_account in ks_account_ids:
-                # print("ks_account.name",ks_account)
                 KS_WHERE_INIT = WHERE + " AND l.date < '%s'" % ks_df_informations['date'].get('ks_start_date')
-                # KS_WHERE_INIT += " AND l.account_id = %s" % ks_account.id
-                KS_WHERE_INIT += " AND a.code = %s" % "\'" + ks_account.code + '\''
+                KS_WHERE_INIT += " AND a.code = '%s'" % ks_account.code
                 ks_init_blns = {}
+
                 if self.ks_date_filter.get('ks_process') == 'range':
                     sql = ('''
-                                    SELECT
-                                        COALESCE(SUM(l.debit),0) AS initial_debit,
-                                        COALESCE(SUM(l.credit),0) AS initial_credit,
-                                        COALESCE(SUM(l.debit),0) - COALESCE(SUM(l.credit),0) AS initial_balance
-                                    FROM account_move_line l
-                                    JOIN account_move m ON (l.move_id=m.id)
-                                    JOIN account_account a ON (l.account_id=a.id)
-                                    LEFT JOIN res_currency c ON (l.currency_id=c.id)
-                                    LEFT JOIN res_partner p ON (l.partner_id=p.id)
-                                    JOIN account_journal j ON (l.journal_id=j.id)
-                                    WHERE %s
-                                ''') % KS_WHERE_INIT
+                        SELECT
+                            COALESCE(SUM(l.debit),0) AS initial_debit,
+                            COALESCE(SUM(l.credit),0) AS initial_credit,
+                            COALESCE(SUM(l.debit),0) - COALESCE(SUM(l.credit),0) AS initial_balance
+                        FROM account_move_line l
+                        JOIN account_move m ON (l.move_id=m.id)
+                        JOIN account_account a ON (l.account_id=a.id)
+                        LEFT JOIN res_currency c ON (l.currency_id=c.id)
+                        LEFT JOIN res_partner p ON (l.partner_id=p.id)
+                        JOIN account_journal j ON (l.journal_id=j.id)
+                        WHERE %s
+                    ''') % KS_WHERE_INIT
                     cr.execute(sql)
                     ks_init_blns = cr.dictfetchone()
 
@@ -2022,7 +2047,7 @@ class ks_dynamic_financial_base(models.Model):
                     initial_balance = ks_init_blns.get('initial_balance', 0)
                     ks_move_lines[ks_account.code]['initial_balance'] = initial_balance
 
-                    # Netting: Assign to Debit if positive, Credit if negative
+                    # **PRODUCTION NETTING LOGIC: Initial Balance - Only Debit OR Credit**
                     if initial_balance > 0:
                         ks_move_lines[ks_account.code]['initial_debit'] = initial_balance
                         ks_move_lines[ks_account.code]['initial_credit'] = 0.0
@@ -2033,10 +2058,10 @@ class ks_dynamic_financial_base(models.Model):
                         ks_move_lines[ks_account.code]['initial_debit'] = 0.0
                         ks_move_lines[ks_account.code]['initial_credit'] = 0.0
 
-                    # Use the netted values for the total to keep the report consistent
+                    # Use netted values for totals (PRODUCTION LOGIC)
                     ks_total_init_deb += ks_move_lines[ks_account.code]['initial_debit']
                     ks_total_init_cre += ks_move_lines[ks_account.code]['initial_credit']
-                    ks_total_init_bal += ks_init_blns.get('initial_balance', 0)
+                    ks_total_init_bal += initial_balance
 
                     if not self.ks_dif_filter_bool:
                         if self.ks_date_filter.get('ks_process') == 'range':
@@ -2053,21 +2078,21 @@ class ks_dynamic_financial_base(models.Model):
                         else:
                             KS_WHERE_CURRENT = WHERE + " AND l.date <= '%s'" % ks_df_informations['ks_differ'].get(
                                 'ks_end_date')
-                    # KS_WHERE_CURRENT += " AND a.id = %s" % ks_account.id
-                    KS_WHERE_CURRENT += " AND a.code = %s" % "\'" + ks_account.code + '\''
+
+                    KS_WHERE_CURRENT += " AND a.code = '%s'" % ks_account.code
                     sql = ('''
-                                    SELECT
-                                        COALESCE(SUM(l.debit),0) AS debit,
-                                        COALESCE(SUM(l.credit),0) AS credit,
-                                        COALESCE(SUM(l.debit),0) - COALESCE(SUM(l.credit),0) AS balance
-                                    FROM account_move_line l
-                                    JOIN account_move m ON (l.move_id=m.id)
-                                    JOIN account_account a ON (l.account_id=a.id)
-                                    LEFT JOIN res_currency c ON (l.currency_id=c.id)
-                                    LEFT JOIN res_partner p ON (l.partner_id=p.id)
-                                    JOIN account_journal j ON (l.journal_id=j.id)
-                                    WHERE %s
-                                ''') % KS_WHERE_CURRENT
+                        SELECT
+                            COALESCE(SUM(l.debit),0) AS debit,
+                            COALESCE(SUM(l.credit),0) AS credit,
+                            COALESCE(SUM(l.debit),0) - COALESCE(SUM(l.credit),0) AS balance
+                        FROM account_move_line l
+                        JOIN account_move m ON (l.move_id=m.id)
+                        JOIN account_account a ON (l.account_id=a.id)
+                        LEFT JOIN res_currency c ON (l.currency_id=c.id)
+                        LEFT JOIN res_partner p ON (l.partner_id=p.id)
+                        JOIN account_journal j ON (l.journal_id=j.id)
+                        WHERE %s
+                    ''') % KS_WHERE_CURRENT
                     cr.execute(sql)
                     ks_op = cr.dictfetchone()
                     ks_deb = ks_op['debit']
@@ -2077,9 +2102,9 @@ class ks_dynamic_financial_base(models.Model):
                     ks_move_lines[ks_account.code]['credit'] = ks_cre
                     ks_move_lines[ks_account.code]['balance'] = ks_bln
 
-                    ks_end_blns = ks_init_blns.get('initial_balance', 0) + ks_bln
+                    ks_end_blns = initial_balance + ks_bln
 
-                    # Netting the Ending Balance columns
+                    # **PRODUCTION NETTING LOGIC: Ending Balance - Only Debit OR Credit**
                     if ks_end_blns > 0:
                         ks_end_dr = ks_end_blns
                         ks_end_cr = 0.0
@@ -2093,11 +2118,14 @@ class ks_dynamic_financial_base(models.Model):
                     ks_move_lines[ks_account.code]['ending_balance'] = ks_end_blns
                     ks_move_lines[ks_account.code]['ending_credit'] = ks_end_cr
                     ks_move_lines[ks_account.code]['ending_debit'] = ks_end_dr
+
+                    # Ensure classification fields are populated
                     ks_move_lines[ks_account.code]['main_type'] = dict(ks_account._fields['main_group'].selection).get(
-                        ks_account.main_group) or False
+                        ks_account.main_group) or ''
                     ks_move_lines[ks_account.code]['account_type'] = dict(
-                        ks_account._fields['account_type'].selection).get(ks_account.account_type) or False
-                    ks_move_lines[ks_account.code]['sub_type'] = ks_account.sub_sub_group_id.name
+                        ks_account._fields['account_type'].selection).get(ks_account.account_type) or ''
+                    ks_move_lines[ks_account.code][
+                        'sub_type'] = ks_account.sub_sub_group_id.name if ks_account.sub_sub_group_id else ''
 
                     if self.env['ir.config_parameter'].sudo().get_param('ks_disable_trial_en_bal', False) and \
                             (ks_account.internal_group == 'income' or ks_account.internal_group == 'expense') and \
@@ -2128,11 +2156,14 @@ class ks_dynamic_financial_base(models.Model):
                         ks_move_lines[ks_account.code]['initial_balance'] = 0.0
                         ks_move_lines[ks_account.code]['initial_credit'] = 0.0
                         ks_move_lines[ks_account.code]['initial_debit'] = 0.0
+
+                        # Re-ensure classification after reset
                         ks_move_lines[ks_account.code]['main_type'] = dict(
-                            ks_account._fields['main_group'].selection).get(ks_account.main_group) or False
+                            ks_account._fields['main_group'].selection).get(ks_account.main_group) or ''
                         ks_move_lines[ks_account.code]['account_type'] = dict(
-                            ks_account._fields['account_type'].selection).get(ks_account.account_type) or False
-                        ks_move_lines[ks_account.code]['sub_type'] = ks_account.sub_sub_group_id.name
+                            ks_account._fields['account_type'].selection).get(ks_account.account_type) or ''
+                        ks_move_lines[ks_account.code][
+                            'sub_type'] = ks_account.sub_sub_group_id.name if ks_account.sub_sub_group_id else ''
 
                     if ks_end_blns or ks_deb != 0 or ks_cre != 0:
                         ks_total_deb += ks_deb
@@ -2151,29 +2182,34 @@ class ks_dynamic_financial_base(models.Model):
                 if 'a.id' in WHERE and str(ks_account_type_id.id) not in WHERE:
                     if ks_move_lines.get(ks_account_type_id.code, False):
                         ks_move_lines.pop(ks_account_type_id.code)
+
             for code in ks_initial_account_code:
                 if ks_move_lines.get(code, False) and \
                         ks_company_currency_id.is_zero(ks_move_lines[code]['ending_balance']):
                     ks_move_lines.pop(code)
+
             if ks_account_type_ids:
                 for acc_id in ks_account_type_ids:
                     if ks_move_lines.get(acc_id.code, False):
                         ks_move_lines.pop(acc_id.code)
 
-            ks_subtotal = {'SUBTOTAL': {
-                'name': 'Total',
-                'code': '',
-                'id': 'SUB',
-                'initial_credit': ks_company_currency_id.round(ks_total_init_cre),
-                'initial_debit': ks_company_currency_id.round(ks_total_init_deb),
-                'initial_balance': ks_company_currency_id.round(ks_total_init_bal),
-                'credit': ks_company_currency_id.round(ks_total_cre),
-                'debit': ks_company_currency_id.round(ks_total_deb),
-                'balance': ks_company_currency_id.round(ks_total_bln),
-                'ending_credit': ks_company_currency_id.round(ks_total_init_cre + ks_total_cre),
-                'ending_debit': ks_company_currency_id.round(ks_total_init_deb + ks_total_deb),
-                'ending_balance': ks_company_currency_id.round(ks_total_init_bal + ks_total_bln),
-                'company_currency_id': ks_company_currency_id.id}}
+            ks_subtotal = {
+                'SUBTOTAL': {
+                    'name': 'Total',
+                    'code': '',
+                    'id': 'SUB',
+                    'initial_credit': ks_company_currency_id.round(ks_total_init_cre),
+                    'initial_debit': ks_company_currency_id.round(ks_total_init_deb),
+                    'initial_balance': ks_company_currency_id.round(ks_total_init_bal),
+                    'credit': ks_company_currency_id.round(ks_total_cre),
+                    'debit': ks_company_currency_id.round(ks_total_deb),
+                    'balance': ks_company_currency_id.round(ks_total_bln),
+                    'ending_credit': ks_company_currency_id.round(ks_total_init_cre + ks_total_cre),
+                    'ending_debit': ks_company_currency_id.round(ks_total_init_deb + ks_total_deb),
+                    'ending_balance': ks_company_currency_id.round(ks_total_init_bal + ks_total_bln),
+                    'company_currency_id': ks_company_currency_id.id
+                }
+            }
 
             return ks_move_lines, ks_retained, ks_subtotal
 

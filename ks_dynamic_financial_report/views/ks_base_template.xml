@@ -439,23 +439,19 @@
                             <t t-if="js_data['ks_df_informations']['date']['ks_process'] == 'range'">
                                 <div class="col-2">
                                     <strong>Date From:</strong>
-                                    <p t-esc="js_data['ks_df_informations'] and js_data['ks_df_informations']['date']['ks_start_date']"
-                                    />
+                                    <p t-esc="js_data['ks_df_informations'] and js_data['ks_df_informations']['date']['ks_start_date']"/>
                                 </div>
                                 <div class="col-2">
                                     <strong>Date To:</strong>
-                                    <p t-esc="js_data['ks_df_informations'] and js_data['ks_df_informations']['date']['ks_end_date']"
-                                    />
+                                    <p t-esc="js_data['ks_df_informations'] and js_data['ks_df_informations']['date']['ks_end_date']"/>
                                 </div>
                             </t>
                             <t t-else="">
                                 <div class="col-2">
                                     <strong>As of Date:</strong>
-                                    <p t-esc="js_data['ks_df_informations'] and js_data['ks_df_informations']['date']['ks_end_date']"
-                                    />
+                                    <p t-esc="js_data['ks_df_informations'] and js_data['ks_df_informations']['date']['ks_end_date']"/>
                                 </div>
                             </t>
-
                         </div>
                         <div class="row my-2 pims_report_content">
                             <div t-if="js_data['ks_df_informations'].get('analytic_accounts')" class="col-3">
@@ -467,134 +463,194 @@
                                 <p t-esc="', '.join( lt or '' for lt in js_data['ks_df_informations']['selected_analytic_tag_names'])"/>
                             </div>
                         </div>
-                        <table class="pims_report_line_table pims_report_content border mb-0 ks_table_4_pdf table">
-                            <thead class="thead-light w-100">
-                                <tr style="page-break-inside: avoid;" class="text-center pims_tb_head">
-                                    <th style="width:30%">Account</th>
-                                    <th style="text-align:right;padding-bottom:10px;width:25%">Initial Balance</th>
-                                    <th style="text-align:right;">Debit</th>
-                                    <th style="text-align:right;width:9%">Credit</th>
-                                    <th style="text-align:right;width:10%">Balance</th>
-                                    <th style="text-align:right;width:26%">Ending Balance</th>
-                                    <th></th>
+
+                        <table class="pims_report_line_table pims_report_content border mb-0 table" style="width:100%; table-layout:fixed; font-size:11px; border-collapse:collapse;">
+                            <thead>
+                                <!-- Row 1: Group headers -->
+                                <tr>
+                                    <th rowspan="2" style="width:6%; border:1px solid #dee2e6; padding:4px; text-align:center; vertical-align:middle; background-color:#ffffff;">Account Code</th>
+                                    <th rowspan="2" style="width:13%; border:1px solid #dee2e6; padding:4px; text-align:center; vertical-align:middle; background-color:#ffffff;">Account Name</th>
+
+                                    <!-- Initial Balance header - GRAY -->
+                                    <th colspan="2" style="width:16%; border:1px solid #dee2e6; padding:6px 4px; text-align:center; font-weight:bold; font-size:12px; background-color:#9e9e9e; color:#ffffff;">Initial Balance</th>
+
+                                    <!-- Period header - GOLD/YELLOW -->
+                                    <t t-if="js_data['ks_df_informations']['date']['ks_process'] == 'range'">
+                                        <th colspan="2" style="width:16%; border:1px solid #dee2e6; padding:6px 4px; text-align:center; font-weight:bold; font-size:12px; background-color:#c9a800; color:#ffffff;">
+                                            <span t-esc="js_data['ks_df_informations']['date']['ks_start_date']"/> to <span t-esc="js_data['ks_df_informations']['date']['ks_end_date']"/>
+                                        </th>
+                                    </t>
+                                    <t t-else="">
+                                        <th colspan="2" style="width:16%; border:1px solid #dee2e6; padding:6px 4px; text-align:center; font-weight:bold; font-size:12px; background-color:#c9a800; color:#ffffff;">Period</th>
+                                    </t>
+
+                                    <!-- Ending Balance header - TEAL -->
+                                    <th colspan="2" style="width:16%; border:1px solid #dee2e6; padding:6px 4px; text-align:center; font-weight:bold; font-size:12px; background-color:#008080; color:#ffffff;">Ending Balance</th>
+
+                                    <th rowspan="2" style="width:7%; border:1px solid #dee2e6; padding:4px; text-align:center; vertical-align:middle; background-color:#ffffff;">Main Group</th>
+                                    <th rowspan="2" style="width:9%; border:1px solid #dee2e6; padding:4px; text-align:center; vertical-align:middle; background-color:#ffffff;">Account Type</th>
+                                    <th rowspan="2" style="width:9%; border:1px solid #dee2e6; padding:4px; text-align:center; vertical-align:middle; background-color:#ffffff;">Sub Type</th>
+                                </tr>
+                                <!-- Row 2: Debit / Credit sub-headers -->
+                                <tr>
+                                    <!-- Initial Balance sub-headers - light gray -->
+                                    <th style="width:8%; border:1px solid #dee2e6; padding:4px; text-align:right; font-size:11px; background-color:#d6d6d6; color:#333333;">Debit</th>
+                                    <th style="width:8%; border:1px solid #dee2e6; padding:4px; text-align:right; font-size:11px; background-color:#d6d6d6; color:#333333;">Credit</th>
+                                    <!-- Period sub-headers - light yellow -->
+                                    <th style="width:8%; border:1px solid #dee2e6; padding:4px; text-align:right; font-size:11px; background-color:#fff3b0; color:#c9a800;">Debit</th>
+                                    <th style="width:8%; border:1px solid #dee2e6; padding:4px; text-align:right; font-size:11px; background-color:#fff3b0; color:#c9a800;">Credit</th>
+                                    <!-- Ending Balance sub-headers - light teal -->
+                                    <th style="width:8%; border:1px solid #dee2e6; padding:4px; text-align:right; font-size:11px; background-color:#b2dfdf; color:#008080;">Debit</th>
+                                    <th style="width:8%; border:1px solid #dee2e6; padding:4px; text-align:right; font-size:11px; background-color:#b2dfdf; color:#008080;">Credit</th>
                                 </tr>
                             </thead>
-                            <t>
+                            <tbody>
                                 <t t-foreach="js_data['ks_report_lines']" t-as="line">
-                                    <tr class="pims_report_line_tb"> <!-- Normal lines -->
-                                        <td>
-                                            <span>
-                                                <t t-esc="js_data['ks_report_lines'][line]['code']"/>
-                                                -
-                                                <t t-esc="js_data['ks_report_lines'][line]['name']"/>
-                                            </span>
+                                    <tr class="pims_report_line_tb">
+                                        <!-- Account Code -->
+                                        <td style="border:1px solid #dee2e6; padding:3px 4px; font-size:11px; vertical-align:middle;">
+                                            <span t-esc="js_data['ks_report_lines'][line]['code']"/>
                                         </td>
-                                        <td class="text-right" style="width:10%;">
-                                            <t t-if="js_data['ks_report_lines'][line]['initial_balance'] and js_data['ks_report_lines'][line]['initial_balance'] != '-'">
-                                                <span t-esc="js_data['ks_report_lines'][line]['initial_balance']"
+                                        <!-- Account Name -->
+                                        <td style="border:1px solid #dee2e6; padding:3px 4px; font-size:11px; vertical-align:middle;">
+                                            <span t-esc="js_data['ks_report_lines'][line]['name']"/>
+                                        </td>
+                                        <!-- Initial Balance Debit -->
+                                        <td style="border:1px solid #dee2e6; padding:3px 4px; font-size:11px; text-align:right; vertical-align:middle;">
+                                            <t t-if="js_data['ks_report_lines'][line].get('initial_debit') and js_data['ks_report_lines'][line]['initial_debit'] != 0.0">
+                                                <span t-esc="js_data['ks_report_lines'][line]['initial_debit']"
                                                       t-options="{'widget': 'monetary', 'display_currency': company.currency_id}"/>
                                             </t>
-                                            <t t-else="">
-                                                <span t-att-style="style">-</span>
-                                            </t>
+                                            <t t-else=""><span>-</span></t>
                                         </td>
-                                        <td class="text-right" style="width:10%;">
+                                        <!-- Initial Balance Credit -->
+                                        <td style="border:1px solid #dee2e6; padding:3px 4px; font-size:11px; text-align:right; vertical-align:middle;">
+                                            <t t-if="js_data['ks_report_lines'][line].get('initial_credit') and js_data['ks_report_lines'][line]['initial_credit'] != 0.0">
+                                                <span t-esc="js_data['ks_report_lines'][line]['initial_credit']"
+                                                      t-options="{'widget': 'monetary', 'display_currency': company.currency_id}"/>
+                                            </t>
+                                            <t t-else=""><span>-</span></t>
+                                        </td>
+                                        <!-- Period Debit -->
+                                        <td style="border:1px solid #dee2e6; padding:3px 4px; font-size:11px; text-align:right; vertical-align:middle;">
                                             <t t-if="js_data['ks_report_lines'][line]['debit'] and js_data['ks_report_lines'][line]['debit'] != '-'">
                                                 <span t-esc="js_data['ks_report_lines'][line]['debit']"
                                                       t-options="{'widget': 'monetary', 'display_currency': company.currency_id}"/>
                                             </t>
-                                            <t t-else="">
-                                                <span t-att-style="style">-</span>
-                                            </t>
+                                            <t t-else=""><span>-</span></t>
                                         </td>
-                                        <td class="text-right" style="width:10%;">
+                                        <!-- Period Credit -->
+                                        <td style="border:1px solid #dee2e6; padding:3px 4px; font-size:11px; text-align:right; vertical-align:middle;">
                                             <t t-if="js_data['ks_report_lines'][line]['credit'] and js_data['ks_report_lines'][line]['credit'] != '-'">
                                                 <span t-esc="js_data['ks_report_lines'][line]['credit']"
                                                       t-options="{'widget': 'monetary', 'display_currency': company.currency_id}"/>
                                             </t>
-                                            <t t-else="">
-                                                <span t-att-style="style">-</span>
-                                            </t>
+                                            <t t-else=""><span>-</span></t>
                                         </td>
-                                        <td class="text-right" style="width:10%;">
-                                            <t t-if="js_data['ks_report_lines'][line]['balance'] and js_data['ks_report_lines'][line]['balance'] != '-'">
-                                                <span t-esc="js_data['ks_report_lines'][line]['balance']"
+                                        <!-- Ending Balance Debit -->
+                                        <td style="border:1px solid #dee2e6; padding:3px 4px; font-size:11px; text-align:right; vertical-align:middle;">
+                                            <t t-if="js_data['ks_report_lines'][line].get('ending_debit') and js_data['ks_report_lines'][line]['ending_debit'] != 0.0">
+                                                <span t-esc="js_data['ks_report_lines'][line]['ending_debit']"
                                                       t-options="{'widget': 'monetary', 'display_currency': company.currency_id}"/>
                                             </t>
-                                            <t t-else="">
-                                                <span t-att-style="style">-</span>
-                                            </t>
+                                            <t t-else=""><span>-</span></t>
                                         </td>
-                                        <td class="text-right" style="width:10%;">
-                                            <t t-if="js_data['ks_report_lines'][line]['ending_balance'] and js_data['ks_report_lines'][line]['ending_balance'] != '-'">
-                                                <span t-esc="js_data['ks_report_lines'][line]['ending_balance']"
+                                        <!-- Ending Balance Credit -->
+                                        <td style="border:1px solid #dee2e6; padding:3px 4px; font-size:11px; text-align:right; vertical-align:middle;">
+                                            <t t-if="js_data['ks_report_lines'][line].get('ending_credit') and js_data['ks_report_lines'][line]['ending_credit'] != 0.0">
+                                                <span t-esc="js_data['ks_report_lines'][line]['ending_credit']"
                                                       t-options="{'widget': 'monetary', 'display_currency': company.currency_id}"/>
                                             </t>
-                                            <t t-else="">
-                                                <span t-att-style="style">-</span>
-                                            </t>
+                                            <t t-else=""><span>-</span></t>
                                         </td>
-                                        <td></td>
+                                        <!-- Main Group -->
+                                        <td style="border:1px solid #dee2e6; padding:3px 4px; font-size:10px; text-align:center; vertical-align:middle;">
+                                            <span t-esc="js_data['ks_report_lines'][line].get('main_type', '-')"/>
+                                        </td>
+                                        <!-- Account Type -->
+                                        <td style="border:1px solid #dee2e6; padding:3px 4px; font-size:10px; text-align:center; vertical-align:middle;">
+                                            <span t-esc="js_data['ks_report_lines'][line].get('account_type', '-')"/>
+                                        </td>
+                                        <!-- Sub Type -->
+                                        <td style="border:1px solid #dee2e6; padding:3px 4px; font-size:10px; text-align:center; vertical-align:middle;">
+                                            <span t-esc="js_data['ks_report_lines'][line].get('sub_type', '-')"/>
+                                        </td>
                                     </tr>
                                 </t>
-                            </t>
 
-                            <t t-foreach="js_data['ks_subtotal']" t-as="line"> <!-- Subtotal -->
-                                <tr style="page-break-inside: avoid;" class="pims_report_line_subtotal">
-                                    <td>
-                                        <span>
-                                            <t t-esc="js_data['ks_subtotal'][line]['code']"/>
-                                            <t t-esc="js_data['ks_subtotal'][line]['name']"/>
-                                        </span>
-                                    </td>
-                                    <td class="text-right">
-                                        <t t-if="js_data['ks_subtotal'][line]['initial_balance'] and js_data['ks_subtotal'][line]['initial_balance'] != '-'">
-                                            <span t-esc="js_data['ks_subtotal'][line]['initial_balance'] "
-                                                  t-options="{'widget': 'monetary', 'display_currency': company.currency_id}"/>
-                                        </t>
-                                        <t t-else="">
-                                            <span t-att-style="style">-</span>
-                                        </t>
-                                    </td>
-                                    <td class="text-right">
-                                        <t t-if="js_data['ks_subtotal'][line]['debit'] and js_data['ks_subtotal'][line]['debit'] != '-'">
-                                            <span t-esc="js_data['ks_subtotal'][line]['debit']"
-                                                  t-options="{'widget': 'monetary', 'display_currency': company.currency_id}"/>
-                                        </t>
-                                        <t t-else="">
-                                            <span t-att-style="style">-</span>
-                                        </t>
-                                    </td>
-                                    <td class="text-right">
-                                        <t t-if="js_data['ks_subtotal'][line]['credit'] and js_data['ks_subtotal'][line]['credit'] != '-'">
-                                            <span t-esc="js_data['ks_subtotal'][line]['credit']"
-                                                  t-options="{'widget': 'monetary', 'display_currency': company.currency_id}"/>
-                                        </t>
-                                        <t t-else="">
-                                            <span t-att-style="style">-</span>
-                                        </t>
-                                    </td>
-                                    <td class="text-right">
-                                        <t t-if="js_data['ks_subtotal'][line]['balance'] and js_data['ks_subtotal'][line]['balance'] != '-'">
-                                            <span t-esc="js_data['ks_subtotal'][line]['balance']"
-                                                  t-options="{'widget': 'monetary', 'display_currency': company.currency_id}"/>
-                                        </t>
-                                        <t t-else="">
-                                            <span t-att-style="style">-</span>
-                                        </t>
-                                    </td>
-                                    <td class="text-right">
-                                        <t t-if="js_data['ks_subtotal'][line]['ending_balance'] and js_data['ks_subtotal'][line]['ending_balance'] != '-'">
-                                            <span t-esc="js_data['ks_subtotal'][line]['ending_balance']"
-                                                  t-options="{'widget': 'monetary', 'display_currency': company.currency_id}"/>
-                                        </t>
-                                        <t t-else="">
-                                            <span t-att-style="style">-</span>
-                                        </t>
-                                    </td>
-                                    <td/>
-                                </tr>
-                            </t>
+                                <!-- Subtotal rows -->
+                                <t t-foreach="js_data['ks_subtotal']" t-as="line">
+                                    <tr class="pims_report_line_subtotal" style="page-break-inside:avoid; background-color:#f8f9fa;">
+                                        <td colspan="2" style="border:1px solid #dee2e6; padding:4px; font-size:11px; vertical-align:middle;">
+                                            <strong>
+                                                <span t-esc="js_data['ks_subtotal'][line]['code']"/>
+                                                <span t-esc="js_data['ks_subtotal'][line]['name']"/>
+                                            </strong>
+                                        </td>
+                                        <!-- Initial Debit Total -->
+                                        <td style="border:1px solid #dee2e6; padding:3px 4px; font-size:11px; text-align:right; vertical-align:middle;">
+                                            <t t-if="js_data['ks_subtotal'][line].get('initial_debit') and js_data['ks_subtotal'][line]['initial_debit'] != 0.0">
+                                                <strong>
+                                                    <span t-esc="js_data['ks_subtotal'][line]['initial_debit']"
+                                                          t-options="{'widget': 'monetary', 'display_currency': company.currency_id}"/>
+                                                </strong>
+                                            </t>
+                                            <t t-else=""><span>-</span></t>
+                                        </td>
+                                        <!-- Initial Credit Total -->
+                                        <td style="border:1px solid #dee2e6; padding:3px 4px; font-size:11px; text-align:right; vertical-align:middle;">
+                                            <t t-if="js_data['ks_subtotal'][line].get('initial_credit') and js_data['ks_subtotal'][line]['initial_credit'] != 0.0">
+                                                <strong>
+                                                    <span t-esc="js_data['ks_subtotal'][line]['initial_credit']"
+                                                          t-options="{'widget': 'monetary', 'display_currency': company.currency_id}"/>
+                                                </strong>
+                                            </t>
+                                            <t t-else=""><span>-</span></t>
+                                        </td>
+                                        <!-- Period Debit Total -->
+                                        <td style="border:1px solid #dee2e6; padding:3px 4px; font-size:11px; text-align:right; vertical-align:middle;">
+                                            <t t-if="js_data['ks_subtotal'][line]['debit'] and js_data['ks_subtotal'][line]['debit'] != '-'">
+                                                <strong>
+                                                    <span t-esc="js_data['ks_subtotal'][line]['debit']"
+                                                          t-options="{'widget': 'monetary', 'display_currency': company.currency_id}"/>
+                                                </strong>
+                                            </t>
+                                            <t t-else=""><span>-</span></t>
+                                        </td>
+                                        <!-- Period Credit Total -->
+                                        <td style="border:1px solid #dee2e6; padding:3px 4px; font-size:11px; text-align:right; vertical-align:middle;">
+                                            <t t-if="js_data['ks_subtotal'][line]['credit'] and js_data['ks_subtotal'][line]['credit'] != '-'">
+                                                <strong>
+                                                    <span t-esc="js_data['ks_subtotal'][line]['credit']"
+                                                          t-options="{'widget': 'monetary', 'display_currency': company.currency_id}"/>
+                                                </strong>
+                                            </t>
+                                            <t t-else=""><span>-</span></t>
+                                        </td>
+                                        <!-- Ending Debit Total -->
+                                        <td style="border:1px solid #dee2e6; padding:3px 4px; font-size:11px; text-align:right; vertical-align:middle;">
+                                            <t t-if="js_data['ks_subtotal'][line].get('ending_debit') and js_data['ks_subtotal'][line]['ending_debit'] != 0.0">
+                                                <strong>
+                                                    <span t-esc="js_data['ks_subtotal'][line]['ending_debit']"
+                                                          t-options="{'widget': 'monetary', 'display_currency': company.currency_id}"/>
+                                                </strong>
+                                            </t>
+                                            <t t-else=""><span>-</span></t>
+                                        </td>
+                                        <!-- Ending Credit Total -->
+                                        <td style="border:1px solid #dee2e6; padding:3px 4px; font-size:11px; text-align:right; vertical-align:middle;">
+                                            <t t-if="js_data['ks_subtotal'][line].get('ending_credit') and js_data['ks_subtotal'][line]['ending_credit'] != 0.0">
+                                                <strong>
+                                                    <span t-esc="js_data['ks_subtotal'][line]['ending_credit']"
+                                                          t-options="{'widget': 'monetary', 'display_currency': company.currency_id}"/>
+                                                </strong>
+                                            </t>
+                                            <t t-else=""><span>-</span></t>
+                                        </td>
+                                        <td colspan="3" style="border:1px solid #dee2e6;"></td>
+                                    </tr>
+                                </t>
+                            </tbody>
                         </table>
                     </div>
                     <p class="my-2" style="text-align:center">*** END OF DOCUMENT ***</p>
