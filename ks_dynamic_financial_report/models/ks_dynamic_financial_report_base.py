@@ -1002,9 +1002,23 @@ class ks_dynamic_financial_base(models.Model):
                 cr.execute(ks_init_bal_sql, (ks_code,))
                 initial_bal_data = cr.dictfetchall()
 
+            # if ks_row_final:
+            #     # Check if the account has any movement (debit or credit)
+            #     if ks_currency.is_zero(ks_row_final['debit']) and ks_currency.is_zero(ks_row_final['credit']):
+            #         ks_move_lines.pop(ks_code, None)
+            #     else:
+            #         ks_row_final['ending_bal'] = True
+            #         ks_row_final['initial_bal'] = False
+
             if ks_row_final:
-                # Check if the account has any movement (debit or credit)
-                if ks_currency.is_zero(ks_row_final['debit']) and ks_currency.is_zero(ks_row_final['credit']):
+                # 1. Identify which accounts the user specifically selected in the UI
+                selected_accounts = ks_df_informations.get('account', [])
+                selected_account_ids = [acc.get('id') for acc in selected_accounts if acc.get('selected')]
+
+                # 2. Apply the Filter Logic:
+                # If the user selected specific accounts, pop (remove) any account NOT in that list.
+                # If no accounts are selected, do NOT pop anything (shows all ledgers).
+                if selected_account_ids and ks_account.id not in selected_account_ids:
                     ks_move_lines.pop(ks_code, None)
                 else:
                     ks_row_final['ending_bal'] = True
