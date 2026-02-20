@@ -2185,8 +2185,15 @@ class ks_dynamic_financial_base(models.Model):
                         ks_total_bln += ks_bln
                     elif ks_bln:
                         continue
-                    elif ks_company_currency_id.is_zero(ks_end_cr) and ks_company_currency_id.is_zero(ks_end_dr):
-                        ks_move_lines.pop(ks_account.code)
+                        # 1. Identify which accounts the user specifically selected in the UI
+                    selected_accounts = ks_df_informations.get('account', [])
+                    selected_account_ids = [acc.get('id') for acc in selected_accounts if acc.get('selected')]
+
+                    # 2. Apply the Filter Logic:
+                    # If specific accounts are selected, remove the ones not in the selection.
+                    # Otherwise, DO NOT remove (pop) accounts so that zero-balance accounts show up.
+                    if selected_account_ids and ks_account.id not in selected_account_ids:
+                        ks_move_lines.pop(ks_account.code, None)
 
             if self.env['ir.config_parameter'].sudo().get_param('ks_disable_trial_en_bal', False) \
                     and ks_account_type_id.id and self.ks_date_filter.get('ks_process') == 'range':
@@ -2200,8 +2207,18 @@ class ks_dynamic_financial_base(models.Model):
             for code in ks_initial_account_code:
                 if ks_move_lines.get(code, False) and \
                         ks_company_currency_id.is_zero(ks_move_lines[code]['ending_balance']):
-                    ks_move_lines.pop(code)
 
+                    # Check if user selected specific accounts
+                    selected_accounts = ks_df_informations.get('account', [])
+                    selected_account_ids = [acc.get('id') for acc in selected_accounts if acc.get('selected')]
+
+                    # Fetch account ID to check against selection
+                    acc_rec = self.env['account.account'].search(
+                        [('code', '=', code), ('company_id', '=', self.env.company.id)], limit=1)
+
+                    # Only pop if specific accounts were selected and this one wasn't selected
+                    if selected_account_ids and acc_rec and acc_rec.id not in selected_account_ids:
+                        ks_move_lines.pop(code, None)
             if ks_account_type_ids:
                 for acc_id in ks_account_type_ids:
                     if ks_move_lines.get(acc_id.code, False):
