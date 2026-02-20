@@ -1581,11 +1581,11 @@ if (!k['percentage']) {
         ksFormatCurrencySign: function (amount, ksFormatConfigurations, sign) {
             var currency_id = ksFormatConfigurations.currency_id;
             currency_id = session.get_currency(currency_id);
-            var without_sign = field_utils.format.monetary(Math.abs(amount), {}, ksFormatConfigurations);
-            if (!amount) {
-                return '-'
-            }
-            ;
+
+            // Ensure amount is handled as a float so 0 formats as 0.00
+            var amount_value = amount || 0.0;
+            var without_sign = field_utils.format.monetary(Math.abs(amount_value), {}, ksFormatConfigurations);
+
             if (currency_id) {
                 if (currency_id.position === "after") {
                     return sign + '&nbsp;' + without_sign + '&nbsp;' + currency_id.symbol;
@@ -1595,7 +1595,6 @@ if (!k['percentage']) {
             }
             return without_sign;
         },
-
         /**
          * @method to get the storage session keys
          */
