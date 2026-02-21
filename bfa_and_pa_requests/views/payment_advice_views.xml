@@ -114,7 +114,7 @@
                                     <!--                                        <field name="total_project_cost" invisible="1"/>-->
                                     <field name="reference_amount"/>
                                     <field name="date" invisible="1"/>
-                                    <field name="rec_amount" sum="Total"/>
+                                    <field name="rec_amount" sum="Total" attrs="{'invisible': [('parent.state', '=', 'approve')]}"/>
                                     <field name="balance_amount"/>
                                     <field name="amount_due" invisible="1"/>
                                     <field name="approve_amount" sum="Total"/>

@@ -19,7 +19,7 @@ class PaymentAdvice(models.Model):
     @api.model
     def _get_default_user_id(self):
         # Define the domain to fetch the user
-        domain = [('name', '=', "Anilkumar Accounts HO"), ('login', '=', 'anilkumar@pragatigroup.com')]
+        domain = [('name', '=', "Hanumantharao p"), ('login', '=', 'hanumantharao.p@pragatigroup.com')]
         user_type = self.env['res.users'].search(domain, limit=1)
         if user_type:
             return user_type.id
