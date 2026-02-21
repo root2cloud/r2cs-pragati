@@ -1651,3 +1651,99 @@ $(document).ready(function () {
         $('.o_filter_menu').removeClass('ks_d_block')
     });
 });
+
+// --- SECURE OPPOSITE ACCOUNTS LOADER ---
+odoo.define('ks_dynamic_financial_report.opposite_accounts', function (require) {
+    'use strict';
+
+    var rpc = require('web.rpc');
+
+    function ksFetchOppositeAccounts() {
+        var $targetCells = $('.all-accounts-cell:contains("Loading...")');
+        if ($targetCells.length === 0) return;
+
+        $targetCells.text('...');
+
+        var moveIds = [];
+        var rowMap = [];
+
+        $targetCells.each(function() {
+            var $row = $(this).closest('tr');
+            var moveId = $row.data('move-id');
+            var currentAccountId = $row.data('account-id');
+
+            if (moveId) {
+                moveIds.push(moveId);
+                rowMap.push({
+                    $cell: $(this),
+                    moveId: moveId,
+                    accountId: currentAccountId
+                });
+            }
+        });
+
+        if (moveIds.length === 0) return;
+
+        rpc.query({
+            model: 'account.move.line',
+            method: 'search_read',
+            domain: [['move_id', 'in', moveIds]],
+            fields: ['move_id', 'account_id', 'debit', 'credit'],
+        }).then(function(lines) {
+            var moveData = {};
+
+            lines.forEach(function(l) {
+                if (!l.account_id) return;
+                var mid = l.move_id[0];
+                if (!moveData[mid]) moveData[mid] = [];
+
+                var rawName = l.account_id[1];
+                var cleanName = rawName.replace(/^\d+\s*-?\s*/, '').trim();
+
+                var amountInfo = cleanName;
+                if (l.debit > 0) {
+                    amountInfo += ' (Dr: ₹ ' + l.debit.toLocaleString('en-IN', {minimumFractionDigits: 2}) + ')';
+                } else if (l.credit > 0) {
+                    amountInfo += ' (Cr: ₹ ' + l.credit.toLocaleString('en-IN', {minimumFractionDigits: 2}) + ')';
+                }
+
+                moveData[mid].push({
+                    id: l.account_id[0],
+                    name: cleanName,
+                    display: amountInfo
+                });
+            });
+
+            rowMap.forEach(function(item) {
+                var opposites = moveData[item.moveId] || [];
+                var filtered = opposites.filter(function(a) { return a.id !== item.accountId; });
+
+                var seen = {};
+                var unique = [];
+                filtered.forEach(function(a) {
+                    if (!seen[a.name]) { seen[a.name] = true; unique.push(a); }
+                });
+
+                var html = unique.map(function(a) { return a.display; }).join('<br/>');
+                item.$cell.html(html || '-');
+            });
+        }).catch(function() {
+            $targetCells.text('-');
+        });
+    }
+
+    var ksObserver = new MutationObserver(function(mutations) {
+        for (var i = 0; i < mutations.length; i++) {
+            if (mutations[i].addedNodes.length) {
+                if ($('.all-accounts-cell:contains("Loading...")').length > 0) {
+                    ksFetchOppositeAccounts();
+                    break;
+                }
+            }
+        }
+    });
+
+    $(document).ready(function() {
+        ksObserver.observe(document.body, { childList: true, subtree: true });
+    });
+});
