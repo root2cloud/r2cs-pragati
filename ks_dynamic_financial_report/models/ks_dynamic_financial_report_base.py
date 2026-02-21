@@ -1015,10 +1015,22 @@ class ks_dynamic_financial_base(models.Model):
                 selected_accounts = ks_df_informations.get('account', [])
                 selected_account_ids = [acc.get('id') for acc in selected_accounts if acc.get('selected')]
 
-                # 2. Apply the Filter Logic:
-                # If the user selected specific accounts, pop (remove) any account NOT in that list.
-                # If no accounts are selected, do NOT pop anything (shows all ledgers).
+                # Fetch initial balance for the summary check
+                initial_balance_for_summary = initial_bal_data[0].get('initial_balance', 0.0) if len(
+                    initial_bal_data) > 0 else 0.0
+
+                # 3. GET THE RESTORED STATE
+                show_all = ks_df_informations.get('ks_show_all_accounts', False)
+
+                is_zero_account = ks_currency.is_zero(ks_opening_balance) and \
+                                  ks_currency.is_zero(initial_balance_for_summary) and \
+                                  ks_currency.is_zero(ks_row_final['debit']) and \
+                                  ks_currency.is_zero(ks_row_final['credit'])
+
                 if selected_account_ids and ks_account.id not in selected_account_ids:
+                    ks_move_lines.pop(ks_code, None)
+                elif not show_all and is_zero_account:
+                    # Hide the zero account only if the toggle is OFF
                     ks_move_lines.pop(ks_code, None)
                 else:
                     ks_row_final['ending_bal'] = True
@@ -1028,8 +1040,6 @@ class ks_dynamic_financial_base(models.Model):
                     account_lines.append(ks_row_final)
 
                     # Update account summary details in ks_move_lines
-                    initial_balance_for_summary = initial_bal_data[0].get('initial_balance', 0.0) if len(
-                        initial_bal_data) > 0 else 0.0
                     ks_move_lines[ks_code]['initial_balance'] = initial_balance_for_summary
                     ks_move_lines[ks_code]['debit'] = ks_row_final['debit']
                     ks_move_lines[ks_code]['credit'] = ks_row_final['credit']
@@ -4200,11 +4210,20 @@ class ks_dynamic_financial_base(models.Model):
         return ks_sum_balance
 
     def ks_get_dynamic_fin_info(self, ks_df_informations):
-        # Meeru develop chesina Multi-company & Sudo logic
+        # --- NEW SAFETY CHECK START ---
+        # If the frontend sends False/None, initialize as an empty dictionary
+        if not ks_df_informations or not isinstance(ks_df_informations, dict):
+            ks_df_informations = {}
+        # --- NEW SAFETY CHECK END ---
+
+        # 1. SAVE THE STATE FROM JS BEFORE IT GETS WIPED
+        custom_show_all = ks_df_informations.get('ks_show_all_accounts', False)
         current_company_id = self.env.company.id
         self = self.sudo()
 
         ks_df_informations = self._ks_get_df_informations(ks_df_informations)
+        # 2. RESTORE THE STATE SO THE REPORT CAN USE IT
+        ks_df_informations['ks_show_all_accounts'] = custom_show_all
 
         ks_df_informations['ks_option_enable'] = self._context.get('ks_option_enable', False)
         ks_df_informations['ks_journal_enable'] = self._context.get('ks_journal_enable', False)
