@@ -65,7 +65,7 @@
                                       'ks_dynamic_financial_report/static/src/js/ks_dynamic_action_manager.js',
                                       'ks_dynamic_financial_report/static/src/js/journal_search.js',
                                       'ks_dynamic_financial_report/static/src/js/account_search.js',
-                                      'ks_dynamic_financial_report/static/src/js/add_all_accounts.js',
+                                      # 'ks_dynamic_financial_report/static/src/js/add_all_accounts.js',
                                       ],
                'web.assets_common': ['ks_dynamic_financial_report/static/src/xml/ks_dynamic_financial_report.xml',
                                      'ks_dynamic_financial_report/static/src/xml/ks_many2many_widget.xml']},

@@ -338,6 +338,25 @@
         </template>
 
         <template id="ks_searchview_extra_ks_df_informations">
+            <div class="btn-group o_dropdown ks_filter_button">
+                <button type="button" class="o_dropdown_toggler_btn btn btn-secondary dropdown-toggle"
+                        data-bs-toggle="dropdown">
+                    <span class="fa fa-eye"/>
+                    Zero Accounts:
+                    <t t-if="ks_df_informations.get('ks_show_all_accounts')">Shown</t>
+                    <t t-else="">Hidden</t>
+                </button>
+                <div class="dropdown-menu o_filter_menu" role="menu">
+                    <a role="menuitem" class="dropdown-item js_account_report_bool_filter"
+                       title="Show Zero Balance Accounts" data-filter="ks_show_all_accounts"
+                       data-bs-filter="ks_show_all_accounts">
+                        <t t-if="ks_df_informations.get('ks_show_all_accounts')">
+                            <i class="fa fa-check"/>
+                        </t>
+                        Show Zero Balance Accounts
+                    </a>
+                </div>
+            </div>
             <button type="button" class="o_dropdown_toggler_btn btn btn-secondary dropdown-toggle"
                     data-bs-toggle="dropdown">
                 <span class="fa fa-filter"/>
