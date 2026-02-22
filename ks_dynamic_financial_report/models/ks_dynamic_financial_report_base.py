@@ -2193,17 +2193,44 @@ class ks_dynamic_financial_base(models.Model):
                         ks_total_deb += ks_deb
                         ks_total_cre += ks_cre
                         ks_total_bln += ks_bln
-                    elif ks_bln:
-                        continue
+                        # NOTE: Removed the buggy `elif ks_bln: continue` which was creating unreachable code
                         # 1. Identify which accounts the user specifically selected in the UI
                     selected_accounts = ks_df_informations.get('account', [])
                     selected_account_ids = [acc.get('id') for acc in selected_accounts if acc.get('selected')]
 
-                    # 2. Apply the Filter Logic:
-                    # If specific accounts are selected, remove the ones not in the selection.
-                    # Otherwise, DO NOT remove (pop) accounts so that zero-balance accounts show up.
+                    # 2. GET THE RESTORED STATE
+                    show_all = ks_df_informations.get('ks_show_all_accounts', False)
+
+                    # Determine if it's a completely zeroed-out account
+                    is_zero_account = ks_company_currency_id.is_zero(
+                        ks_move_lines[ks_account.code]['initial_balance']) and \
+                                      ks_company_currency_id.is_zero(ks_deb) and \
+                                      ks_company_currency_id.is_zero(ks_cre) and \
+                                      ks_company_currency_id.is_zero(ks_end_blns)
+
+                    # 3. Apply the Filter Logic:
                     if selected_account_ids and ks_account.id not in selected_account_ids:
                         ks_move_lines.pop(ks_account.code, None)
+                    elif not show_all and is_zero_account:
+                        # Hide the zero account if the toggle is OFF
+                        ks_move_lines.pop(ks_account.code, None)
+
+
+                    # if ks_end_blns or ks_deb != 0 or ks_cre != 0:
+                    #     ks_total_deb += ks_deb
+                    #     ks_total_cre += ks_cre
+                    #     ks_total_bln += ks_bln
+                    # elif ks_bln:
+                    #     continue
+                    #     # 1. Identify which accounts the user specifically selected in the UI
+                    # selected_accounts = ks_df_informations.get('account', [])
+                    # selected_account_ids = [acc.get('id') for acc in selected_accounts if acc.get('selected')]
+                    #
+                    # # 2. Apply the Filter Logic:
+                    # # If specific accounts are selected, remove the ones not in the selection.
+                    # # Otherwise, DO NOT remove (pop) accounts so that zero-balance accounts show up.
+                    # if selected_account_ids and ks_account.id not in selected_account_ids:
+                    #     ks_move_lines.pop(ks_account.code, None)
 
             if self.env['ir.config_parameter'].sudo().get_param('ks_disable_trial_en_bal', False) \
                     and ks_account_type_id.id and self.ks_date_filter.get('ks_process') == 'range':
@@ -4589,6 +4616,8 @@ class ks_dynamic_financial_base(models.Model):
             'unfolded_lines': ks_earlier_informations and ks_earlier_informations.get('unfolded_lines') or [],
             'account_type': ks_earlier_informations and ks_earlier_informations.get(
                 'account_type') or self.ks_aged_filter,
+            'ks_show_all_accounts': ks_earlier_informations and ks_earlier_informations.get(
+                'ks_show_all_accounts') or False,
             'ks_posted_entries': ks_earlier_informations and ks_earlier_informations.get(
                 'ks_posted_entries') or False,
             'ks_unposted_entries': ks_earlier_informations and ks_earlier_informations.get(

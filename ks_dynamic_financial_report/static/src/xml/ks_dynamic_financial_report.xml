@@ -1164,116 +1164,167 @@
 
     <t t-name="ks_df_trial_balance">
         <style>
-            #data-bs-lines th,
-            #data-bs-lines td {
-            border-right: 1px solid #000 !important;
-            border-left: 1px solid #000 !important;
-            }
-
-            #data-bs-lines {
+            /* Strict Tabular Grid Styling for Clear Visibility */
+            .ks_tb_table {
+            width: 100%;
             border-collapse: collapse !important;
-            border: 1px solid #000 !important;
+            border: 2px solid #4a7ab0 !important;
+            background-color: #ffffff;
             }
 
-            #data-bs-lines tr {
-            border-bottom: 1px solid #000 !important;
+            /* Solid grid lines for every cell */
+            .ks_tb_table th,
+            .ks_tb_table td {
+            border: 1px solid #ced4da !important;
+            vertical-align: middle;
             }
 
-            #data-bs-lines thead tr {
-            border-top: 1px solid #000 !important;
-            border-bottom: 1px solid #000 !important;
+            /* Thick vertical lines to separate major sections clearly */
+            .ks_section_divider {
+            border-right: 2px solid #2d5b8c !important;
             }
 
+            /* Main Group Headers (Dark Blue) */
+            .ks_tb_table thead tr.ks_group_row th {
+            background-color: #2d5b8c !important;
+            color: #ffffff !important;
+            text-transform: uppercase;
+            font-size: 13px;
+            font-weight: bold;
+            padding: 12px 15px;
+            text-align: center;
+            }
+
+            /* Sub Headers (High Contrast Light Blue/Grey) */
+            .ks_tb_table thead tr.ks_sub_header_row th {
+            background-color: #e2e6eb !important;
+            color: #1a3654 !important;
+            font-size: 13px;
+            font-weight: 700;
+            padding: 10px 15px;
+            text-align: center;
+            }
+
+            /* Alternating Row Colors for easy tracking */
+            .ks_tb_table tbody tr {
+            background-color: #ffffff;
+            }
+            .ks_tb_table tbody tr:nth-child(even) {
+            background-color: #f8f9fa !important;
+            }
+            .ks_tb_table tbody tr:hover {
+            background-color: #e9ecef !important;
+            }
+
+            /* Standardized Padding & Typography */
+            .ks_tb_table tbody td {
+            padding: 8px 12px;
+            font-size: 13px;
+            color: #333333;
+            }
+
+            /* AMOUNTS STYLING: Increased Font Size, Weight, and Contrast */
             .ks_amt {
             text-align: right !important;
+            font-variant-numeric: tabular-nums;
+            font-family: "SFMono-Regular", Menlo, Monaco, Consolas, "Courier New", monospace;
+            font-size: 15px !important; /* Increased for clear visibility */
+            font-weight: 600 !important; /* Semi-bold for easier reading */
+            color: #000000 !important; /* Pure black */
             }
 
-            /* Bold separators for amount sections */
-            #data-bs-lines th:nth-child(5),
-            #data-bs-lines td:nth-child(5) {
-            border-right: 2px solid #000 !important;
+            /* High-Visibility Subtotal Row */
+            .ks_subtotal_row td {
+            background-color: #d1e3f8 !important;
+            color: #000000 !important;
+            font-weight: 900 !important;
+            font-size: 14px !important;
+            border-top: 2px solid #2d5b8c !important;
+            border-bottom: 2px solid #2d5b8c !important;
             }
 
-            #data-bs-lines th:nth-child(7),
-            #data-bs-lines td:nth-child(7) {
-            border-right: 2px solid #000 !important;
-            }
-
-            #data-bs-lines th:nth-child(9),
-            #data-bs-lines td:nth-child(9) {
-            border-right: 2px solid #000 !important;
+            /* Crisp Badges for Sub groups */
+            .ks_badge {
+            background-color: #dee2e6;
+            color: #212529;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 11px;
+            font-weight: bold;
+            display: inline-block;
             }
         </style>
 
         <div class="container-fluid my-4">
-            <table id="data-bs-lines" class="ks_table_4 table border" cellspacing="0" width="100%">
+            <table id="data-bs-lines" class="ks_tb_table" cellspacing="0" width="100%">
                 <thead class="ks_thead">
-                    <tr style="text-align: center; vertical-align: middle; background-color: #f8f9fa;">
-                        <th colspan="2" style="border-right: 2px solid #000 !important;">
-                            <span style="font-weight: bold; font-size: 14px;">Accounts</span>
+                    <tr class="ks_group_row">
+                        <th colspan="2" class="ks_section_divider">
+                            <span>Accounts</span>
                         </th>
-                        <th class="ks_in_bal" colspan="2" style="border-right: 2px solid #000 !important;">
-                            <span style="font-weight: bold; font-size: 14px;">Initial Balance</span>
+                        <th colspan="2" class="ks_section_divider">
+                            <span>Initial Balance</span>
                         </th>
-                        <th class="ks_to_dates" colspan="2" style="border-right: 2px solid #000 !important;">
-                            <span style="font-weight: bold; font-size: 14px;">
+                        <th colspan="2" class="ks_section_divider">
+                            <span>
                                 <t t-esc="ks_df_new_start_report_opt"/>
                                 to
                                 <t t-esc="ks_df_new_end_report_opt"/>
                             </span>
                         </th>
-                        <th class="ks_Ending_Bal" colspan="2" style="border-right: 2px solid #000 !important;">
-                            <span style="font-weight: bold; font-size: 14px;">Ending Balance</span>
+                        <th colspan="2" class="ks_section_divider">
+                            <span>Ending Balance</span>
                         </th>
                         <th colspan="3">
-                            <span style="font-weight: bold; font-size: 14px;">Account Groups</span>
+                            <span>Account Groups</span>
                         </th>
                     </tr>
 
-                    <tr style="vertical-align: middle;">
-                        <th class="ks_color_th_1">Account Code</th>
-                        <th class="ks_color_th_1">Account Name</th>
+                    <tr class="ks_sub_header_row">
+                        <th>Account Code</th>
+                        <th class="ks_section_divider">Account Name</th>
 
-                        <th class="ks_color_th_2">Debit</th>
-                        <th class="ks_color_th_2">Credit</th>
+                        <th>Debit</th>
+                        <th class="ks_section_divider">Credit</th>
 
-                        <th class="ks_color_th_3">Debit</th>
-                        <th class="ks_color_th_3">Credit</th>
+                        <th>Debit</th>
+                        <th class="ks_section_divider">Credit</th>
 
-                        <th class="ks_color_th_4">Debit</th>
-                        <th class="ks_color_th_4">Credit</th>
+                        <th>Debit</th>
+                        <th class="ks_section_divider">Credit</th>
 
-                        <th class="ks_color_th_1 text-center">Main Group</th>
-                        <th class="ks_color_th_1 text-center">Account Type</th>
-                        <th class="ks_color_th_1 text-center">Sub Type</th>
+                        <th>Main Group</th>
+                        <th>Sub Group</th>
+                        <th>Sub Sub Group</th>
                     </tr>
                 </thead>
-                <tbody class="border">
 
+                <tbody>
                     <t t-foreach="account_data" t-as="acc">
                         <tr>
-                            <td>
+                            <td style="font-weight: bold; color: #2d5b8c;">
                                 <t t-esc="account_data[acc]['code']"/>
                             </td>
 
-                            <td>
+                            <td class="ks_section_divider" style="font-weight: 600;">
                                 <div class="dropdown">
-                                    <a data-bs-toggle="dropdown" href="#">
+                                    <a data-bs-toggle="dropdown" href="#"
+                                       style="color: #333333; text-decoration: none;">
                                         <span t-att-data-bs-account-id="account_data[acc]['id']">
                                             <t t-esc="account_data[acc]['name']"/>
                                         </span>
-                                        <i class="fa fa-angle-down"></i>
+                                        <i class="fa fa-angle-down ms-1" style="color: #6c757d;"></i>
                                     </a>
-                                    <ul class="dropdown-menu p-2">
+                                    <ul class="dropdown-menu p-2 shadow-sm border-1">
                                         <li>
-                                            <a class="ks_view-source"
+                                            <a class="ks_view-source dropdown-item"
                                                action="ks_show_df_journal_items"
                                                t-att-data-bs-account-id="account_data[acc]['id']">
                                                 Journal Items
                                             </a>
                                         </li>
                                         <li>
-                                            <a class="ks_view-source"
+                                            <a class="ks_view-source dropdown-item"
                                                action="ks_show_df_general_ledger"
                                                t-att-data-bs-account-id="account_data[acc]['id']">
                                                 General Ledger
@@ -1287,7 +1338,7 @@
                                 <t t-raw="account_data[acc]['initial_debit']"/>
                             </td>
 
-                            <td class="ks_amt">
+                            <td class="ks_amt ks_section_divider">
                                 <t t-raw="account_data[acc]['initial_credit']"/>
                             </td>
 
@@ -1295,61 +1346,73 @@
                                 <t t-raw="account_data[acc]['debit']"/>
                             </td>
 
-                            <td class="ks_amt">
+                            <td class="ks_amt ks_section_divider">
                                 <t t-raw="account_data[acc]['credit']"/>
                             </td>
 
-                            <td class="ks_amt">
+                            <td class="ks_amt" style="font-weight: 900 !important; font-size: 16px !important;">
                                 <t t-raw="account_data[acc]['ending_debit']"/>
                             </td>
 
-                            <td class="ks_amt">
+                            <td class="ks_amt ks_section_divider"
+                                style="font-weight: 900 !important; font-size: 16px !important;">
                                 <t t-raw="account_data[acc]['ending_credit']"/>
                             </td>
 
-                            <td>
-                                <t t-esc="account_data[acc]['main_type'] or ''"/>
+                            <td class="text-center">
+                                <t t-if="account_data[acc]['main_type']">
+                                    <span class="ks_badge">
+                                        <t t-esc="account_data[acc]['main_type']"/>
+                                    </span>
+                                </t>
                             </td>
 
-                            <td>
-                                <t t-esc="account_data[acc]['account_type'] or ''"/>
+                            <td class="text-center">
+                                <t t-if="account_data[acc]['account_type']">
+                                    <span class="ks_badge">
+                                        <t t-esc="account_data[acc]['account_type']"/>
+                                    </span>
+                                </t>
                             </td>
 
-                            <td>
-                                <t t-esc="account_data[acc]['sub_type'] or ''"/>
+                            <td class="text-center">
+                                <t t-if="account_data[acc]['sub_type']">
+                                    <span class="ks_badge">
+                                        <t t-esc="account_data[acc]['sub_type']"/>
+                                    </span>
+                                </t>
                             </td>
                         </tr>
                     </t>
 
                     <t t-foreach="subtotal" t-as="account">
-                        <tr class="ks_py-mline"
-                            style="background:#F3F0FF; color:black; font-weight: bold;">
-                            <td colspan="2">
+                        <tr class="ks_subtotal_row">
+                            <td colspan="2" class="ks_section_divider text-right text-uppercase"
+                                style="padding-right: 15px;">
                                 <t t-esc="subtotal[account]['name']"/>
                             </td>
 
-                            <td class="ks_amt">
+                            <td class="ks_amt" style="font-size: 16px !important;">
                                 <t t-raw="subtotal[account]['initial_debit']"/>
                             </td>
-                            <td class="ks_amt">
+                            <td class="ks_amt ks_section_divider" style="font-size: 16px !important;">
                                 <t t-raw="subtotal[account]['initial_credit']"/>
                             </td>
-                            <td class="ks_amt">
+                            <td class="ks_amt" style="font-size: 16px !important;">
                                 <t t-raw="subtotal[account]['debit']"/>
                             </td>
-                            <td class="ks_amt">
+                            <td class="ks_amt ks_section_divider" style="font-size: 16px !important;">
                                 <t t-raw="subtotal[account]['credit']"/>
                             </td>
-                            <td class="ks_amt">
+                            <td class="ks_amt" style="font-size: 17px !important;">
                                 <t t-raw="subtotal[account]['ending_debit']"/>
                             </td>
-                            <td class="ks_amt">
+                            <td class="ks_amt ks_section_divider" style="font-size: 17px !important;">
                                 <t t-raw="subtotal[account]['ending_credit']"/>
                             </td>
                             <td colspan="3"></td>
                         </tr>
                     </t>
-
                 </tbody>
             </table>
         </div>
