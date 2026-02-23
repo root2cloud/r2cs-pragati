@@ -9,166 +9,255 @@
                    t-value="request.env['res.company'].sudo().browse(js_data['ks_df_informations'].get('company_id'))"/>
                 <t t-set="data_report_header_spacing" t-value="9"/>
                 <t t-set="data_report_dpi" t-value="110"/>
+
+                <t t-set="is_pl"
+                   t-value="bool(js_data.get('ks_report_lines') and 'main_group' in js_data['ks_report_lines'][0])"/>
+
                 <div class="page">
-                    <t t-if="js_data['ks_df_informations']['date']['ks_process'] == 'range'">
-                        <div class="row my-2 pims_report_content">
-                            <div class="col-3">
-                                <strong>Date From:</strong>
-                                <p t-esc="js_data['ks_df_informations']['date']['ks_start_date']"/>
-                            </div>
-                            <div class="col-3">
-                                <strong>Date To:</strong>
-                                <p t-esc="js_data['ks_df_informations']['date']['ks_end_date']"/>
-                            </div>
-                        </div>
-                    </t>
-                    <t t-else="">
-                        <div class="row my-2 pims_report_content">
-                            <div class="col-3">
-                                <strong>As of Date:</strong>
-                                <p t-esc="js_data['ks_df_informations']['date']['ks_end_date']"/>
-                            </div>
-                        </div>
-                    </t>
-                    <t t-if="js_data['ks_df_informations']['ks_diff_filter']['ks_diff_filter_enablity']">
-                        <div class="row my-2 pims_report_content">
-                            <div class="col-3">
-                                <strong>Comparison Date From:</strong>
-                                <p t-esc="js_data['ks_df_informations']['ks_differ']['ks_start_date']"
-                                />
-                            </div>
-                            <div class="col-3">
-                                <strong>Comparison Date To:</strong>
-                                <p t-esc="js_data['ks_df_informations']['ks_differ']['ks_end_date']"
-                                />
-                            </div>
-                        </div>
-                    </t>
-                    <div class="row my-2 pims_report_content">
-                        <div t-if="js_data['ks_df_informations'].get('analytic_accounts')" class="col-3">
-                            <strong>Analytic:</strong>
-                            <p t-esc="', '.join( lt or '' for lt in js_data['ks_df_informations']['selected_analytic_account_names'])"/>
-                        </div>
-                        <div t-if="js_data['ks_df_informations'].get('analytic_tags')" class="col-3">
-                            <strong>Tags:</strong>
-                            <p t-esc="', '.join( lt or '' for lt in js_data['ks_df_informations']['selected_analytic_tag_names'])"/>
-                        </div>
-                        <div class="col-3">
-                            <strong>Journals:</strong>
-                            <p t-esc="', '.join(journal.get('code') or 'ALL' for journal in js_data['ks_df_informations']['journals'] if journal.get('selected'))"/>
-                        </div>
-                        <div class="col-3">
-                            <strong>Accounts:</strong>
-                            <p t-esc="', '.join(account.get('name') or 'ALL' for account in js_data['ks_df_informations']['account'] if account.get('selected'))"/>
-                        </div>
+                    <style>
+                        .ks_tb_table {
+                        width: 100%;
+                        border-collapse: collapse !important;
+                        border: 2px solid #4a7ab0 !important;
+                        background-color: #ffffff;
+                        }
+                        .ks_tb_table th, .ks_tb_table td {
+                        border: 1px solid #ced4da !important;
+                        vertical-align: middle;
+                        padding: 6px 8px;
+                        font-size: 11px;
+                        color: #333333;
+                        }
+                        .ks_tb_table thead tr th {
+                        background-color: #2d5b8c !important;
+                        color: #ffffff !important;
+                        text-transform: uppercase;
+                        font-size: 11px;
+                        font-weight: bold;
+                        text-align: center;
+                        -webkit-print-color-adjust: exact;
+                        color-adjust: exact;
+                        }
+                        .ks_main_row {
+                        background-color: #e2e6eb !important;
+                        font-weight: bold;
+                        -webkit-print-color-adjust: exact;
+                        color-adjust: exact;
+                        }
+                        .ks_tb_table tbody tr:nth-child(even):not(.ks_main_row) {
+                        background-color: #f8f9fa !important;
+                        -webkit-print-color-adjust: exact;
+                        color-adjust: exact;
+                        }
+                    </style>
+
+                    <div class="text-center" style="margin-bottom: 20px;">
+                        <h3 style="font-weight: bold; margin-bottom: 5px;" t-esc="company.name.upper()"/>
+
+                        <t t-if="is_pl">
+                            <h5 style="font-weight: bold; margin-bottom: 5px; color: #555555;">PROFIT AND LOSS</h5>
+                        </t>
+                        <t t-else="">
+                            <h5 style="font-weight: bold; margin-bottom: 5px; color: #555555;">FINANCIAL REPORT</h5>
+                        </t>
+
+                        <t t-if="js_data['ks_df_informations']['date']['ks_process'] == 'range'">
+                            <h6 style="font-weight: bold; color: #555555;">
+                                From:
+                                <t t-esc="js_data['ks_df_informations']['date']['ks_start_date']"/>
+                                &#160;&#160;To:
+                                <t t-esc="js_data['ks_df_informations']['date']['ks_end_date']"/>
+                            </h6>
+                        </t>
+                        <t t-else="">
+                            <h6 style="font-weight: bold; color: #555555;">
+                                As of:
+                                <t t-esc="js_data['ks_df_informations']['date']['ks_end_date']"/>
+                            </h6>
+                        </t>
                     </div>
+
                     <t t-if="js_data['ks_df_informations']['ks_diff_filter']['ks_debit_credit_visibility']">
-                        <table class="pims_report_line_table table border-0 ks_table_1_pdf ks_table_2_pdf">
-                            <thead class="thead-light">
-                                <tr style="page-break-inside: avoid;" class="ks_report_lines_row">
-                                    <th/>
+                        <table class="ks_tb_table">
+                            <thead>
+                                <tr style="page-break-inside: avoid;">
+                                    <th style="text-align: left;">Account Details</th>
                                     <th class="text-right">Debit</th>
                                     <th class="text-right">Credit</th>
                                     <th class="text-right">Balance</th>
+                                    <t t-if="is_pl">
+                                        <th class="text-center">Main Group</th>
+                                        <th class="text-center">Sub Group</th>
+                                        <th class="text-center">Sub Sub Group</th>
+                                    </t>
                                 </tr>
                             </thead>
                             <tbody>
-                                <tr style="page-break-inside: avoid;" t-foreach="js_data['ks_report_lines']" t-as="a"
-                                    class="pims_report_line_main_tr ks_py-mline  'ks_level_'+ a.get('ks_level',0)">
-                                    <td>
-                                        <!--                                        <t t-if="a.get('ks_level', 0) in (1,2,3)">-->
-                                        <!--                                            <img src="/ks_dynamic_financial_report/static/description/arrow.png"-->
-                                        <!--                                                 style="max-width:20px;max-height:20px"/>-->
-                                        <!--                                        </t>-->
-                                        <span style="color: white;" t-esc="'...' * a.get('ks_level', 0)"/>
-                                        <span t-att-style="style " t-esc="a.get('ks_name')"/>
-                                    </td>
-                                    <td class="text-right" style="white-space: text-nowrap;">
-                                        <t t-if="a.get('debit')">
-                                            <span t-att-style="style" t-esc="a.get('debit')"
-                                                  t-options="{'widget': 'monetary', 'display_currency': company.currency_id}"/>
-                                        </t>
-                                        <t t-else="">
-                                            <span t-att-style="style">-</span>
-                                        </t>
+                                <t t-foreach="js_data['ks_report_lines']" t-as="a">
+                                    <t t-if="a.get('is_spacer')">
+                                        <tr style="height: 15px; border: none; background-color: #ffffff !important;">
+                                            <td t-att-colspan="7 if is_pl else 4" style="border: none !important;"/>
+                                        </tr>
+                                    </t>
+                                    <t t-else="">
+                                        <tr t-att-class="'ks_main_row' if not a.get('account') else ''"
+                                            style="page-break-inside: avoid;">
+                                            <td style="text-align: left;">
+                                                <span style="color: transparent;" t-esc="'...' * a.get('ks_level', 0)"/>
+                                                <span t-esc="a.get('ks_name')"/>
+                                            </td>
 
-                                    </td>
+                                            <td class="text-right" style="white-space: nowrap;">
+                                                <t t-if="a.get('debit') != '' and a.get('debit') != None">
+                                                    <span t-esc="a.get('debit', 0.0)"
+                                                          t-options="{'widget': 'float', 'precision': 2}"/>
+                                                </t>
+                                            </td>
 
-                                    <td class="text-right" style="white-space: text-nowrap;">
-                                        <t t-if="a.get('credit')">
-                                            <span t-att-style="style" t-esc="a.get('credit')"
-                                                  t-options="{'widget': 'monetary', 'display_currency': company.currency_id}"/>
-                                        </t>
-                                        <t t-else="">
-                                            <span t-att-style="style">-</span>
-                                        </t>
-                                    </td>
+                                            <td class="text-right" style="white-space: nowrap;">
+                                                <t t-if="a.get('credit') != '' and a.get('credit') != None">
+                                                    <span t-esc="a.get('credit', 0.0)"
+                                                          t-options="{'widget': 'float', 'precision': 2}"/>
+                                                </t>
+                                            </td>
 
-                                    <td class="text-right" style="white-space: text-nowrap;">
-                                        <t t-if="a.get('balance')">
-                                            <span t-att-style="style" t-esc="a.get('balance')"
-                                                  t-options="{'widget': 'monetary', 'display_currency': company.currency_id}"/>
-                                        </t>
-                                        <t t-else="">
-                                            <span t-att-style="style">-</span>
-                                        </t>
-                                    </td>
-                                </tr>
+                                            <td class="text-right" style="white-space: nowrap;">
+                                                <t t-if="a.get('balance') != '' and a.get('balance') != None">
+                                                    <t t-set="bal" t-value="float(a.get('balance', 0.0))"/>
+
+                                                    <t t-if="a.get('is_net_section')">
+                                                        <span t-esc="abs(bal)"
+                                                              t-options="{'widget': 'monetary', 'display_currency': company.currency_id}"/>
+                                                    </t>
+                                                    <t t-else="">
+                                                        <t t-if="bal &gt; 0">
+                                                            <span t-esc="bal"
+                                                                  t-options="{'widget': 'monetary', 'display_currency': company.currency_id}"/>
+                                                            Dr
+                                                        </t>
+                                                        <t t-elif="bal &lt; 0">
+                                                            <span t-esc="abs(bal)"
+                                                                  t-options="{'widget': 'monetary', 'display_currency': company.currency_id}"/>
+                                                            Cr
+                                                        </t>
+                                                        <t t-else="">
+                                                            <span t-esc="0.0"
+                                                                  t-options="{'widget': 'monetary', 'display_currency': company.currency_id}"/>
+                                                        </t>
+                                                    </t>
+                                                </t>
+                                            </td>
+
+                                            <t t-if="is_pl">
+                                                <td class="text-center">
+                                                    <span t-esc="a.get('main_group', '')"/>
+                                                </td>
+                                                <td class="text-center">
+                                                    <span t-esc="a.get('sub_group', '')"/>
+                                                </td>
+                                                <td class="text-center">
+                                                    <span t-esc="a.get('sub_sub_group', '')"/>
+                                                </td>
+                                            </t>
+                                        </tr>
+                                    </t>
+                                </t>
                             </tbody>
                         </table>
                     </t>
 
                     <t t-if="not js_data['ks_df_informations']['ks_diff_filter']['ks_debit_credit_visibility']">
-                        <table class="pims_report_line_table table border ks_table_1_pdf ks_table_2_pdf">
-
-                            <thead class="thead-light">
-                                <tr style="page-break-inside: avoid;" class="ks_report_lines_row">
-                                    <th></th>
+                        <table class="ks_tb_table">
+                            <thead>
+                                <tr style="page-break-inside: avoid;">
+                                    <th style="text-align: left;">Account Details</th>
                                     <t t-if="js_data['ks_df_informations']['ks_diff_filter']['ks_diff_filter_enablity']">
                                         <t t-foreach="js_data['ks_report_lines'][0]['balance_cmp']"
                                            t-as="current_interval">
-                                            <th class="amt-head" colspan="1">
+                                            <th class="text-right">
                                                 <span>
                                                     <t t-esc="current_interval.split('comp_bal_')[1]"/>
                                                 </span>
                                             </th>
                                         </t>
                                     </t>
-
-
                                     <th class="text-right">Balance</th>
+                                    <t t-if="is_pl">
+                                        <th class="text-center">Main Group</th>
+                                        <th class="text-center">Sub Group</th>
+                                        <th class="text-center">Sub Sub Group</th>
+                                    </t>
                                 </tr>
                             </thead>
                             <tbody>
-                                <tr style="page-break-inside: avoid;" class="pims_report_line_main_tr ks_py-mline "
-                                    t-foreach="js_data['ks_report_lines']" t-as="a">
-                                    <td>
-                                        <span style="color: white;" t-esc="'...' * a.get('ks_level', 0)"/>
-                                        <span t-att-style="style" t-esc="a.get('ks_name')"/>
-                                    </td>
-                                    <t t-if="js_data['ks_df_informations']['ks_diff_filter']['ks_diff_filter_enablity'] and a['balance_cmp']">
-                                        <t t-foreach="a['balance_cmp']" t-as="current_interval">
-                                            <td t-att-style="style_td" class="amt">
-                                                <t t-if="a['balance_cmp'][current_interval]">
-                                                    <span t-raw="a['balance_cmp'][current_interval]"
-                                                          t-options="{'widget': 'monetary', 'display_currency': company.currency_id}"/>
+                                <t t-foreach="js_data['ks_report_lines']" t-as="a">
+                                    <t t-if="a.get('is_spacer')">
+                                        <tr style="height: 15px; border: none; background-color: #ffffff !important;">
+                                            <t t-set="cols_cmp"
+                                               t-value="len(a.get('balance_cmp', {})) if a.get('balance_cmp') else 0"/>
+                                            <td t-att-colspan="(5 + cols_cmp) if is_pl else (2 + cols_cmp)"
+                                                style="border: none !important;"/>
+                                        </tr>
+                                    </t>
+                                    <t t-else="">
+                                        <tr t-att-class="'ks_main_row' if not a.get('account') else ''"
+                                            style="page-break-inside: avoid;">
+                                            <td style="text-align: left;">
+                                                <span style="color: transparent;" t-esc="'...' * a.get('ks_level', 0)"/>
+                                                <span t-esc="a.get('ks_name')"/>
+                                            </td>
+
+                                            <t t-if="js_data['ks_df_informations']['ks_diff_filter']['ks_diff_filter_enablity'] and a.get('balance_cmp')">
+                                                <t t-foreach="a['balance_cmp']" t-as="current_interval">
+                                                    <td class="text-right" style="white-space: nowrap;">
+                                                        <t t-if="a['balance_cmp'][current_interval] != '' and a['balance_cmp'][current_interval] != None">
+                                                            <span t-esc="a['balance_cmp'][current_interval]"
+                                                                  t-options="{'widget': 'monetary', 'display_currency': company.currency_id}"/>
+                                                        </t>
+                                                    </td>
                                                 </t>
-                                                <t t-else="">
-                                                    <span t-att-style="style">-</span>
+                                            </t>
+
+                                            <td class="text-right" style="white-space: nowrap;">
+                                                <t t-if="a.get('balance') != '' and a.get('balance') != None">
+                                                    <t t-set="bal" t-value="float(a.get('balance', 0.0))"/>
+                                                    <t t-if="a.get('is_net_section')">
+                                                        <span t-esc="abs(bal)"
+                                                              t-options="{'widget': 'monetary', 'display_currency': company.currency_id}"/>
+                                                    </t>
+                                                    <t t-else="">
+                                                        <t t-if="bal &gt; 0">
+                                                            <span t-esc="bal"
+                                                                  t-options="{'widget': 'monetary', 'display_currency': company.currency_id}"/>
+                                                            Dr
+                                                        </t>
+                                                        <t t-elif="bal &lt; 0">
+                                                            <span t-esc="abs(bal)"
+                                                                  t-options="{'widget': 'monetary', 'display_currency': company.currency_id}"/>
+                                                            Cr
+                                                        </t>
+                                                        <t t-else="">
+                                                            <span t-esc="0.0"
+                                                                  t-options="{'widget': 'monetary', 'display_currency': company.currency_id}"/>
+                                                        </t>
+                                                    </t>
                                                 </t>
                                             </td>
-                                        </t>
+
+                                            <t t-if="is_pl">
+                                                <td class="text-center">
+                                                    <span t-esc="a.get('main_group', '')"/>
+                                                </td>
+                                                <td class="text-center">
+                                                    <span t-esc="a.get('sub_group', '')"/>
+                                                </td>
+                                                <td class="text-center">
+                                                    <span t-esc="a.get('sub_sub_group', '')"/>
+                                                </td>
+                                            </t>
+                                        </tr>
                                     </t>
-                                    <td class="text-right">
-                                        <t t-if="a.get('balance')">
-                                            <span t-att-style="style" t-esc="a.get('balance')"
-                                                  t-options="{'widget': 'monetary', 'display_currency': company.currency_id}"/>
-                                        </t>
-                                        <t t-else="">
-                                            <span t-att-style="style">-</span>
-                                        </t>
-                                    </td>
-                                </tr>
+                                </t>
                             </tbody>
                         </table>
                     </t>
@@ -176,7 +265,6 @@
             </t>
         </t>
     </template>
-
     <template id="ks_df_executive_summary">
         <t t-call="web.html_container">
             <t t-call="web.internal_layout">
