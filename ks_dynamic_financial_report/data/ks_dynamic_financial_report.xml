@@ -56,7 +56,7 @@
             <field name="ks_sequence" eval="1"/>
             <field name="ks_df_report_account_type">total</field>
             <field name="ks_hide_default_reports" eval="True"/>
-            <field name="ks_display_detail">no_detail</field>
+            <field name="ks_display_detail">detail_flat</field>
         </record>
         <record id="ks_df_operating_incm1" model="ks.dynamic.financial.reports">
             <field name="ks_name">Operating Income</field>
@@ -66,7 +66,7 @@
             <field name="ks_hide_default_reports" eval="True"/>
             <field name="ks_dfr_account_type_ids"
                    eval="[(4,ref('ks_dynamic_financial_report.ks_df_income'))]"/>
-            <field name="ks_display_detail">detail_with_hierarchy</field>
+            <field name="ks_display_detail">detail_flat</field>
         </record>
         <record id="ks_df_ext_other_income0" model="ks.dynamic.financial.reports">
             <field name="ks_name">Other Income</field>
@@ -76,7 +76,7 @@
             <field name="ks_hide_default_reports" eval="True"/>
             <field name="ks_dfr_account_type_ids"
                    eval="[(4,ref('ks_dynamic_financial_report.ks_df_income_other'))]"/>
-            <field name="ks_display_detail">detail_with_hierarchy</field>
+            <field name="ks_display_detail">detail_flat</field>
 
         </record>
 
@@ -98,7 +98,7 @@
             <field name="ks_sequence" eval="1"/>
             <field name="ks_df_report_account_type">ks_coa_type</field>
             <field name="ks_dfr_account_type_ids" eval="[(4, ref('ks_df_expense_direct'))]"/>
-            <field name="ks_display_detail">detail_with_hierarchy</field>
+            <field name="ks_display_detail">detail_flat</field>
         </record>
 
         <!-- Indirect Expense -->
@@ -108,7 +108,7 @@
             <field name="ks_sequence" eval="2"/>
             <field name="ks_df_report_account_type">ks_coa_type</field>
             <field name="ks_dfr_account_type_ids" eval="[(4, ref('ks_df_expense_indirect'))]"/>
-            <field name="ks_display_detail">detail_with_hierarchy</field>
+            <field name="ks_display_detail">detail_flat</field>
         </record>
 
         <record id="ks_df_cost_of_rev1" model="ks.dynamic.financial.reports">
@@ -119,7 +119,7 @@
             <field name="ks_hide_default_reports" eval="True"/>
             <field name="ks_dfr_account_type_ids"
                    eval="[(4,ref('ks_dynamic_financial_report.ks_df_expense_direct_cost'))]"/>
-            <field name="ks_display_detail">detail_with_hierarchy</field>
+            <field name="ks_display_detail">detail_flat</field>
 
         </record>
 
@@ -130,7 +130,7 @@
                    ref="ks_dynamic_financial_report_expense0"/>
             <field name="ks_df_report_account_type">ks_coa_type</field>
             <field name="ks_hide_default_reports" eval="True"/>
-            <field name="ks_display_detail">detail_with_hierarchy</field>
+            <field name="ks_display_detail">detail_flat</field>
             <field name="ks_dfr_account_type_ids"
                    eval="[(4,ref('ks_dynamic_financial_report.ks_df_expense'))]"/>
         </record>
@@ -141,7 +141,7 @@
             <field name="ks_sequence" eval="3"/>
             <field name="ks_df_report_account_type">ks_coa_type</field>
             <field name="ks_hide_default_reports" eval="True"/>
-            <field name="ks_display_detail">detail_with_hierarchy</field>
+            <field name="ks_display_detail">detail_flat</field>
             <field name="ks_dfr_account_type_ids"
                    eval="[(4,ref('ks_dynamic_financial_report.ks_df_expense_depreciation'))]"/>
         </record>
@@ -152,7 +152,7 @@
             <field name="ks_df_report_account_type">ks_coa_type</field>
             <field name="ks_dfr_account_type_ids"
                    eval="[(4,ref('ks_dynamic_financial_report.ks_df_expense_changes_inventory'))]"/>
-            <field name="ks_display_detail">detail_with_hierarchy</field>
+            <field name="ks_display_detail">detail_flat</field>
         </record>
 
 
@@ -162,7 +162,7 @@
             <field name="ks_parent_id" ref='ks_df_pnl0'/>
             <field name="ks_df_report_account_type">total</field>
             <field name="ks_hide_default_reports" eval="True"/>
-            <field name="ks_display_detail">detail_with_hierarchy</field>
+            <field name="ks_display_detail">detail_flat</field>
             <field name="ks_sequence" eval="4"/>
         </record>
         <record id="ks_df_report_total_income1" model="ks.dynamic.financial.reports">

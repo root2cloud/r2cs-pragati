@@ -1440,51 +1440,60 @@ if (k.initial_balance) {
         /**
          * @method to set report currency configuration
          */
-        ksSetReportCurrencyConfig: function () {
+ksSetReportCurrencyConfig: function () {
             var self = this;
 
             _.each(self.ks_report_lines, function (k, v) {
+                // FALLBACK FIX: If line is missing currency, use global report currency
                 var ksFormatConfigurations = {
-                    currency_id: k.company_currency_id,
+                    currency_id: k.company_currency_id || self.ks_currency,
                     noSymbol: true,
                 };
-//                    k.debit = self.ksFormatCurrencySign(k.debit, ksFormatConfigurations, k.debit < 0 ? '-' : '');
-//                    k.credit = self.ksFormatCurrencySign(k.credit, ksFormatConfigurations, k.credit < 0 ? '-' : '');
-                // ... inside _.each loop ...
 
-// 1. Logic for Initial Balance (Main Lines)
-if (self.controlPanelProps.action.xml_id == _t('ks_dynamic_financial_report.ks_df_tb_action')) {
-    // Trial balance logic (leave empty if not needed)
-} else {
-    if (k.initial_balance) {
-        var init_suffix = k.initial_balance < 0 ? ' Cr' : ' Dr';
-        // Pass '' as 3rd arg to get absolute value (no minus), then add suffix
-        k.initial_balance = self.ksFormatCurrencySign(k.initial_balance, ksFormatConfigurations, '') + init_suffix;
-    } else {
-        k.initial_balance = self.ksFormatCurrencySign(k.initial_balance, ksFormatConfigurations, '');
-    }
-}
+                // 1. Logic for Initial Balance (Main Lines)
+                if (self.controlPanelProps.action.xml_id !== _t('ks_dynamic_financial_report.ks_df_tb_action')) {
+                    if (k.initial_balance !== undefined && k.initial_balance !== '') {
+                        var init_suffix = k.initial_balance < 0 ? ' Cr' : ' Dr';
+                        k.initial_balance = self.ksFormatCurrencySign(k.initial_balance, ksFormatConfigurations, '') + init_suffix;
+                    } else {
+                        k.initial_balance = self.ksFormatCurrencySign(k.initial_balance, ksFormatConfigurations, '');
+                    }
+                }
 
-// 2. Logic for Final Balance (Main Lines)
-if (!k['percentage']) {
-    // Uncommented and updated logic
-    if (k.balance) {
-        var bal_suffix = k.balance < 0 ? ' Cr' : ' Dr';
-        k.balance = self.ksFormatCurrencySign(k.balance, ksFormatConfigurations, '') + bal_suffix;
-    } else {
-        k.balance = self.ksFormatCurrencySign(k.balance, ksFormatConfigurations, '');
-    }
-} else {
-    k.balance = String(Math.round(k.balance)) + "%";
-}
+                // 2. Logic for Final Balance (Main Lines)
+                if (!k['percentage']) {
 
-                for (const prop in k.balance_cmp) {
-                    k.balance_cmp[prop] = self.ksFormatCurrencySign(k.balance_cmp[prop], ksFormatConfigurations, k.balance[prop] < 0 ? '-' : '');
+                    // ---> SPACER FIX: If it's our spacer row, force it to be completely empty <---
+                    if (k.is_spacer) {
+                        k.balance = '';
+                    }
+                    // -----------------------------------------------------------------------------
+                    else if (k.balance !== undefined && k.balance !== '') {
+
+                        // ---> PRO NET SECTION FIX <---
+                        if (k.is_net_section) {
+                            // SUMMARY ROWS: Only Symbol + Amount. NO Dr/Cr suffix!
+                            k.balance = self.ksFormatCurrencySign(k.balance, ksFormatConfigurations, k.balance < 0 ? '-' : '');
+                        } else {
+                            // NORMAL ROWS: Symbol + Amount + Dr/Cr suffix
+                            var bal_suffix = k.balance < 0 ? ' Cr' : ' Dr';
+                            k.balance = self.ksFormatCurrencySign(k.balance, ksFormatConfigurations, '') + bal_suffix;
+                        }
+                    } else {
+                        k.balance = self.ksFormatCurrencySign(k.balance, ksFormatConfigurations, '');
+                    }
+                } else {
+                    k.balance = String(Math.round(k.balance)) + "%";
+                }
+
+                // 3. Logic for Comparison Balances
+                if (k.balance_cmp) {
+                    for (const prop in k.balance_cmp) {
+                        k.balance_cmp[prop] = self.ksFormatCurrencySign(k.balance_cmp[prop], ksFormatConfigurations, k.balance_cmp[prop] < 0 ? '-' : '');
+                    }
                 }
             });
-        },
-
-        /**
+        },        /**
          * @method to set tax report currency configuration
          */
         ksSetTaxReportCurrencyConfig: function () {

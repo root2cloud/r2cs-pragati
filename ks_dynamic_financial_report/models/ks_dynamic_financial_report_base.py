@@ -2215,7 +2215,6 @@ class ks_dynamic_financial_base(models.Model):
                         # Hide the zero account if the toggle is OFF
                         ks_move_lines.pop(ks_account.code, None)
 
-
                     # if ks_end_blns or ks_deb != 0 or ks_cre != 0:
                     #     ks_total_deb += ks_deb
                     #     ks_total_cre += ks_cre
@@ -4311,80 +4310,121 @@ class ks_dynamic_financial_base(models.Model):
             'ks_month_lines': ks_month_lines,
             'ks_sub_lines': ks_sublines,
         }
+        # ---> ADD THIS ONE LINE HERE <---
+        info['ks_report_name'] = self.display_name
 
-        # --------------------------- PROFIT AND LOSS (100% Production Logic) ---------------------------
+
+        # --------------------------- PROFIT AND LOSS ---------------------------
         if self.display_name == 'Profit and Loss':
-            import copy
             Account = self.env['account.account'].sudo()
 
-            for line in info.get('ks_report_lines', []):
-                if 'account' in line:
-                    account_id = line['account']
-                    account_rec = Account.browse(account_id)
-                    # Multi-company filter
-                    if account_rec.company_id.id != current_company_id:
-                        continue
-                    sub_group = account_rec.sub_sub_group_id
-                    line['sub_type_id'] = sub_group.id if sub_group else False
-                    line['sub_type_name'] = sub_group.name if sub_group else ""
-
-            new_id_counter = 500000
-            grouped_sub_types = {}
-            lines_to_remove = set()
+            income_accounts = []
+            expense_accounts = []
             processed_accounts = set()
 
             for line in info.get('ks_report_lines', []):
-                if line.get('ks_level') != 4: continue
-                account_id = line.get('account')
-                if account_id in processed_accounts: continue
-                processed_accounts.add(account_id)
+                if line.get('ks_level') == 0:
+                    continue
 
-                parent_level_2_id = line.get('parent')
-                sub_type_id = line.get('sub_type_id') or -1
-                sub_type_name = line.get('sub_type_name') or "OTHER"
+                if line.get('ks_level') == 4 and 'account' in line:
+                    account_id = line.get('account')
+                    if account_id in processed_accounts:
+                        continue
+                    processed_accounts.add(account_id)
 
-                lines_to_remove.add(id(line))
-                if parent_level_2_id not in grouped_sub_types:
-                    grouped_sub_types[parent_level_2_id] = {}
+                    account_rec = Account.browse(account_id)
 
-                if sub_type_id not in grouped_sub_types[parent_level_2_id]:
-                    grouped_sub_types[parent_level_2_id][sub_type_id] = {
-                        'sub_type_name': sub_type_name, 'accounts': [], 'balance': 0.0,
-                        'debit': 0.0, 'credit': 0.0, 'currency_id': line['company_currency_id'],
-                    }
+                    if account_rec.company_id.id != current_company_id:
+                        continue
 
-                group_data = grouped_sub_types[parent_level_2_id][sub_type_id]
-                group_data['accounts'].append(copy.deepcopy(line))
-                group_data['balance'] += line.get('balance', 0.0)
-                group_data['debit'] += line.get('debit', 0.0)
-                group_data['credit'] += line.get('credit', 0.0)
+                    acc = dict(line)
+                    acc['parent'] = False
+                    acc['ks_level'] = 1
+                    acc['list_len'] = [0]
 
-            original_lines = info.get('ks_report_lines', [])
+                    acc['main_group'] = dict(account_rec._fields['main_group'].selection).get(
+                        account_rec.main_group) or '' if account_rec.main_group else ''
+                    acc['sub_group'] = dict(account_rec._fields['account_type'].selection).get(
+                        account_rec.account_type) or '' if account_rec.account_type else ''
+                    acc['sub_sub_group'] = account_rec.sub_sub_group_id.name if account_rec.sub_sub_group_id else ''
+
+                    deb = float(acc.get('debit', 0.0))
+                    cre = float(acc.get('credit', 0.0))
+
+                    # --- NATIVE ACCOUNTING FOR TRANSACTIONS (+ is Dr, - is Cr) ---
+                    acc['balance'] = round(deb - cre, 2)
+
+                    if account_rec.internal_group == 'income':
+                        income_accounts.append(acc)
+                    elif account_rec.internal_group == 'expense':
+                        expense_accounts.append(acc)
+
+            # --- CALCULATE PURE MAGNITUDES (Fixes all Date Range Anomalies) ---
+            tot_inc_raw = sum(a.get('balance', 0.0) for a in income_accounts)
+            tot_exp_raw = sum(a.get('balance', 0.0) for a in expense_accounts)
+
+            # Force absolute values so there are NEVER negative signs on the summary rows
+            tot_inc_display = abs(tot_inc_raw)
+            tot_exp_display = abs(tot_exp_raw)
+
+            # CA Logic: Net = (Absolute Income) - (Absolute Expenses)
+            net_value = tot_inc_display - tot_exp_display
+
+            net_label = 'Net Profit' if net_value >= 0 else 'Net Loss'
+            display_net = abs(net_value)
+
+            # Re-calculate top section raw debits/credits just for visual completeness
+            tot_inc_deb = sum(a.get('debit', 0.0) for a in income_accounts)
+            tot_inc_cre = sum(a.get('credit', 0.0) for a in income_accounts)
+            tot_exp_deb = sum(a.get('debit', 0.0) for a in expense_accounts)
+            tot_exp_cre = sum(a.get('credit', 0.0) for a in expense_accounts)
+
             new_report_lines = []
+            curr_id = info.get('ks_currency')
 
-            for line in original_lines:
-                if line.get('ks_level') == 4 and id(line) in lines_to_remove: continue
-                new_report_lines.append(line)
-                if line.get('ks_level') == 2 and line.get('self_id') in grouped_sub_types:
-                    parent_level_2_id = line['self_id']
-                    for sub_type_id in sorted(grouped_sub_types[parent_level_2_id].keys()):
-                        group_data = grouped_sub_types[parent_level_2_id][sub_type_id]
-                        new_level_3_id = new_id_counter
-                        new_id_counter += 1
-                        new_report_lines.append({
-                            'ks_name': group_data['sub_type_name'], 'balance': group_data['balance'],
-                            'parent': parent_level_2_id, 'self_id': new_level_3_id,
-                            'ks_df_report_account_type': 'report',
-                            'style_type': 'sub_sub_total', 'precision': 2, 'symbol': '₹', 'position': 'before',
-                            'list_len': [0, 1, 2], 'ks_level': 3, 'company_currency_id': group_data['currency_id'],
-                            'account_type': 'sub_total', 'balance_cmp': {}, 'debit': group_data.get('debit', 0.0),
-                            'credit': group_data.get('credit', 0.0), 'sub_type_id': sub_type_id,
-                        })
-                        for acc in group_data['accounts']:
-                            acc['parent'] = new_level_3_id
-                            acc['list_len'] = [0, 1, 2, 3]
-                            new_report_lines.append(acc)
+            # A. INCOME SECTION
+            new_report_lines.append({
+                'ks_name': 'Income', 'ks_level': 0, 'parent': False, 'list_len': [],
+                'balance': round(tot_inc_deb - tot_inc_cre, 2),  # Native
+                'debit': tot_inc_deb, 'credit': tot_inc_cre,
+                'company_currency_id': curr_id,
+                'is_pl_report': True  # <--- ADD THIS MAGIC FLAG
+            })
+            new_report_lines.extend(income_accounts)
+
+            # B. EXPENSE SECTION
+            new_report_lines.append({
+                'ks_name': 'Expenses', 'ks_level': 0, 'parent': False, 'list_len': [],
+                'balance': round(tot_exp_deb - tot_exp_cre, 2),  # Native
+                'debit': tot_exp_deb, 'credit': tot_exp_cre,
+                'company_currency_id': curr_id
+            })
+            new_report_lines.extend(expense_accounts)
+
+            # C. PRO SUMMARY SECTION (Absolute Math)
+            new_report_lines.append({
+                'ks_name': '', 'ks_level': 0, 'parent': False, 'list_len': [],
+                'balance': '', 'debit': '', 'credit': '', 'is_net_section': True, 'is_spacer': True,
+                'company_currency_id': curr_id
+            })
+            new_report_lines.append({
+                'ks_name': 'Total Income', 'ks_level': 0, 'parent': False, 'list_len': [],
+                'balance': tot_inc_display, 'debit': '', 'credit': '', 'is_net_section': True,
+                'company_currency_id': curr_id
+            })
+            new_report_lines.append({
+                'ks_name': 'Total Expenses', 'ks_level': 0, 'parent': False, 'list_len': [],
+                'balance': tot_exp_display, 'debit': '', 'credit': '', 'is_net_section': True,
+                'company_currency_id': curr_id
+            })
+            new_report_lines.append({
+                'ks_name': net_label, 'ks_level': 0, 'parent': False, 'list_len': [],
+                'balance': display_net, 'debit': '', 'credit': '', 'is_net_section': True,
+                'company_currency_id': curr_id
+            })
+
             info['ks_report_lines'] = new_report_lines
+        # -----------------------------------------------------------------------------------------        # -----------------------------------------------------------------------------------------     # -----------------------------------------------------------------------------------------     # -----------------------------------------------------------------------------------------        # -----------------------------------------------------------------------------------------------------------------        # -----------------------------------------------------------------------------------------------------------------        # -----------------------------------------------------------------------------------------------------------------        # -----------------------------------------------------------------------------------------------------------------        # -----------------------------------------------------------------------------------------------------------------        # -----------------------------------------------------------------------------------------------------------------        # -----------------------------------------------------------------------------------------------------------------        # -----------------------------------------------------------------------------------------------------------------
 
         # --------------------------- BALANCE SHEET (100% Production Logic + Initial Balance) ---------------------------
         if self.display_name == 'Balance Sheet':
