@@ -265,6 +265,7 @@
             </t>
         </t>
     </template>
+
     <template id="ks_df_executive_summary">
         <t t-call="web.html_container">
             <t t-call="web.internal_layout">
@@ -2204,4 +2205,5 @@
         <field name="binding_model_id" eval="False"/>
         <field name="binding_type">report</field>
     </record>
+
 </odoo>
