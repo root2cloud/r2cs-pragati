@@ -1452,10 +1452,9 @@ ksSetReportCurrencyConfig: function () {
 
                 // 1. Logic for Initial Balance (Main Lines)
                 if (self.controlPanelProps.action.xml_id !== _t('ks_dynamic_financial_report.ks_df_tb_action')) {
-                    if (k.initial_balance !== undefined && k.initial_balance !== '') {
+                   if (k.initial_balance !== undefined && k.initial_balance !== '') {
                         var init_suffix = k.initial_balance < 0 ? ' Cr' : ' Dr';
-                        k.initial_balance = self.ksFormatCurrencySign(k.initial_balance, ksFormatConfigurations, '') + init_suffix;
-                    } else {
+                            k.initial_balance = self.ksFormatCurrencySign(k.initial_balance, ksFormatConfigurations, '') + init_suffix;                    } else {
                         k.initial_balance = self.ksFormatCurrencySign(k.initial_balance, ksFormatConfigurations, '');
                     }
                 }
@@ -1477,8 +1476,7 @@ ksSetReportCurrencyConfig: function () {
                         } else {
                             // NORMAL ROWS: Symbol + Amount + Dr/Cr suffix
                             var bal_suffix = k.balance < 0 ? ' Cr' : ' Dr';
-                            k.balance = self.ksFormatCurrencySign(k.balance, ksFormatConfigurations, '') + bal_suffix;
-                        }
+k.balance = self.ksFormatCurrencySign(k.balance, ksFormatConfigurations, '')+ bal_suffix;                        }
                     } else {
                         k.balance = self.ksFormatCurrencySign(k.balance, ksFormatConfigurations, '');
                     }
@@ -1494,6 +1492,12 @@ ksSetReportCurrencyConfig: function () {
                 }
             });
         },        /**
+
+
+
+
+
+
          * @method to set tax report currency configuration
          */
         ksSetTaxReportCurrencyConfig: function () {

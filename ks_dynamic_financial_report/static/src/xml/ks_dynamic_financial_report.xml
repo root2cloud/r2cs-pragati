@@ -35,9 +35,9 @@
             text-align: right !important;
             font-variant-numeric: tabular-nums;
             font-family: "SFMono-Regular", Menlo, Monaco, Consolas, monospace;
-            font-size: 15px !important;
-            font-weight: 600 !important;
+            font-size: 14px !important;
             color: #000000 !important;
+            white-space: nowrap !important; /* Forces Amount and Dr/Cr on the same line */
             }
 
             .ks_badge {
@@ -95,12 +95,12 @@
                             </tr>
                         </t>
                         <t t-else="">
-                            <t t-if="!a['account']">
+                            <t t-if="a['ks_level'] == 0">
                                 <t t-set="style"
-                                   t-value="'font-weight:bold; background-color: #e2e6eb !important;'"/>
+                                   t-value="'font-weight: 800 !important; background-color: #f1f5f9 !important; color: #1e293b;'"/>
                             </t>
-                            <t t-if="a['account']">
-                                <t t-set="style" t-value="'font-weight:normal;'"/>
+                            <t t-else="">
+                                <t t-set="style" t-value="'font-weight: 400 !important;'"/>
                             </t>
 
                             <tr t-att-style="style" t-attf-class="ks_py-mline ks_level_{{a['ks_level']}}">
@@ -115,13 +115,13 @@
                                             </a>
                                             <ul class="dropdown-menu p-2" role="menu">
                                                 <li role="presentation">
-                                                    <a role="menuitem" class="ks_view-source" tabindex="-1"
+                                                    <a role="menuitem" class="ks_view-source"
                                                        action="ks_show_df_journal_items"
                                                        t-att-data-bs-account-id="a['account']">Journal Items
                                                     </a>
                                                 </li>
                                                 <li role="presentation">
-                                                    <a role="menuitem" class="ks_view-source" tabindex="1"
+                                                    <a role="menuitem" class="ks_view-source"
                                                        action="ks_show_df_general_ledger"
                                                        t-att-data-bs-account-id="a['account']">General Ledger
                                                     </a>
@@ -130,36 +130,38 @@
                                         </div>
                                     </t>
                                     <t t-else="">
-                                        <div>
+                                        <div style="text-transform: uppercase; letter-spacing: 0.5px;">
                                             <span t-esc="a['ks_name']"/>
                                         </div>
                                     </t>
                                 </td>
 
                                 <t t-if="a['is_bs']">
-                                    <td class="ks_amt text-right">
-                                        <span t-raw="a['initial_balance_formatted']"/>
+                                    <td class="ks_amt text-right" style="font-weight: 700 !important;">
+                                        <span t-raw="a['initial_balance']"/>
                                     </td>
                                 </t>
 
                                 <t t-if="ks_df_report_opt['ks_diff_filter']['ks_debit_credit_visibility']">
-                                    <td class="ks_amt text-right">
+                                    <td class="ks_amt text-right"
+                                        style="font-weight: 400 !important; color: #64748b !important;">
                                         <span t-raw="a['debit']"/>
                                     </td>
-                                    <td class="ks_amt text-right">
+                                    <td class="ks_amt text-right"
+                                        style="font-weight: 400 !important; color: #64748b !important;">
                                         <span t-raw="a['credit']"/>
                                     </td>
                                 </t>
 
                                 <t t-if="ks_df_report_opt['ks_diff_filter']['ks_diff_filter_enablity']">
                                     <t t-foreach="a['balance_cmp']" t-as="current_interval">
-                                        <td class="ks_amt text-right">
+                                        <td class="ks_amt text-right" style="font-weight: 400 !important;">
                                             <span t-raw="a['balance_cmp'][current_interval]"/>
                                         </td>
                                     </t>
                                 </t>
 
-                                <td class="ks_amt text-right">
+                                <td class="ks_amt text-right" style="font-weight: 700 !important;">
                                     <t t-raw="a['balance']"/>
                                 </td>
 
