@@ -1,6 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
     <data>
+
+        <!-- ===================================================== -->
+        <!-- ROOT REPORT : PROFIT AND LOSS -->
+        <!-- Main parent report -->
+        <!-- ===================================================== -->
         <record id="ks_df_pnl0" model="ks.dynamic.financial.reports">
             <field name="ks_name">Profit and Loss</field>
             <field name="ks_differentiation" eval="True"/>
@@ -17,50 +22,24 @@
             <field name="ks_df_report_account_type">accounts</field>
         </record>
 
-        <!--  Gross profit-->
-        <!--        <record id="ks_df_gross_profit0" model="ks.dynamic.financial.reports">-->
-        <!--            <field name="ks_name">Gross Profit</field>-->
-        <!--            <field name="ks_parent_id" ref='ks_df_pnl0'/>-->
-        <!--            <field name="ks_sequence" eval="1"/>-->
-        <!--            <field name="ks_df_report_account_type">subtract</field>-->
-        <!--            <field name="ks_hide_default_reports" eval="True"/>-->
-        <!--            <field name="ks_display_detail">no_detail</field>-->
-        <!--        </record>-->
-        <!--        <record id="ks_df_report_oi" model="ks.dynamic.financial.reports">-->
-        <!--            <field name="ks_name">Operating Income</field>-->
-        <!--            <field name="ks_parent_id" ref='ks_df_gross_profit0'/>-->
-        <!--            <field name="ks_sequence" eval="1"/>-->
-        <!--            <field name="ks_df_report_account_type">ks_coa_type</field>-->
-        <!--            <field name="ks_hide_default_reports" eval="True"/>-->
-        <!--            <field name="ks_dfr_account_type_ids"-->
-        <!--                   eval="[(4,ref('ks_dynamic_financial_report.ks_df_income'))]"/>-->
-        <!--            <field name="ks_display_detail">detail_with_hierarchy</field>-->
 
-        <!--        </record>-->
-        <!--        <record id="ks_df_cost_of_rev0" model="ks.dynamic.financial.reports">-->
-        <!--            <field name="ks_name">Cost of Revenue</field>-->
-        <!--            <field name="ks_parent_id" ref='ks_df_gross_profit0'/>-->
-        <!--            <field name="ks_sequence" eval="3"/>-->
-        <!--            <field name="ks_df_report_account_type">ks_coa_type</field>-->
-        <!--            <field name="ks_hide_default_reports" eval="True"/>-->
-        <!--            <field name="ks_dfr_account_type_ids"-->
-        <!--                   eval="[(4,ref('ks_dynamic_financial_report.ks_df_expense_direct_cost'))]"/>-->
-        <!--            <field name="ks_display_detail">detail_with_hierarchy</field>-->
-
-        <!--        </record>-->
-
-        <!-- Total income-->
+        <!-- ===================================================== -->
+        <!-- TOTAL INCOME SECTION -->
+        <!-- Parent node for all income categories -->
+        <!-- ===================================================== -->
         <record id="ks_df_report_total_income0" model="ks.dynamic.financial.reports">
             <field name="ks_name">Total Income</field>
-            <field name="ks_parent_id" ref='ks_df_pnl0'/>
+            <field name="ks_parent_id" ref="ks_df_pnl0"/>
             <field name="ks_sequence" eval="1"/>
             <field name="ks_df_report_account_type">total</field>
             <field name="ks_hide_default_reports" eval="True"/>
             <field name="ks_display_detail">detail_flat</field>
         </record>
+
+        <!-- Operating Income (Revenue From Operations) -->
         <record id="ks_df_operating_incm1" model="ks.dynamic.financial.reports">
             <field name="ks_name">Operating Income</field>
-            <field name="ks_parent_id" ref='ks_df_report_total_income0'/>
+            <field name="ks_parent_id" ref="ks_df_report_total_income0"/>
             <field name="ks_sequence" eval="1"/>
             <field name="ks_df_report_account_type">ks_coa_type</field>
             <field name="ks_hide_default_reports" eval="True"/>
@@ -68,19 +47,24 @@
                    eval="[(4,ref('ks_dynamic_financial_report.ks_df_income'))]"/>
             <field name="ks_display_detail">detail_flat</field>
         </record>
+
+        <!-- Other Income (Non-operating income) -->
         <record id="ks_df_ext_other_income0" model="ks.dynamic.financial.reports">
             <field name="ks_name">Other Income</field>
-            <field name="ks_parent_id" ref='ks_df_report_total_income0'/>
+            <field name="ks_parent_id" ref="ks_df_report_total_income0"/>
             <field name="ks_sequence" eval="2"/>
             <field name="ks_df_report_account_type">ks_coa_type</field>
             <field name="ks_hide_default_reports" eval="True"/>
             <field name="ks_dfr_account_type_ids"
                    eval="[(4,ref('ks_dynamic_financial_report.ks_df_income_other'))]"/>
             <field name="ks_display_detail">detail_flat</field>
-
         </record>
 
-        <!-- Total Expenses-->
+
+        <!-- ===================================================== -->
+        <!-- EXPENSE SECTION -->
+        <!-- Parent node for all expenses -->
+        <!-- ===================================================== -->
         <record id="ks_dynamic_financial_report_expense0"
                 model="ks.dynamic.financial.reports">
             <field name="ks_name">Expenses</field>
@@ -90,14 +74,14 @@
             <field name="ks_display_detail">no_detail</field>
         </record>
 
-
         <!-- Direct Expense -->
         <record id="ks_df_expense_direct0" model="ks.dynamic.financial.reports">
             <field name="ks_name">Direct Expense</field>
             <field name="ks_parent_id" ref="ks_dynamic_financial_report_expense0"/>
             <field name="ks_sequence" eval="1"/>
             <field name="ks_df_report_account_type">ks_coa_type</field>
-            <field name="ks_dfr_account_type_ids" eval="[(4, ref('ks_df_expense_direct'))]"/>
+            <field name="ks_dfr_account_type_ids"
+                   eval="[(4,ref('ks_dynamic_financial_report.ks_df_expense_direct'))]"/>
             <field name="ks_display_detail">detail_flat</field>
         </record>
 
@@ -107,37 +91,15 @@
             <field name="ks_parent_id" ref="ks_dynamic_financial_report_expense0"/>
             <field name="ks_sequence" eval="2"/>
             <field name="ks_df_report_account_type">ks_coa_type</field>
-            <field name="ks_dfr_account_type_ids" eval="[(4, ref('ks_df_expense_indirect'))]"/>
-            <field name="ks_display_detail">detail_flat</field>
-        </record>
-
-        <record id="ks_df_cost_of_rev1" model="ks.dynamic.financial.reports">
-            <field name="ks_name">Cost of Revenue</field>
-            <field name="ks_parent_id" ref='ks_dynamic_financial_report_expense0'/>
-            <field name="ks_sequence" eval="4"/>
-            <field name="ks_df_report_account_type">ks_coa_type</field>
-            <field name="ks_hide_default_reports" eval="True"/>
             <field name="ks_dfr_account_type_ids"
-                   eval="[(4,ref('ks_dynamic_financial_report.ks_df_expense_direct_cost'))]"/>
+                   eval="[(4,ref('ks_dynamic_financial_report.ks_df_expense_indirect'))]"/>
             <field name="ks_display_detail">detail_flat</field>
-
         </record>
 
-        <record id="ks_df_expense_data"
-                model="ks.dynamic.financial.reports">
-            <field name="ks_name">Expense</field>
-            <field name="ks_parent_id"
-                   ref="ks_dynamic_financial_report_expense0"/>
-            <field name="ks_df_report_account_type">ks_coa_type</field>
-            <field name="ks_hide_default_reports" eval="True"/>
-            <field name="ks_display_detail">detail_flat</field>
-            <field name="ks_dfr_account_type_ids"
-                   eval="[(4,ref('ks_dynamic_financial_report.ks_df_expense'))]"/>
-        </record>
-
+        <!-- Depreciation Expense -->
         <record id="ks_df_report_depriciation0" model="ks.dynamic.financial.reports">
             <field name="ks_name">Depreciation</field>
-            <field name="ks_parent_id" ref='ks_dynamic_financial_report_expense0'/>
+            <field name="ks_parent_id" ref="ks_dynamic_financial_report_expense0"/>
             <field name="ks_sequence" eval="3"/>
             <field name="ks_df_report_account_type">ks_coa_type</field>
             <field name="ks_hide_default_reports" eval="True"/>
@@ -145,6 +107,31 @@
             <field name="ks_dfr_account_type_ids"
                    eval="[(4,ref('ks_dynamic_financial_report.ks_df_expense_depreciation'))]"/>
         </record>
+
+        <!-- Cost of Revenue -->
+        <record id="ks_df_cost_of_rev1" model="ks.dynamic.financial.reports">
+            <field name="ks_name">Cost of Revenue</field>
+            <field name="ks_parent_id" ref="ks_dynamic_financial_report_expense0"/>
+            <field name="ks_sequence" eval="4"/>
+            <field name="ks_df_report_account_type">ks_coa_type</field>
+            <field name="ks_hide_default_reports" eval="True"/>
+            <field name="ks_dfr_account_type_ids"
+                   eval="[(4,ref('ks_dynamic_financial_report.ks_df_expense_direct_cost'))]"/>
+            <field name="ks_display_detail">detail_flat</field>
+        </record>
+
+        <!-- Generic Expense -->
+        <record id="ks_df_expense_data" model="ks.dynamic.financial.reports">
+            <field name="ks_name">Expense</field>
+            <field name="ks_parent_id" ref="ks_dynamic_financial_report_expense0"/>
+            <field name="ks_df_report_account_type">ks_coa_type</field>
+            <field name="ks_hide_default_reports" eval="True"/>
+            <field name="ks_display_detail">detail_flat</field>
+            <field name="ks_dfr_account_type_ids"
+                   eval="[(4,ref('ks_dynamic_financial_report.ks_df_expense'))]"/>
+        </record>
+
+        <!-- Changes in Inventory -->
         <record id="ks_df_expense_inventory0" model="ks.dynamic.financial.reports">
             <field name="ks_name">Changes in Inventory</field>
             <field name="ks_parent_id" ref="ks_dynamic_financial_report_expense0"/>
@@ -156,25 +143,35 @@
         </record>
 
 
-        <!--  Net Profit-->
+        <!-- ===================================================== -->
+        <!-- NET PROFIT SECTION -->
+        <!-- Net Profit = Total Income - Total Expense -->
+        <!-- ===================================================== -->
         <record id="ks_df_net_profit0" model="ks.dynamic.financial.reports">
             <field name="ks_name">Net Profit</field>
-            <field name="ks_parent_id" ref='ks_df_pnl0'/>
+            <field name="ks_parent_id" ref="ks_df_pnl0"/>
             <field name="ks_df_report_account_type">total</field>
             <field name="ks_hide_default_reports" eval="True"/>
             <field name="ks_display_detail">detail_flat</field>
             <field name="ks_sequence" eval="4"/>
         </record>
+
+        <!-- Total Income aggregation for Net Profit -->
         <record id="ks_df_report_total_income1" model="ks.dynamic.financial.reports">
             <field name="ks_name">Total Income</field>
-            <field name="ks_parent_id" ref='ks_df_net_profit0'/>
+            <field name="ks_parent_id" ref="ks_df_net_profit0"/>
             <field name="ks_sequence" eval="1"/>
             <field name="ks_df_report_account_type">ks_coa_type</field>
             <field name="ks_hide_default_reports" eval="True"/>
             <field name="ks_dfr_account_type_ids"
-                   eval="[(4,ref('ks_dynamic_financial_report.ks_df_income')),(4,ref('ks_dynamic_financial_report.ks_df_income_other'))]"/>
+                   eval="[
+                   (4,ref('ks_dynamic_financial_report.ks_df_income')),
+                   (4,ref('ks_dynamic_financial_report.ks_df_income_other'))
+               ]"/>
             <field name="ks_display_detail">no_detail</field>
         </record>
+
+        <!-- Total Expense aggregation for Net Profit -->
         <record id="ks_dynamic_financial_report_expense2"
                 model="ks.dynamic.financial.reports">
             <field name="ks_name">Expense</field>
@@ -184,23 +181,31 @@
             <field name="ks_display_detail">no_detail</field>
             <field name="ks_dfr_account_type_ids"
                    eval="[
-             (4,ref('ks_dynamic_financial_report.ks_df_expense')),
-             (4,ref('ks_dynamic_financial_report.ks_df_expense_depreciation')),
-             (4,ref('ks_dynamic_financial_report.ks_df_expense_direct_cost')),
-             (4,ref('ks_dynamic_financial_report.ks_df_expense_direct')),
-             (4,ref('ks_dynamic_financial_report.ks_df_expense_indirect')),
-             (4,ref('ks_dynamic_financial_report.ks_df_expense_changes_inventory'))
-           ]"/>
+                   (4,ref('ks_dynamic_financial_report.ks_df_expense')),
+                   (4,ref('ks_dynamic_financial_report.ks_df_expense_depreciation')),
+                   (4,ref('ks_dynamic_financial_report.ks_df_expense_direct_cost')),
+                   (4,ref('ks_dynamic_financial_report.ks_df_expense_direct')),
+                   (4,ref('ks_dynamic_financial_report.ks_df_expense_indirect')),
+                   (4,ref('ks_dynamic_financial_report.ks_df_expense_changes_inventory'))
+               ]"/>
         </record>
-        <record id="ks_pnl0"
-                model="ir.actions.client">
+
+
+        <!-- ===================================================== -->
+        <!-- CLIENT ACTION -->
+        <!-- Opens Profit and Loss report -->
+        <!-- ===================================================== -->
+        <record id="ks_pnl0" model="ir.actions.client">
             <field name="name">Profit and Loss</field>
             <field name="tag">ks_dynamic_report</field>
             <field name="context"
                    eval="{'model': 'ks.dynamic.financial.reports', 'id': ref('ks_df_pnl0')}"/>
         </record>
 
-        <!--Balance Sheet-->
+
+        <!-- ===================================================== -->
+        <!-- ROOT : BALANCE SHEET -->
+        <!-- ===================================================== -->
         <record id="ks_dynamic_financial_balancesheet"
                 model="ks.dynamic.financial.reports">
             <field name="ks_name">Balance Sheet</field>
@@ -215,267 +220,253 @@
             <field name="ks_df_report_account_type">accounts</field>
         </record>
 
-        <!-- Balance sheet assets-->
-        <record id="ks_dynamic_financial_balancesheet_assets0" model="ks.dynamic.financial.reports">
+
+        <!-- ===================================================== -->
+        <!-- ASSETS -->
+        <!-- ===================================================== -->
+        <record id="ks_dynamic_financial_balancesheet_assets0"
+                model="ks.dynamic.financial.reports">
             <field name="ks_name">Assets</field>
-            <field name="ks_parent_id"
-                   ref="ks_dynamic_financial_balancesheet"/>
+            <field name="ks_parent_id" ref="ks_dynamic_financial_balancesheet"/>
             <field name="ks_df_report_account_type">total</field>
-            <field name="ks_hide_default_reports" eval="True"/>
             <field name="ks_display_detail">no_detail</field>
             <field name="ks_sequence">1</field>
         </record>
-        <record id="ks_dynamic_financial_balancesheet_cur_assets0" model="ks.dynamic.financial.reports">
+
+        <record id="ks_dynamic_financial_balancesheet_cur_assets0"
+                model="ks.dynamic.financial.reports">
             <field name="ks_name">Current Assets</field>
-            <field name="ks_parent_id"
-                   ref="ks_dynamic_financial_balancesheet_assets0"/>
+            <field name="ks_parent_id" ref="ks_dynamic_financial_balancesheet_assets0"/>
             <field name="ks_df_report_account_type">total</field>
-            <field name="ks_hide_default_reports" eval="True"/>
             <field name="ks_display_detail">no_detail</field>
         </record>
-        <record id="ks_dynamic_financial_balancesheet_bank_cash" model="ks.dynamic.financial.reports">
-            <field name="ks_name">Bank and Cash Accounts</field>
-            <field name="ks_parent_id"
-                   ref="ks_dynamic_financial_balancesheet_cur_assets0"/>
-            <field name="ks_df_report_account_type">ks_coa_type</field>
-            <field name="ks_display_detail">detail_with_hierarchy</field>
-            <field name="ks_hide_default_reports" eval="True"/>
-            <field name="ks_dfr_account_type_ids"
-                   eval="[(4,ref('ks_dynamic_financial_report.ks_df_asset_cash'))]"/>
-        </record>
-        <record id="ks_dynamic_financial_balancesheet_receivable" model="ks.dynamic.financial.reports">
+
+        <!-- Receivable -->
+        <record id="ks_dynamic_financial_balancesheet_receivable"
+                model="ks.dynamic.financial.reports">
             <field name="ks_name">Receivables</field>
-            <field name="ks_parent_id"
-                   ref="ks_dynamic_financial_balancesheet_cur_assets0"/>
+            <field name="ks_parent_id" ref="ks_dynamic_financial_balancesheet_cur_assets0"/>
             <field name="ks_df_report_account_type">ks_coa_type</field>
-            <field name="ks_display_detail">detail_with_hierarchy</field>
-            <field name="ks_hide_default_reports" eval="True"/>
             <field name="ks_dfr_account_type_ids"
                    eval="[(4,ref('ks_dynamic_financial_report.ks_df_asset_receivable'))]"/>
         </record>
-        <record id="ks_dynamic_financial_balancesheet_current_assets" model="ks.dynamic.financial.reports">
-            <field name="ks_name">Current Assets</field>
-            <field name="ks_parent_id"
-                   ref="ks_dynamic_financial_balancesheet_cur_assets0"/>
+
+        <!-- Bank and Cash -->
+        <record id="ks_dynamic_financial_balancesheet_bank_cash"
+                model="ks.dynamic.financial.reports">
+            <field name="ks_name">Bank and Cash Accounts</field>
+            <field name="ks_parent_id" ref="ks_dynamic_financial_balancesheet_cur_assets0"/>
             <field name="ks_df_report_account_type">ks_coa_type</field>
-            <field name="ks_display_detail">detail_with_hierarchy</field>
-            <field name="ks_hide_default_reports" eval="True"/>
+            <field name="ks_dfr_account_type_ids"
+                   eval="[(4,ref('ks_dynamic_financial_report.ks_df_asset_cash'))]"/>
+        </record>
+
+        <!-- Current Assets -->
+        <record id="ks_dynamic_financial_balancesheet_current_assets"
+                model="ks.dynamic.financial.reports">
+            <field name="ks_name">Current Assets</field>
+            <field name="ks_parent_id" ref="ks_dynamic_financial_balancesheet_cur_assets0"/>
+            <field name="ks_df_report_account_type">ks_coa_type</field>
             <field name="ks_dfr_account_type_ids"
                    eval="[(4,ref('ks_dynamic_financial_report.ks_df_asset_current'))]"/>
         </record>
-        <record id="ks_dynamic_financial_balancesheet_prepayments" model="ks.dynamic.financial.reports">
-            <field name="ks_name">Prepayments</field>
-            <field name="ks_parent_id"
-                   ref="ks_dynamic_financial_balancesheet_cur_assets0"/>
+
+        <!-- Other Current Assets -->
+        <record id="ks_df_bs_other_current_assets_sep"
+                model="ks.dynamic.financial.reports">
+            <field name="ks_name">Other Current Assets</field>
+            <field name="ks_parent_id" ref="ks_dynamic_financial_balancesheet_cur_assets0"/>
             <field name="ks_df_report_account_type">ks_coa_type</field>
-            <field name="ks_display_detail">detail_with_hierarchy</field>
-            <field name="ks_hide_default_reports" eval="True"/>
+            <field name="ks_dfr_account_type_ids"
+                   eval="[(4,ref('ks_dynamic_financial_report.ks_df_asset_other_current'))]"/>
+        </record>
+
+        <!-- Prepayments -->
+        <record id="ks_dynamic_financial_balancesheet_prepayments"
+                model="ks.dynamic.financial.reports">
+            <field name="ks_name">Prepayments</field>
+            <field name="ks_parent_id" ref="ks_dynamic_financial_balancesheet_cur_assets0"/>
+            <field name="ks_df_report_account_type">ks_coa_type</field>
             <field name="ks_dfr_account_type_ids"
                    eval="[(4,ref('ks_dynamic_financial_report.ks_df_asset_prepayments'))]"/>
         </record>
-        <record id="ks_dynamic_financial_balancesheet_plus_fixed_assets" model="ks.dynamic.financial.reports">
-            <field name="ks_name">Plus Fixed Assets</field>
-            <field name="ks_parent_id"
-                   ref="ks_dynamic_financial_balancesheet_assets0"/>
+
+        <!-- Prepaid Expenses -->
+        <record id="ks_df_bs_prepaid_expenses_sep"
+                model="ks.dynamic.financial.reports">
+            <field name="ks_name">Prepaid Expenses</field>
+            <field name="ks_parent_id" ref="ks_dynamic_financial_balancesheet_cur_assets0"/>
             <field name="ks_df_report_account_type">ks_coa_type</field>
-            <field name="ks_display_detail">detail_with_hierarchy</field>
-            <field name="ks_hide_default_reports" eval="True"/>
+            <field name="ks_dfr_account_type_ids"
+                   eval="[(4,ref('ks_dynamic_financial_report.ks_df_asset_prepaid_expenses'))]"/>
+        </record>
+
+        <!-- Control Account -->
+        <record id="ks_df_bs_control_account_sep"
+                model="ks.dynamic.financial.reports">
+            <field name="ks_name">Control Account</field>
+            <field name="ks_parent_id" ref="ks_dynamic_financial_balancesheet_cur_assets0"/>
+            <field name="ks_df_report_account_type">ks_coa_type</field>
+            <field name="ks_dfr_account_type_ids"
+                   eval="[(4,ref('ks_dynamic_financial_report.ks_df_asset_control'))]"/>
+        </record>
+
+        <!-- Fixed Assets -->
+        <record id="ks_dynamic_financial_balancesheet_plus_fixed_assets"
+                model="ks.dynamic.financial.reports">
+            <field name="ks_name">Plus Fixed Assets</field>
+            <field name="ks_parent_id" ref="ks_dynamic_financial_balancesheet_assets0"/>
+            <field name="ks_df_report_account_type">ks_coa_type</field>
             <field name="ks_dfr_account_type_ids"
                    eval="[(4,ref('ks_dynamic_financial_report.ks_df_asset_fixed'))]"/>
         </record>
-        <record id="ks_dynamic_financial_balancesheet_plus_non_concurrent_assets" model="ks.dynamic.financial.reports">
+
+        <!-- Non-current Assets -->
+        <record id="ks_dynamic_financial_balancesheet_plus_non_concurrent_assets"
+                model="ks.dynamic.financial.reports">
             <field name="ks_name">Plus Non-current Assets</field>
-            <field name="ks_parent_id"
-                   ref="ks_dynamic_financial_balancesheet_assets0"/>
+            <field name="ks_parent_id" ref="ks_dynamic_financial_balancesheet_assets0"/>
             <field name="ks_df_report_account_type">ks_coa_type</field>
-            <field name="ks_display_detail">detail_with_hierarchy</field>
-            <field name="ks_hide_default_reports" eval="True"/>
             <field name="ks_dfr_account_type_ids"
                    eval="[(4,ref('ks_dynamic_financial_report.ks_df_asset_non_current'))]"/>
         </record>
 
-        <!-- ========================================================= -->
-        <!-- BALANCE SHEET : LIABILITIES -->
-        <!-- ========================================================= -->
 
-        <!-- Parent: LIABILITIES -->
-        <record id="ks_dynamic_financial_balancesheet_liability0" model="ks.dynamic.financial.reports">
+        <!-- ===================================================== -->
+        <!-- LIABILITIES -->
+        <!-- ===================================================== -->
+        <record id="ks_dynamic_financial_balancesheet_liability0"
+                model="ks.dynamic.financial.reports">
             <field name="ks_name">LIABILITIES</field>
-            <field name="ks_parent_id"
-                   ref="ks_dynamic_financial_balancesheet"/>
+            <field name="ks_parent_id" ref="ks_dynamic_financial_balancesheet"/>
             <field name="ks_df_report_account_type">total</field>
-            <field name="ks_hide_default_reports" eval="True"/>
             <field name="ks_display_detail">no_detail</field>
             <field name="ks_sequence">2</field>
         </record>
-        <!-- 1. PAYABLES -->
-        <record id="ks_dynamic_financial_balancesheet_payables" model="ks.dynamic.financial.reports">
+
+        <record id="ks_dynamic_financial_balancesheet_payables"
+                model="ks.dynamic.financial.reports">
             <field name="ks_name">Payables</field>
             <field name="ks_parent_id" ref="ks_dynamic_financial_balancesheet_liability0"/>
             <field name="ks_df_report_account_type">ks_coa_type</field>
-            <field name="ks_display_detail">detail_with_hierarchy</field>
-            <field name="ks_hide_default_reports" eval="True"/>
             <field name="ks_dfr_account_type_ids"
-                   eval="[(4, ref('ks_dynamic_financial_report.ks_df_liability_payable'))]"/>
+                   eval="[(4,ref('ks_dynamic_financial_report.ks_df_liability_payable'))]"/>
         </record>
 
-        <!-- 2. CREDIT CARDS -->
-        <record id="ks_df_liability_credit_card_section" model="ks.dynamic.financial.reports">
+        <record id="ks_df_liability_credit_card_section"
+                model="ks.dynamic.financial.reports">
             <field name="ks_name">Credit Cards</field>
             <field name="ks_parent_id" ref="ks_dynamic_financial_balancesheet_liability0"/>
             <field name="ks_df_report_account_type">ks_coa_type</field>
-            <field name="ks_display_detail">detail_with_hierarchy</field>
-            <field name="ks_hide_default_reports" eval="True"/>
             <field name="ks_dfr_account_type_ids"
-                   eval="[(4, ref('ks_dynamic_financial_report.ks_df_liability_credit_card'))]"/>
+                   eval="[(4,ref('ks_dynamic_financial_report.ks_df_liability_credit_card'))]"/>
         </record>
 
-        <!-- 3. CURRENT LIABILITIES -->
-        <record id="ks_df_liability_current_section" model="ks.dynamic.financial.reports">
+        <record id="ks_df_liability_current_section"
+                model="ks.dynamic.financial.reports">
             <field name="ks_name">Current Liabilities</field>
             <field name="ks_parent_id" ref="ks_dynamic_financial_balancesheet_liability0"/>
             <field name="ks_df_report_account_type">ks_coa_type</field>
-            <field name="ks_display_detail">detail_with_hierarchy</field>
-            <field name="ks_hide_default_reports" eval="True"/>
             <field name="ks_dfr_account_type_ids"
-                   eval="[(4, ref('ks_dynamic_financial_report.ks_df_liability_current'))]"/>
+                   eval="[(4,ref('ks_dynamic_financial_report.ks_df_liability_current'))]"/>
         </record>
 
-        <!-- 4. NON-CURRENT LIABILITIES -->
-        <record id="ks_df_liability_non_current_section" model="ks.dynamic.financial.reports">
+        <record id="ks_df_liability_non_current_section"
+                model="ks.dynamic.financial.reports">
             <field name="ks_name">Non-current Liabilities</field>
             <field name="ks_parent_id" ref="ks_dynamic_financial_balancesheet_liability0"/>
             <field name="ks_df_report_account_type">ks_coa_type</field>
-            <field name="ks_display_detail">detail_with_hierarchy</field>
-            <field name="ks_hide_default_reports" eval="True"/>
             <field name="ks_dfr_account_type_ids"
-                   eval="[(4, ref('ks_dynamic_financial_report.ks_df_liability_non_current'))]"/>
+                   eval="[(4,ref('ks_dynamic_financial_report.ks_df_liability_non_current'))]"/>
         </record>
 
-        <!-- 5. LOANS & BORROWINGS -->
-        <record id="ks_df_liability_loans_borrowings_section" model="ks.dynamic.financial.reports">
+        <record id="ks_df_liability_loans_borrowings_section"
+                model="ks.dynamic.financial.reports">
             <field name="ks_name">Loans &amp; Borrowings</field>
             <field name="ks_parent_id" ref="ks_dynamic_financial_balancesheet_liability0"/>
             <field name="ks_df_report_account_type">ks_coa_type</field>
-            <field name="ks_display_detail">detail_with_hierarchy</field>
-            <field name="ks_hide_default_reports" eval="True"/>
             <field name="ks_dfr_account_type_ids"
-                   eval="[(4, ref('ks_dynamic_financial_report.ks_df_liability_loans_borrowings'))]"/>
+                   eval="[(4,ref('ks_dynamic_financial_report.ks_df_liability_loans_borrowings'))]"/>
         </record>
 
-        <!-- 6. SHORT TERM PROVISIONS -->
-        <record id="ks_df_liability_short_term_provision_section" model="ks.dynamic.financial.reports">
+        <record id="ks_df_liability_short_term_provision_section"
+                model="ks.dynamic.financial.reports">
             <field name="ks_name">Short Term Provisions</field>
             <field name="ks_parent_id" ref="ks_dynamic_financial_balancesheet_liability0"/>
             <field name="ks_df_report_account_type">ks_coa_type</field>
-            <field name="ks_display_detail">detail_with_hierarchy</field>
-            <field name="ks_hide_default_reports" eval="True"/>
             <field name="ks_dfr_account_type_ids"
-                   eval="[(4, ref('ks_dynamic_financial_report.ks_df_liability_short_term_provision'))]"/>
+                   eval="[(4,ref('ks_dynamic_financial_report.ks_df_liability_short_term_provision'))]"/>
         </record>
 
 
-<!--        <record id="ks_dynamic_financial_balancesheet_current_liability0"-->
-<!--                model="ks.dynamic.financial.reports">-->
-<!--            <field name="ks_name">Current Liabilities</field>-->
-<!--            <field name="ks_display_detail">no_detail</field>-->
-<!--            <field name="ks_hide_default_reports" eval="True"/>-->
-<!--            <field name="ks_parent_id"-->
-<!--                   ref="ks_dynamic_financial_balancesheet_liability0"/>-->
-<!--            <field name="ks_df_report_account_type">total</field>-->
-<!--        </record>-->
-<!--        <record id="ks_dynamic_financial_balancesheet_current_liability1" model="ks.dynamic.financial.reports">-->
-<!--            <field name="ks_name">Current Liabilities</field>-->
-<!--            <field name="ks_parent_id"-->
-<!--                   ref="ks_dynamic_financial_balancesheet_current_liability0"/>-->
-<!--            <field name="ks_df_report_account_type">ks_coa_type</field>-->
-<!--            <field name="ks_display_detail">detail_with_hierarchy</field>-->
-<!--            <field name="ks_hide_default_reports" eval="True"/>-->
-<!--            <field name="ks_dfr_account_type_ids"-->
-<!--                   eval="[(4,ref('ks_dynamic_financial_report.ks_df_liability_current')),-->
-<!--                   (4,ref('ks_dynamic_financial_report.ks_df_liability_credit_card'))]"/>-->
-<!--        </record>-->
-
-<!--        <record id="ks_dynamic_financial_balancesheet_plus_non_current_liabilities"-->
-<!--                model="ks.dynamic.financial.reports">-->
-<!--            <field name="ks_name">Plus Non Current Liabilities</field>-->
-<!--            <field name="ks_parent_id"-->
-<!--                   ref="ks_dynamic_financial_balancesheet_liability0"/>-->
-<!--            <field name="ks_df_report_account_type">ks_coa_type</field>-->
-<!--            <field name="ks_display_detail">detail_with_hierarchy</field>-->
-<!--            <field name="ks_hide_default_reports" eval="True"/>-->
-<!--            <field name="ks_dfr_account_type_ids"-->
-<!--                   eval="[(4,ref('ks_dynamic_financial_report.ks_df_liability_non_current'))]"/>-->
-<!--        </record>-->
-
-        <!-- Balance sheet Equity-->
-        <record id="ks_dynamic_financial_balancesheet_equity" model="ks.dynamic.financial.reports">
+        <!-- ===================================================== -->
+        <!-- EQUITY -->
+        <!-- ===================================================== -->
+        <record id="ks_dynamic_financial_balancesheet_equity"
+                model="ks.dynamic.financial.reports">
             <field name="ks_name">EQUITY</field>
             <field name="ks_parent_id" ref="ks_dynamic_financial_balancesheet"/>
             <field name="ks_df_report_account_type">total</field>
-            <field name="ks_hide_default_reports" eval="True"/>
             <field name="ks_display_detail">no_detail</field>
             <field name="ks_sequence">3</field>
         </record>
-        <record id="ks_dynamic_financial_balancesheet_unallocated_earnings" model="ks.dynamic.financial.reports">
+
+        <record id="ks_dynamic_financial_balancesheet_unallocated_earnings"
+                model="ks.dynamic.financial.reports">
             <field name="ks_name">Unallocated Earnings</field>
             <field name="ks_parent_id" ref="ks_dynamic_financial_balancesheet_equity"/>
             <field name="ks_df_report_account_type">total</field>
-            <field name="ks_hide_default_reports" eval="True"/>
             <field name="ks_display_detail">no_detail</field>
         </record>
-        <record id="ks_dynamic_financial_balancesheet_current_year_earnings" model="ks.dynamic.financial.reports">
+
+        <!-- REQUIRED BY PYTHON -->
+        <record id="ks_dynamic_financial_balancesheet_current_year_earnings"
+                model="ks.dynamic.financial.reports">
             <field name="ks_name">Current Year Earnings</field>
             <field name="ks_parent_id" ref="ks_dynamic_financial_balancesheet_unallocated_earnings"/>
             <field name="ks_df_report_account_type">ks_coa_type</field>
-            <field name="ks_hide_default_reports" eval="True"/>
-            <field name="ks_display_detail">detail_with_hierarchy</field>
-            <field name="ks_dfr_account_type_ids" eval="[(4, ref('ks_dynamic_financial_report.ks_df_income')),
-                        (4, ref('ks_dynamic_financial_report.ks_df_income_other')),
-                        (4, ref('ks_dynamic_financial_report.ks_df_expense_direct_cost')),
-                        (4, ref('ks_dynamic_financial_report.ks_df_expense')),
-                        (4, ref('ks_dynamic_financial_report.ks_df_expense_depreciation'))]"/>
+            <field name="ks_dfr_account_type_ids" eval="[
+            (4,ref('ks_dynamic_financial_report.ks_df_income')),
+            (4,ref('ks_dynamic_financial_report.ks_df_income_other')),
+            (4,ref('ks_dynamic_financial_report.ks_df_expense')),
+            (4,ref('ks_dynamic_financial_report.ks_df_expense_direct')),
+            (4,ref('ks_dynamic_financial_report.ks_df_expense_indirect')),
+            (4,ref('ks_dynamic_financial_report.ks_df_expense_depreciation')),
+            (4,ref('ks_dynamic_financial_report.ks_df_expense_direct_cost')),
+            (4,ref('ks_dynamic_financial_report.ks_df_expense_changes_inventory'))
+        ]"/>
         </record>
-        <record id="ks_dynamic_financial_balancesheet_current_year_allocated_earnings"
+
+        <!-- REQUIRED BY PYTHON -->
+        <record id="ks_df_bs_pre_year_unallocate_earnings"
                 model="ks.dynamic.financial.reports">
-            <field name="ks_name">Current Year Allocated Earnings</field>
-            <field name="ks_parent_id" ref='ks_dynamic_financial_balancesheet_unallocated_earnings'/>
-            <field name="ks_dfr_account_type_ids"
-                   eval="[(4,ref('ks_dynamic_financial_report.ks_df_equity_unaffected'))]"/>
-            <field name="ks_df_report_account_type">ks_coa_type</field>
-            <field name="ks_hide_default_reports" eval="True"/>
-            <field name="ks_display_detail">detail_with_hierarchy</field>
-        </record>
-        <record id="ks_df_bs_pre_year_unallocate_earnings" model="ks.dynamic.financial.reports">
             <field name="ks_name">Previous Years Unallocated Earnings</field>
+            <field name="ks_parent_id" ref="ks_dynamic_financial_balancesheet_unallocated_earnings"/>
+            <field name="ks_df_report_account_type">ks_coa_type</field>
             <field name="ks_dfr_account_type_ids"
                    eval="[(4,ref('ks_dynamic_financial_report.ks_df_equity_unaffected'))]"/>
-            <field name="ks_parent_id" ref='ks_dynamic_financial_balancesheet_unallocated_earnings'/>
-            <field name="ks_df_report_account_type">ks_coa_type</field>
-            <field name="ks_hide_default_reports" eval="True"/>
-            <field name="ks_display_detail">detail_with_hierarchy</field>
         </record>
-        <!-- Equity : Capital Accounts -->
+
         <record id="ks_dynamic_financial_balancesheet_equity_capital"
                 model="ks.dynamic.financial.reports">
             <field name="ks_name">Capital Accounts</field>
             <field name="ks_parent_id" ref="ks_dynamic_financial_balancesheet_equity"/>
             <field name="ks_df_report_account_type">ks_coa_type</field>
-            <field name="ks_hide_default_reports" eval="True"/>
-            <field name="ks_display_detail">detail_with_hierarchy</field>
             <field name="ks_dfr_account_type_ids"
-                   eval="[(4, ref('ks_dynamic_financial_report.ks_df_equity_capital_accounts'))]"/>
+                   eval="[(4,ref('ks_dynamic_financial_report.ks_df_equity_capital_accounts'))]"/>
         </record>
 
-        <record id="ks_df_bs_ret_ear" model="ks.dynamic.financial.reports">
+        <record id="ks_df_bs_ret_ear"
+                model="ks.dynamic.financial.reports">
             <field name="ks_name">Retained Earnings</field>
-            <field name="ks_dfr_account_type_ids" eval="[(4,ref('ks_dynamic_financial_report.ks_df_equity'))]"/>
-            <field name="ks_parent_id" ref='ks_dynamic_financial_balancesheet_equity'/>
+            <field name="ks_parent_id" ref="ks_dynamic_financial_balancesheet_equity"/>
             <field name="ks_df_report_account_type">ks_coa_type</field>
             <field name="ks_report_line_sign">-1</field>
-            <field name="ks_hide_default_reports" eval="True"/>
-            <field name="ks_display_detail">detail_with_hierarchy</field>
+            <field name="ks_dfr_account_type_ids"
+                   eval="[(4,ref('ks_dynamic_financial_report.ks_df_equity'))]"/>
         </record>
+
+
         <record id="ks_df_report_cash_flow0" model="ks.dynamic.financial.reports">
             <field name="ks_name">Cash Flow Statement</field>
             <field name="ks_differentiation" eval="False"/>
