@@ -806,7 +806,6 @@ class ks_dynamic_financial_base(models.Model):
 
         # Pre-fetch currency and company info for efficiency outside the loop
         ks_company_id = self.env['res.company'].sudo().browse(ks_df_informations.get('company_id'))
-        FETCH_RANGE = 50  # Assuming FETCH_RANGE is defined elsewhere, setting a placeholder.
 
         ks_move_lines = {
             x.code: {
@@ -1064,9 +1063,12 @@ class ks_dynamic_financial_base(models.Model):
                     # Update pagination details
                     total_current_lines = len(ks_current_lines)
                     ks_move_lines[ks_code]['count'] = total_current_lines
-                    ks_move_lines[ks_code]['pages'] = self.ks_fetch_page_list(
-                        total_current_lines)  # Assuming ks_fetch_page_list exists
-                    ks_move_lines[ks_code]['single_page'] = total_current_lines <= FETCH_RANGE
+                    # ks_move_lines[ks_code]['pages'] = self.ks_fetch_page_list(
+                    #     total_current_lines)  # Assuming ks_fetch_page_list exists
+                    # ks_move_lines[ks_code]['single_page'] = total_current_lines <= FETCH_RANGE
+                    # Force pagination to be hidden since all records load at once
+                    ks_move_lines[ks_code]['pages'] = []
+                    ks_move_lines[ks_code]['single_page'] = True
 
         # The return values are fixed in the original code, maintain them
         return ks_move_lines, 0.0, 0.0, 0.0

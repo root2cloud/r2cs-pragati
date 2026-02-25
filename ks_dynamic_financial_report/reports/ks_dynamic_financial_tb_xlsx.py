@@ -84,6 +84,22 @@ class KsDynamicFinancialXlsxTB(models.Model):
         fmt_right_alt = workbook.add_format(
             {**base_fmt, 'align': 'right', 'num_format': acct_num_fmt, 'bg_color': color_alt_row})
 
+        # ================= TOTAL ROW FORMATS =================
+        format_total_label = workbook.add_format({
+            'bold': True, 'align': 'right', 'valign': 'vcenter',
+            'bg_color': '#d1e3f8', 'font_color': '#000000',
+            'border': 1, 'bottom': 6, 'border_color': '#2d5b8c'  # bottom: 6 creates a double border
+        })
+        format_total_amt = workbook.add_format({
+            'bold': True, 'align': 'right', 'valign': 'vcenter',
+            'bg_color': '#d1e3f8', 'font_color': '#000000',
+            'border': 1, 'bottom': 6, 'border_color': '#2d5b8c',
+            'num_format': acct_num_fmt
+        })
+        format_total_empty = workbook.add_format({
+            'bg_color': '#d1e3f8', 'border': 1, 'bottom': 6, 'border_color': '#2d5b8c'
+        })
+
         # ================= DATE RANGE LOGIC =================
         start_date = ks_df_informations['date']['ks_start_date']
         end_date = ks_df_informations['date']['ks_end_date']
@@ -165,6 +181,28 @@ class KsDynamicFinancialXlsxTB(models.Model):
 
             row_pos += 1
             is_alt_row = not is_alt_row
+
+            # ================= WRITE TOTAL ROW =================
+        total_data = subtotal.get('SUBTOTAL', {})
+        if total_data:
+            sheet.set_row(row_pos, 22)
+            # Label
+            sheet.merge_range(row_pos, 0, row_pos, 1, "TOTAL", format_total_label)
+
+            # Amounts
+            sheet.write(row_pos, 2, total_data.get("initial_debit", 0.0), format_total_amt)
+            sheet.write(row_pos, 3, total_data.get("initial_credit", 0.0), format_total_amt)
+            sheet.write(row_pos, 4, total_data.get("debit", 0.0), format_total_amt)
+            sheet.write(row_pos, 5, total_data.get("credit", 0.0), format_total_amt)
+            sheet.write(row_pos, 6, total_data.get("ending_debit", 0.0), format_total_amt)
+            sheet.write(row_pos, 7, total_data.get("ending_credit", 0.0), format_total_amt)
+
+            # Empty filled cells for the group columns to keep the bottom border continuous
+            sheet.write(row_pos, 8, "", format_total_empty)
+            sheet.write(row_pos, 9, "", format_total_empty)
+            sheet.merge_range(row_pos, 10, row_pos, 11, "", format_total_empty)
+
+            row_pos += 1
 
         workbook.close()
         output.seek(0)
