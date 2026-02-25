@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-
+from odoo import models, fields, api
 import calendar
 import datetime
 from datetime import datetime
@@ -604,6 +604,30 @@ class DashBoard(models.Model):
         return self._cr.dictfetchall()
 
     @api.model
+    def get_today_income_expense(self, post):
+        """Get today's income and expense"""
+        company_id = self.get_current_company_value()
+        states_condition = "aml.parent_state = 'posted'" if post else "aml.parent_state IN ('posted', 'draft')"
+
+        today = date.today()
+        query = """
+            SELECT 
+                SUM(CASE WHEN aa.internal_group = 'income' THEN aml.debit - aml.credit ELSE 0 END) as income,
+                SUM(CASE WHEN aa.internal_group = 'expense' THEN aml.debit - aml.credit ELSE 0 END) as expense
+            FROM account_move_line aml
+            JOIN account_account aa ON aml.account_id = aa.id
+            WHERE aa.internal_group IN ('income', 'expense')
+            AND aml.date = %s
+            AND aml.company_id = ANY(%s)
+            AND {}
+        """.format(states_condition)
+
+        self._cr.execute(query, (today, company_id))
+        result = self._cr.dictfetchone() or {'income': 0.0, 'expense': 0.0}
+
+        return result['income'], result['expense']
+
+    @api.model
     def get_total_invoice_last_year(self):
         """Optimized invoice total for last year"""
         query = """
@@ -1035,6 +1059,48 @@ class DashBoard(models.Model):
 
         self._cr.execute(query, (company_id,))
         return [row[0] for row in self._cr.fetchall()]
+
+    @api.model
+    def get_today_income_expense(self, post=False):
+        """Get today's income and expense totals"""
+        company_id = self.get_current_company_value()
+        states_condition = "aml.parent_state = 'posted'" if post else "aml.parent_state IN ('posted', 'draft')"
+
+        today = fields.Date.today()
+
+        # Query for today's income
+        income_query = """
+            SELECT COALESCE(SUM(aml.balance), 0) as total
+            FROM account_move_line aml
+            JOIN account_account aa ON aml.account_id = aa.id
+            WHERE aa.internal_group = 'income'
+            AND aml.date = %s
+            AND aml.company_id = ANY(%s)
+            AND {}
+        """.format(states_condition)
+
+        # Query for today's expense
+        expense_query = """
+            SELECT COALESCE(SUM(aml.balance), 0) as total
+            FROM account_move_line aml
+            JOIN account_account aa ON aml.account_id = aa.id
+            WHERE aa.internal_group = 'expense'
+            AND aml.date = %s
+            AND aml.company_id = ANY(%s)
+            AND {}
+        """.format(states_condition)
+
+        # Execute income query
+        self._cr.execute(income_query, (today, company_id))
+        income_result = self._cr.fetchone()
+        today_income = income_result[0] if income_result else 0
+
+        # Execute expense query
+        self._cr.execute(expense_query, (today, company_id))
+        expense_result = self._cr.fetchone()
+        today_expense = expense_result[0] if expense_result else 0
+
+        return [today_income, today_expense]
 
     @api.model
     def month_income(self):
