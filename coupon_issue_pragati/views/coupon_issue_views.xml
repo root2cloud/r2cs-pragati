@@ -9,6 +9,7 @@
                 <field name="name"/>
                 <field name="coupon_code"/>
                 <field name="customer_id"/>
+                <field name="company_name"/>
                 <field name="coupon_value"/>
                 <field name="issue_date"/>
                 <field name="expiry_date"/>
