@@ -10,6 +10,7 @@
                 <field name="name"/>
                 <field name="coupon_code"/>
                 <field name="customer_id"/>
+                <field name="company_name" />
                 <field name="coupon_value"/>
                 <field name="redeem_date"/>
                 <field name="redeem_by"/>
