@@ -2,14 +2,16 @@
 <template id="template" xml:space="preserve">
     <t t-name="Invoicedashboard">
         <div class="accounts-dashboard-wrap">
-            <div class="o_dashboards col-xs-12 col-sm-12 col-lg-12 col-md-12" style="background-color: #e1e1e1;overflow: scroll; !important; ">
+            <div class="o_dashboards col-xs-12 col-sm-12 col-lg-12 col-md-12"
+                 style="background-color: #e1e1e1;overflow: scroll; !important; ">
                 <div class="content-header">
                     <div class="container-fluid">
                         <div class="row mb-2">
                             <div class="col-sm-12">
                                 <div class="dash-header">
                                     <h1 class="custom-h1 dashboard-h1">Dashboard </h1>
-                                    <input type="checkbox" style="display:none" data-toggle="toggle" data-on="" data-off="">
+                                    <input type="checkbox" style="display:none" data-toggle="toggle" data-on=""
+                                           data-off="">
                                         <input type="checkbox" id="toggle-two"/>
                                     </input>
                                 </div>
@@ -160,7 +162,8 @@
                                     <div class="col-md-12 mt-3">
                                         <h1 class="custom-h1" style="margin-bottom: 0;">Customer Invoice</h1>
                                         <ul class="skill-list">
-                                            <li class="skill" style="display: flex;justify-content: space-between;color: #000;">
+                                            <li class="skill"
+                                                style="display: flex;justify-content: space-between;color: #000;">
                                                 <p id="total_customer_invoice_paid"/>
                                                 <p id="total_customer_invoice"/>
                                                 <p id="total_customer_invoice_paid_current_year"/>
@@ -179,7 +182,8 @@
                                                 </progress>
                                             </li>
                                             <li>
-                                                <progress id="tot_invoice_current_month" class="skill-1" max="" value="">
+                                                <progress id="tot_invoice_current_month" class="skill-1" max=""
+                                                          value="">
                                                     <strong>Skill Level: 50%</strong>
                                                 </progress>
                                             </li>
@@ -187,7 +191,8 @@
                                         <div role="separator" class="dropdown-divider"/>
                                         <h1 class="custom-h1" style="margin-bottom: 0;">Supplier Invoice</h1>
                                         <ul class="skill-list">
-                                            <li class="skill" style="display: flex;justify-content: space-between;color: #000;">
+                                            <li class="skill"
+                                                style="display: flex;justify-content: space-between;color: #000;">
                                                 <p id="total_supplier_invoice_paid"/>
                                                 <p id="total_supplier_invoice"/>
                                                 <p id="total_supplier_invoice_paid_current_year"/>
@@ -201,12 +206,14 @@
                                                 </progress>
                                             </li>
                                             <li>
-                                                <progress id="tot_supplier_inv_current_year" class="skill-1" max="" value="">
+                                                <progress id="tot_supplier_inv_current_year" class="skill-1" max=""
+                                                          value="">
                                                     <strong>Skill Level: 50%</strong>
                                                 </progress>
                                             </li>
                                             <li>
-                                                <progress id="tot_supplier_inv_current_month" class="skill-1" max="" value="">
+                                                <progress id="tot_supplier_inv_current_month" class="skill-1" max=""
+                                                          value="">
                                                     <strong>Skill Level: 50%</strong>
                                                 </progress>
                                             </li>
@@ -219,7 +226,8 @@
                     <div class="col-md-4" id="col-graph">
                         <div class="card">
                             <div class="card-body p-0" style=" height: 287px; overflow-y: auto; ">
-                                <div class="card-header" style=" padding: 17px 1.5rem !important; display: flex !IMPORTANT; justify-content: space-between; align-items: center; ">
+                                <div class="card-header"
+                                     style=" padding: 17px 1.5rem !important; display: flex !IMPORTANT; justify-content: space-between; align-items: center; ">
                                     <h3 class="custom-h3 card-title">
                                         <b>BANK AND CASH BALANCE</b>
                                     </h3>
@@ -286,7 +294,8 @@
                     </div>
                     <div class="col-md-4">
                         <div class="card" style="height:366px;">
-                            <div class="card-header" style=" padding: 17px 1.5rem !important; display: flex !IMPORTANT; justify-content: space-between; align-items: center; ">
+                            <div class="card-header"
+                                 style=" padding: 17px 1.5rem !important; display: flex !IMPORTANT; justify-content: space-between; align-items: center; ">
                                 <h3 class="custom-h3 card-title">
                                     <b>TOP 10 CUSTOMERS</b>
                                 </h3>
@@ -306,6 +315,31 @@
                     </div>
                 </div>
             </div>
+          <div class="row">
+    <div class="col-md-2">
+        <!--Today Income - NEW-->
+        <div class="tile wide invoice box-5">
+            <div class="header">
+                <div class="main-title" style="color: black !important; color:black; font-weight: bold;">Today Income</div>
+            </div>
+            <div id="todayincome">
+                <div class="count"><span id="today_income_value" style="color: #28a745;">0</span></div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-2">
+        <!--Today Expense - NEW-->
+        <div class="tile wide invoice box-6">
+            <div class="header">
+                <div class="main-title" style="color: black !important; font-weight: bold;">Today Expense</div>
+            </div>
+            <div id="todayexpense">
+                <div class="count"><span id="today_expense_value" style="color: #dc3545;">0</span></div>
+            </div>
+        </div>
+    </div>
+</div>
             <div class="container-fluid o_hr_dashboard">
                 <div class="col-xs-12 col-sm-6 col-md-4 col-lg-3" id="invoice_grapg"/>
                 <div class="dashboard-header-filter">
