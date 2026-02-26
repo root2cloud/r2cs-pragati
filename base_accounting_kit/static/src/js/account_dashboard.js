@@ -102,6 +102,8 @@ odoo.define('base_accounting_kit.AccountingDashboard', function(require) {
             'click #total_incomes_': 'total_income_month',
             'click #total_expense_this_year': 'expense_year',
             'click #total_expenses_': 'expense_month',
+            'click #todayincome': 'todayincome',
+            'click #todayexpense': 'todayexpense',
         },
         profit_income_year: function(ev) {
             var posted = false;
@@ -235,6 +237,47 @@ odoo.define('base_accounting_kit.AccountingDashboard', function(require) {
                 });
             })
         },
+        todayincome: function(ev) {
+    var posted = false;
+    if ($('#toggle-two')[0].checked == true) {
+        posted = "posted";
+    }
+    var self = this;
+    rpc.query({
+        model: 'account.move',
+        method: 'click_today_income',
+        args: [posted],
+    }).then(function(result) {
+        self.do_action({
+            res_model: 'account.move.line',
+            name: 'Today Income',
+            views: [[false, 'list'], [false, 'form']],
+            type: 'ir.actions.act_window',
+            domain: [['id', 'in', result]]
+        });
+    });
+},
+
+todayexpense: function(ev) {
+    var posted = false;
+    if ($('#toggle-two')[0].checked == true) {
+        posted = "posted";
+    }
+    var self = this;
+    rpc.query({
+        model: 'account.move',
+        method: 'click_today_expense',
+        args: [posted],
+    }).then(function(result) {
+        self.do_action({
+            res_model: 'account.move.line',
+            name: 'Today Expense',
+            views: [[false, 'list'], [false, 'form']],
+            type: 'ir.actions.act_window',
+            domain: [['id', 'in', result]]
+        });
+    });
+},
         unreconciled_year: function(ev) {
             var posted = false;
             var self = this;
@@ -1201,6 +1244,33 @@ odoo.define('base_accounting_kit.AccountingDashboard', function(require) {
                         }
                     });
                 })
+                // Today Income/Expense - NEW
+// Today Income/Expense - NEW
+rpc.query({
+    model: 'account.move',
+    method: 'get_today_income_expense',
+    args: [posted],
+}).then(function(result) {
+    var today_income = Math.abs(result[0]) || 0;
+    var today_expense = Math.abs(result[1]) || 0;
+
+    // Format and display with currency
+    $('#today_income_value').text(self.format_currency(currency, today_income));
+    $('#today_expense_value').text(self.format_currency(currency, today_expense));
+
+    // Make clickable with colored styling
+    $('#todayincome').off('click').on('click', function() {
+        self.todayincome();
+    }).css('cursor', 'pointer');
+
+    $('#todayexpense').off('click').on('click', function() {
+        self.todayexpense();
+    }).css('cursor', 'pointer');
+}).catch(function(error) {
+    console.log("Error fetching today's data:", error);
+    $('#today_income_value').text(self.format_currency(currency, 0));
+    $('#today_expense_value').text(self.format_currency(currency, 0));
+});
                 var arg = 'this_month';
                 rpc.query({
                     model: 'account.move',
