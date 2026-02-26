@@ -17,7 +17,7 @@ class AccountPayment(models.Model):
                 year_range = f"{current_year}-{next_year}"
                 print(year_range, "$$$$$$$$$$$$$$$$$")
                 sequence_number = sequence
-                record.name = "RF24-25/{}".format(sequence_number.zfill(4))
+                record.name = "RF25-26/{}".format(sequence_number.zfill(4))
 
                 # Ensure the Journal Entry's number matches the payment name
                 if record.move_id and record.move_id.name and record.move_id.name != record.name:
