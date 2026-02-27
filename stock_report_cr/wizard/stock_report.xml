@@ -1,6 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
-    <!--    Form view  -->
     <record id="stock_report_view" model="ir.ui.view">
         <field name="name">stock.report</field>
         <field name="model">stock.reports</field>
@@ -8,24 +7,23 @@
             <form>
                 <sheet>
                     <group>
-                        <group>
+                        <group string="Date Filters">
+                            <field name="date_range"/>
                             <field name="start_date"/>
-                            <field name="location_id"/>
+                            <field name="end_date"/>
+                        </group>
+                        <group string="Inventory Filters">
+                            <field name="location_ids" widget="many2many_tags" options="{'no_create': True}"/>
                             <field name="filterby"/>
                             <field name="products" widget="many2many_tags"
-                                   attrs="{'invisible':[('filterby', '!=', 'product')]}"
-                            />
-                        </group>
-                        <group>
-                            <field name="end_date"/>
+                                   attrs="{'invisible':[('filterby', '!=', 'product')]}"/>
                             <field name="group_by_category"/>
                         </group>
-
                     </group>
                     <footer>
-                        <button name="button_export_pdf" string="Export PDF" type="object"/>
-                        <button name="button_export_xlsx" string="Export Excel" type="object"/>
-                        <button string="CANCEL" class="oe_link" special="cancel"/>
+                        <button name="button_export_pdf" string="Export PDF" type="object" class="btn-primary"/>
+                        <button name="button_export_xlsx" string="Export Excel" type="object" class="btn-primary"/>
+                        <button string="Cancel" class="btn-secondary" special="cancel"/>
                     </footer>
                 </sheet>
             </form>
@@ -42,10 +40,10 @@
         <field name="view_id" ref="stock_report_view"/>
         <field name="target">new</field>
     </record>
+
     <menuitem id="stock_report_cr"
               name="Stock Report"
               parent="stock.menu_warehouse_report"
               action="stock_repors_cr"
     />
 </odoo>
-
