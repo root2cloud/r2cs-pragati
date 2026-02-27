@@ -781,12 +781,9 @@ class ks_dynamic_financial_base(models.Model):
     # Method to fetch data for General ledger
     def ks_process_general_ledger(self, ks_df_informations):
         '''
-        It is the method for showing summary details of each accounts. Just basic details to show up
-        Three sections,
-        1. Initial Balance
-        2. Current Balance
-        3. Final Balance
-        :return:
+        Optimized General Ledger processing:
+        Uses bulk SQL queries and Python-side mapping to eliminate N+1 query bottlenecks
+        and expensive correlated subqueries.
         '''
         cr = self.env.cr
         WHERE, account_domain = self.ks_df_where_clause(ks_df_informations)
@@ -831,6 +828,9 @@ class ks_dynamic_financial_base(models.Model):
             } for x in sorted(ks_account_ids, key=lambda a: a.code)
         }
 
+        if not ks_account_ids:
+            return ks_move_lines, 0.0, 0.0, 0.0
+
         KS_ORDER_BY_CURRENT = 'l.date, l.move_id'
 
         # Pre-calculate date boundaries
@@ -843,26 +843,21 @@ class ks_dynamic_financial_base(models.Model):
         lang_id_obj = self.env['res.lang'].search([('code', '=', lang)], limit=1)
         lang_date_format = lang_id_obj['date_format'].replace('/', '-') if lang_id_obj else '%Y-%m-%d'
 
-        for ks_account in ks_account_ids:
-            ks_code = ks_account.code
-            account_lines = ks_move_lines[ks_code]['lines']
+        tuple_acc_ids = tuple(ks_account_ids.ids)
 
-            # Check if THIS account is a Bank Account
-            is_bank_account = ks_account.id in bank_account_ids
+        # =========================================================================
+        # BULK QUERY 1: Initial Balances
+        # =========================================================================
+        ks_opening_balances_dict = {}
+        if ks_df_informations.get('initial_balance'):
+            KS_WHERE_INIT = WHERE
+            if is_range_process:
+                KS_WHERE_INIT += " AND l.date < '%s'" % ks_start_date
 
-            # Determine currency details once per account
-            ks_currency = ks_account.company_id.currency_id or ks_company_id.currency_id
-
-            # 1. Initial Balance Section
-            ks_opening_balance = 0.0
-            if ks_df_informations.get('initial_balance'):
-                KS_WHERE_INIT = WHERE
-                if is_range_process:
-                    KS_WHERE_INIT += " AND l.date < '%s'" % ks_start_date
-
-                # Using parameter substitution for account code to avoid string manipulation and ensure safety
-                sql_init = ('''
+            sql_init_bulk = ('''
                     SELECT 
+                        a.code as account_code,
+                        a.id as account_id,
                         COALESCE(SUM(l.debit),0) AS debit, 
                         COALESCE(SUM(l.credit),0) AS credit, 
                         COALESCE(SUM(l.debit - l.credit),0) AS balance
@@ -872,111 +867,100 @@ class ks_dynamic_financial_base(models.Model):
                     LEFT JOIN res_currency c ON (l.currency_id=c.id)
                     LEFT JOIN res_partner p ON (l.partner_id=p.id)
                     JOIN account_journal j ON (l.journal_id=j.id)
-                    WHERE %s AND a.code = %%s
+                    WHERE %s AND a.id IN %%s
+                    GROUP BY a.code, a.id
                 ''') % KS_WHERE_INIT
+            cr.execute(sql_init_bulk, (tuple_acc_ids,))
+            for row in cr.dictfetchall():
+                ks_opening_balances_dict[row['account_code']] = row
 
-                cr.execute(sql_init, (ks_code,))  # Execute with parameter substitution
+        # =========================================================================
+        # BULK QUERY 2: Current Period Lines (Removed Correlated Subquery)
+        # =========================================================================
+        if is_range_process:
+            KS_WHERE_CURRENT = WHERE + " AND l.date >= '%s' AND l.date <= '%s'" % (ks_start_date, ks_end_date)
+        else:
+            KS_WHERE_CURRENT = WHERE + " AND l.date <= '%s'" % ks_end_date
 
-                ks_row_init = cr.dictfetchone()
-                if ks_row_init:
-                    ks_row_init['move_name'] = 'Initial Balance'
-                    ks_row_init['account_id'] = ks_account.id
-                    ks_row_init['initial_bal'] = True
-                    ks_row_init['ending_bal'] = False
-                    ks_opening_balance = ks_row_init['balance']
-                    account_lines.append(ks_row_init)
+        sql_current_bulk = ('''
+                SELECT
+                    a.code as account_code,
+                    l.id AS lid,
+                    l.date AS ldate,
+                    j.name AS lcode,
+                    p.name AS partner_name,
+                    m.name AS move_name,
+                    m.state AS move_state,
+                    l.ref AS lref,
+                    l.narration AS lname,  
+                    l.is_brs_cleared,
+                    l.move_id,
+                    COALESCE(l.debit,0) AS debit,
+                    COALESCE(l.credit,0) AS credit,
+                    (l.debit - l.credit) AS balance_change,
+                    COALESCE(l.amount_currency,0) AS amount_currency
+                FROM account_move_line l
+                JOIN account_move m ON (l.move_id=m.id)
+                JOIN account_account a ON (l.account_id=a.id)
+                LEFT JOIN res_currency c ON (l.currency_id=c.id)
+                LEFT JOIN res_currency cc ON (l.company_currency_id=cc.id)
+                LEFT JOIN res_partner p ON (l.partner_id=p.id)
+                JOIN account_journal j ON (l.journal_id=j.id)
+                WHERE %s AND a.id IN %%s
+                ORDER BY l.date,l.create_date,l.id
+            ''') % KS_WHERE_CURRENT
+        cr.execute(sql_current_bulk, (tuple_acc_ids,))
+        all_current_lines = cr.dictfetchall()
 
-            # 2. Current Balance Section (Move Lines)
-            if is_range_process:
-                KS_WHERE_CURRENT = WHERE + " AND l.date >= '%s' AND l.date <= '%s'" % (ks_start_date, ks_end_date)
-            else:
-                KS_WHERE_CURRENT = WHERE + " AND l.date <= '%s'" % ks_end_date
+        # Build Python-side corresponding accounts mapping to avoid subquery per row
+        move_ids = list(set(row['move_id'] for row in all_current_lines))
+        corr_acc_map = {}
+        if move_ids:
+            cr.execute("""
+                    SELECT aml.move_id, aml.id, aa.code, aa.name, aml.debit, aml.credit
+                    FROM account_move_line aml
+                    JOIN account_account aa ON aa.id = aml.account_id
+                    WHERE aml.move_id IN %s
+                """, (tuple(move_ids),))
+            for r in cr.dictfetchall():
+                m_id = r['move_id']
+                if m_id not in corr_acc_map:
+                    corr_acc_map[m_id] = []
+                corr_acc_map[m_id].append(r)
 
-            # --- MODIFIED SQL QUERY START ---
-            sql_current = ('''
-                            SELECT
-                                l.id AS lid,
-                                l.date AS ldate,
-                                j.name AS lcode,
-                                p.name AS partner_name,
-                                m.name AS move_name,
-                                m.state AS move_state,
-                                l.ref AS lref,
-                                l.narration AS lname,  
-                                l.is_brs_cleared,
+        current_lines_dict = {}
+        for row in all_current_lines:
+            acc_code = row.pop('account_code')
+            m_id = row['move_id']
+            l_id = row['lid']
 
-                                -- NEW: Formatted String (Name : Amount (Dr/Cr))
-                                (
-                                    SELECT string_agg(
-                                        -- Format: "Code Name: Amount (Dr/Cr)"
-                                        aa.code || ' ' || aa.name || ': ' || 
-                                        TO_CHAR(ABS(aml_temp.debit - aml_temp.credit), 'FM999,999,999.00') || 
-                                        CASE WHEN (aml_temp.debit - aml_temp.credit) >= 0 THEN ' (Dr)' ELSE ' (Cr)' END, 
-                                        ', '
-                                    )
-                                    FROM account_move_line aml_temp
-                                    JOIN account_account aa ON aa.id = aml_temp.account_id
-                                    WHERE aml_temp.move_id = l.move_id
-                                    AND aml_temp.id != l.id
-                                ) AS corresponding_accounts,
-                                -- END NEW
+            # Map corresponding accounts string back efficiently in Python
+            corr_strs = []
+            for corr_row in corr_acc_map.get(m_id, []):
+                if corr_row['id'] != l_id:
+                    net = corr_row['debit'] - corr_row['credit']
+                    dr_cr = ' (Dr)' if net >= 0 else ' (Cr)'
+                    formatted_amt = f"{abs(net):,.2f}"
+                    corr_strs.append(f"{corr_row['code']} {corr_row['name']}: {formatted_amt}{dr_cr}")
+            row['corresponding_accounts'] = ', '.join(corr_strs)
 
-                                COALESCE(l.debit,0) AS debit,
-                                COALESCE(l.credit,0) AS credit,
-                                (l.debit - l.credit) AS balance_change,
-                                COALESCE(l.amount_currency,0) AS amount_currency
-                            FROM account_move_line l
-                            JOIN account_move m ON (l.move_id=m.id)
-                            JOIN account_account a ON (l.account_id=a.id)
-                            LEFT JOIN res_currency c ON (l.currency_id=c.id)
-                            LEFT JOIN res_currency cc ON (l.company_currency_id=cc.id)
-                            LEFT JOIN res_partner p ON (l.partner_id=p.id)
-                            JOIN account_journal j ON (l.journal_id=j.id)
-                            WHERE %s AND a.code = %%s
-                            ORDER BY l.date,l.create_date,l.id
-                        ''') % KS_WHERE_CURRENT
-            cr.execute(sql_current, (ks_code,))  # Execute with parameter substitution
+            if acc_code not in current_lines_dict:
+                current_lines_dict[acc_code] = []
+            current_lines_dict[acc_code].append(row)
 
-            ks_current_lines = cr.dictfetchall()
+        # =========================================================================
+        # BULK QUERY 3: Final Balance Section
+        # =========================================================================
+        if is_range_process and ks_df_informations.get('initial_balance'):
+            KS_WHERE_FULL = WHERE + " AND l.date <= '%s'" % ks_end_date
+        elif is_range_process:
+            KS_WHERE_FULL = WHERE + " AND l.date >= '%s' AND l.date <= '%s'" % (ks_start_date, ks_end_date)
+        else:
+            KS_WHERE_FULL = WHERE + " AND l.date <= '%s'" % ks_end_date
 
-            current_cumulative_balance = ks_opening_balance  # Start cumulative balance from the opening balance
-
-            for ks_row in ks_current_lines:
-                ks_row['initial_bal'] = False
-                ks_row['ending_bal'] = False
-
-                # --- NEW BRS LOGIC STEP 2: Set the Status String ---
-                if is_bank_account:
-                    if ks_row.get('is_brs_cleared'):
-                        ks_row['brs_status_en'] = 'Cleared'
-                    else:
-                        ks_row['brs_status_en'] = 'Pending'
-                else:
-                    ks_row['brs_status_en'] = ''  # Empty for non-bank accounts
-                # ---------------------------------------------------
-
-                # Calculate cumulative balance iteratively
-                balance_change = ks_row.pop('balance_change')
-                current_cumulative_balance += balance_change
-                ks_row['balance'] = current_cumulative_balance
-
-                # Date formatting - moved outside the loop setup for efficiency
-                if ks_row.get('ldate') is not None:
-                    # Convert date object to string format required by the Odoo frontend
-                    ks_row['ldate'] = ks_row['ldate'].strftime(lang_date_format)
-
-                account_lines.append(ks_row)
-
-            # 3. Final Balance Section (Calculated Total)
-            if is_range_process and ks_df_informations.get('initial_balance'):
-                KS_WHERE_FULL = WHERE + " AND l.date <= '%s'" % ks_end_date
-            elif is_range_process:
-                KS_WHERE_FULL = WHERE + " AND l.date >= '%s' AND l.date <= '%s'" % (ks_start_date, ks_end_date)
-            else:
-                KS_WHERE_FULL = WHERE + " AND l.date <= '%s'" % ks_end_date
-
-            sql_final = ('''
+        sql_final_bulk = ('''
                 SELECT 
+                    a.code as account_code,
                     COALESCE(SUM(l.debit),0) AS debit, 
                     COALESCE(SUM(l.credit),0) AS credit, 
                     COALESCE(SUM(l.debit - l.credit),0) AS balance
@@ -986,19 +970,22 @@ class ks_dynamic_financial_base(models.Model):
                 LEFT JOIN res_currency c ON (l.currency_id=c.id)
                 LEFT JOIN res_partner p ON (l.partner_id=p.id)
                 JOIN account_journal j ON (l.journal_id=j.id) 
-                WHERE %s AND a.code = %%s 
+                WHERE %s AND a.id IN %%s 
+                GROUP BY a.code
             ''') % KS_WHERE_FULL
+        cr.execute(sql_final_bulk, (tuple_acc_ids,))
+        final_bal_dict = {row['account_code']: row for row in cr.dictfetchall()}
 
-            cr.execute(sql_final, (ks_code,))  # Execute with parameter substitution
-            ks_row_final = cr.dictfetchone()
-
-            # Handle Initial Balance for non-income/expense accounts if configured and using range
-            initial_bal_data = []
-            is_ledger_bal_enabled = self.env['ir.config_parameter'].sudo().get_param('ks_enable_ledger_in_bal')
-            if is_ledger_bal_enabled and ks_account.internal_group not in ['income', 'expense'] and is_range_process:
-                KS_INIT_BAL_WHERE_FULL = WHERE + " AND l.date < '%s'" % ks_start_date
-                ks_init_bal_sql = ('''
+        # =========================================================================
+        # BULK QUERY 4: Handle Initial Balance for non-income/expense accounts
+        # =========================================================================
+        init_bal_summary_dict = {}
+        is_ledger_bal_enabled = self.env['ir.config_parameter'].sudo().get_param('ks_enable_ledger_in_bal')
+        if is_ledger_bal_enabled and is_range_process:
+            KS_INIT_BAL_WHERE_FULL = WHERE + " AND l.date < '%s'" % ks_start_date
+            ks_init_bal_sql_bulk = ('''
                     SELECT 
+                        a.code as account_code,
                         COALESCE(SUM(l.debit - l.credit),0) AS initial_balance
                     FROM account_move_line l
                     JOIN account_move m ON (l.move_id=m.id)
@@ -1006,29 +993,69 @@ class ks_dynamic_financial_base(models.Model):
                     LEFT JOIN res_currency c ON (l.currency_id=c.id)
                     LEFT JOIN res_partner p ON (l.partner_id=p.id)
                     JOIN account_journal j ON (l.journal_id=j.id) 
-                    WHERE %s AND a.code = %%s
+                    WHERE %s AND a.id IN %%s AND a.internal_group NOT IN ('income', 'expense')
+                    GROUP BY a.code
                 ''') % KS_INIT_BAL_WHERE_FULL
-                cr.execute(ks_init_bal_sql, (ks_code,))
-                initial_bal_data = cr.dictfetchall()
+            cr.execute(ks_init_bal_sql_bulk, (tuple_acc_ids,))
+            init_bal_summary_dict = {row['account_code']: row.get('initial_balance', 0.0) for row in
+                                     cr.dictfetchall()}
 
-            # if ks_row_final:
-            #     # Check if the account has any movement (debit or credit)
-            #     if ks_currency.is_zero(ks_row_final['debit']) and ks_currency.is_zero(ks_row_final['credit']):
-            #         ks_move_lines.pop(ks_code, None)
-            #     else:
-            #         ks_row_final['ending_bal'] = True
-            #         ks_row_final['initial_bal'] = False
+        # =========================================================================
+        # PYTHON PROCESSING: Reconstruct EXACT dictionary format natively
+        # =========================================================================
+        for ks_account in ks_account_ids:
+            ks_code = ks_account.code
+            account_lines = ks_move_lines[ks_code]['lines']
+
+            is_bank_account = ks_account.id in bank_account_ids
+            ks_currency = ks_account.company_id.currency_id or ks_company_id.currency_id
+
+            # 1. Initial Balance Section
+            ks_opening_balance = 0.0
+            if ks_df_informations.get('initial_balance'):
+                ks_row_init = ks_opening_balances_dict.get(ks_code)
+                if ks_row_init:
+                    ks_row_init_copy = ks_row_init.copy()
+                    ks_row_init_copy.pop('account_code', None)
+                    ks_row_init_copy['move_name'] = 'Initial Balance'
+                    ks_row_init_copy['initial_bal'] = True
+                    ks_row_init_copy['ending_bal'] = False
+                    ks_opening_balance = ks_row_init_copy['balance']
+                    account_lines.append(ks_row_init_copy)
+
+            # 2. Current Balance Section
+            ks_current_lines = current_lines_dict.get(ks_code, [])
+            current_cumulative_balance = ks_opening_balance
+
+            for ks_row in ks_current_lines:
+                ks_row['initial_bal'] = False
+                ks_row['ending_bal'] = False
+
+                if is_bank_account:
+                    ks_row['brs_status_en'] = 'Cleared' if ks_row.get('is_brs_cleared') else 'Pending'
+                else:
+                    ks_row['brs_status_en'] = ''
+
+                balance_change = ks_row.pop('balance_change')
+                current_cumulative_balance += balance_change
+                ks_row['balance'] = current_cumulative_balance
+
+                if ks_row.get('ldate') is not None:
+                    ks_row['ldate'] = ks_row['ldate'].strftime(lang_date_format)
+
+                account_lines.append(ks_row)
+
+            # 3. Final Balance Section & Validations
+            ks_row_final = final_bal_dict.get(ks_code)
+
+            initial_balance_for_summary = 0.0
+            if is_ledger_bal_enabled and ks_account.internal_group not in ['income',
+                                                                           'expense'] and is_range_process:
+                initial_balance_for_summary = init_bal_summary_dict.get(ks_code, 0.0)
 
             if ks_row_final:
-                # 1. Identify which accounts the user specifically selected in the UI
                 selected_accounts = ks_df_informations.get('account', [])
                 selected_account_ids = [acc.get('id') for acc in selected_accounts if acc.get('selected')]
-
-                # Fetch initial balance for the summary check
-                initial_balance_for_summary = initial_bal_data[0].get('initial_balance', 0.0) if len(
-                    initial_bal_data) > 0 else 0.0
-
-                # 3. GET THE RESTORED STATE
                 show_all = ks_df_informations.get('ks_show_all_accounts', False)
 
                 is_zero_account = ks_currency.is_zero(ks_opening_balance) and \
@@ -1039,38 +1066,55 @@ class ks_dynamic_financial_base(models.Model):
                 if selected_account_ids and ks_account.id not in selected_account_ids:
                     ks_move_lines.pop(ks_code, None)
                 elif not show_all and is_zero_account:
-                    # Hide the zero account only if the toggle is OFF
                     ks_move_lines.pop(ks_code, None)
                 else:
-                    ks_row_final['ending_bal'] = True
-                    ks_row_final['initial_bal'] = False
+                    ks_row_final_copy = ks_row_final.copy()
+                    ks_row_final_copy.pop('account_code', None)
+                    ks_row_final_copy['ending_bal'] = True
+                    ks_row_final_copy['initial_bal'] = False
+                    account_lines.append(ks_row_final_copy)
 
-                    # Append final balance row
-                    account_lines.append(ks_row_final)
-
-                    # Update account summary details in ks_move_lines
                     ks_move_lines[ks_code]['initial_balance'] = initial_balance_for_summary
-                    ks_move_lines[ks_code]['debit'] = ks_row_final['debit']
-                    ks_move_lines[ks_code]['credit'] = ks_row_final['credit']
-
-                    ks_move_lines[ks_code]['balance'] = ks_row_final['balance'] + initial_balance_for_summary
+                    ks_move_lines[ks_code]['debit'] = ks_row_final_copy['debit']
+                    ks_move_lines[ks_code]['credit'] = ks_row_final_copy['credit']
+                    ks_move_lines[ks_code]['balance'] = ks_row_final_copy['balance'] + initial_balance_for_summary
 
                     ks_move_lines[ks_code]['company_currency_id'] = ks_currency.id
                     ks_move_lines[ks_code]['company_currency_symbol'] = ks_currency.symbol
                     ks_move_lines[ks_code]['company_currency_precision'] = ks_currency.rounding
                     ks_move_lines[ks_code]['company_currency_position'] = ks_currency.position
 
-                    # Update pagination details
-                    total_current_lines = len(ks_current_lines)
-                    ks_move_lines[ks_code]['count'] = total_current_lines
-                    # ks_move_lines[ks_code]['pages'] = self.ks_fetch_page_list(
-                    #     total_current_lines)  # Assuming ks_fetch_page_list exists
-                    # ks_move_lines[ks_code]['single_page'] = total_current_lines <= FETCH_RANGE
-                    # Force pagination to be hidden since all records load at once
+                    ks_move_lines[ks_code]['count'] = len(ks_current_lines)
                     ks_move_lines[ks_code]['pages'] = []
                     ks_move_lines[ks_code]['single_page'] = True
 
-        # The return values are fixed in the original code, maintain them
+            elif ks_code in ks_move_lines:
+                # Handle accounts with zero transactions but requiring evaluation
+                selected_accounts = ks_df_informations.get('account', [])
+                selected_account_ids = [acc.get('id') for acc in selected_accounts if acc.get('selected')]
+                show_all = ks_df_informations.get('ks_show_all_accounts', False)
+
+                is_zero_account = ks_currency.is_zero(ks_opening_balance) and \
+                                  ks_currency.is_zero(initial_balance_for_summary)
+
+                if selected_account_ids and ks_account.id not in selected_account_ids:
+                    ks_move_lines.pop(ks_code, None)
+                elif not show_all and is_zero_account:
+                    ks_move_lines.pop(ks_code, None)
+                else:
+                    ks_move_lines[ks_code]['initial_balance'] = initial_balance_for_summary
+                    ks_move_lines[ks_code]['debit'] = 0.0
+                    ks_move_lines[ks_code]['credit'] = 0.0
+                    ks_move_lines[ks_code]['balance'] = ks_opening_balance + initial_balance_for_summary
+
+                    ks_move_lines[ks_code]['company_currency_id'] = ks_currency.id
+                    ks_move_lines[ks_code]['company_currency_symbol'] = ks_currency.symbol
+                    ks_move_lines[ks_code]['company_currency_precision'] = ks_currency.rounding
+                    ks_move_lines[ks_code]['company_currency_position'] = ks_currency.position
+                    ks_move_lines[ks_code]['count'] = 0
+                    ks_move_lines[ks_code]['pages'] = []
+                    ks_move_lines[ks_code]['single_page'] = True
+
         return ks_move_lines, 0.0, 0.0, 0.0
 
     def ks_df_where_clause(self, ks_df_informations):

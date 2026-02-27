@@ -2,9 +2,11 @@
 # Part of Odoo Module Developed by CandidRoot Solutions Pvt. Ltd.
 # See LICENSE file for full copyright and licensing details.
 from odoo import fields, models, api, _
+from odoo.exceptions import UserError
 import io, base64
 import logging
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, time
+from dateutil.relativedelta import relativedelta
 
 _logger = logging.getLogger(__name__)
 
@@ -15,9 +17,21 @@ class ReportWizard(models.TransientModel):
     _name = "stock.reports"
     _description = "stock report"
 
-    start_date = fields.Datetime('Start date')
-    end_date = fields.Datetime('End date')
-    location_id = fields.Many2one('stock.location', 'Location')
+    date_range = fields.Selection([
+        ('today', 'Today'),
+        ('yesterday', 'Yesterday'),
+        ('this_week', 'This Week'),
+        ('last_week', 'Last Week'),
+        ('this_month', 'This Month'),
+        ('last_month', 'Last Month'),
+        ('custom', 'Custom')
+    ], string='Date Filter', default='today', required=True)
+
+    start_date = fields.Date('Start date', required=True, default=fields.Date.context_today)
+    end_date = fields.Date('End date', required=True, default=fields.Date.context_today)
+
+    location_ids = fields.Many2many('stock.location', string='Locations')
+
     company_id = fields.Many2one('res.company', string='Company', required=True,
                                  default=lambda self: self.env['res.company']._company_default_get('stock.reports'))
     filterby = fields.Selection([('no_filtred', ' No Filterd'), ('product', 'Product')],
@@ -29,49 +43,134 @@ class ReportWizard(models.TransientModel):
     xls_file = fields.Binary(string="XLS file")
     xls_filename = fields.Char()
 
-    def _compute_initial_stock(self, product_ids, location_id, start_date):
-        """Compute initial stock for products before the start_date."""
-        initial_stock_dict = {}
-        date_before_start = start_date - timedelta(days=1)
+    @api.onchange('date_range')
+    def _onchange_date_range(self):
+        today = fields.Date.context_today(self)
+        if self.date_range == 'today':
+            self.start_date = today
+            self.end_date = today
+        elif self.date_range == 'yesterday':
+            self.start_date = today - timedelta(days=1)
+            self.end_date = today - timedelta(days=1)
+        elif self.date_range == 'this_week':
+            self.start_date = today - timedelta(days=today.weekday())
+            self.end_date = self.start_date + timedelta(days=6)
+        elif self.date_range == 'last_week':
+            self.start_date = today - timedelta(days=today.weekday() + 7)
+            self.end_date = self.start_date + timedelta(days=6)
+        elif self.date_range == 'this_month':
+            self.start_date = today.replace(day=1)
+            self.end_date = (today + relativedelta(months=1, day=1)) - timedelta(days=1)
+        elif self.date_range == 'last_month':
+            self.start_date = today - relativedelta(months=1, day=1)
+            self.end_date = today.replace(day=1) - timedelta(days=1)
 
-        # Query stock moves before start_date for initial stock
-        domain = [
-            ('date', '<=', date_before_start),
-            ('product_id', 'in', product_ids),
-            ('state', '=', 'done'),  # Only consider confirmed moves
-        ]
-        if location_id:
-            domain_in = domain + [('location_dest_id', '=', location_id.id)]
-            domain_out = domain + [('location_id', '=', location_id.id)]
+    def _compute_initial_stock(self, product_ids, location_ids, start_date):
+        initial_stock_dict = {}
+        domain = [('date', '<', start_date), ('state', '=', 'done')]
+        if product_ids:
+            domain.append(('product_id', 'in', product_ids))
+
+        if location_ids:
+            domain_in = domain + [('location_dest_id', 'in', location_ids.ids)]
+            domain_out = domain + [('location_id', 'in', location_ids.ids)]
         else:
             domain_in = domain + [('location_dest_id.usage', '=', 'internal')]
             domain_out = domain + [('location_id.usage', '=', 'internal')]
 
-        # Incoming stock (moves to the location)
-        incoming_moves = self.env['stock.move.line'].read_group(
-            domain_in,
-            ['product_id', 'qty_done:sum'],
-            ['product_id']
-        )
+        incoming_moves = self.env['stock.move.line'].read_group(domain_in,
+                                                                ['product_id', 'location_dest_id', 'qty_done:sum'],
+                                                                ['product_id', 'location_dest_id'], lazy=False)
         for move in incoming_moves:
-            product_id = move['product_id'][0]
-            initial_stock_dict[product_id] = initial_stock_dict.get(product_id, 0) + move['qty_done']
+            key = (move['location_dest_id'][0], move['product_id'][0])
+            initial_stock_dict[key] = initial_stock_dict.get(key, 0) + move['qty_done']
 
-        # Outgoing stock (moves from the location)
-        outgoing_moves = self.env['stock.move.line'].read_group(
-            domain_out,
-            ['product_id', 'qty_done:sum'],
-            ['product_id']
-        )
+        outgoing_moves = self.env['stock.move.line'].read_group(domain_out,
+                                                                ['product_id', 'location_id', 'qty_done:sum'],
+                                                                ['product_id', 'location_id'], lazy=False)
         for move in outgoing_moves:
-            product_id = move['product_id'][0]
-            initial_stock_dict[product_id] = initial_stock_dict.get(product_id, 0) - move['qty_done']
+            key = (move['location_id'][0], move['product_id'][0])
+            initial_stock_dict[key] = initial_stock_dict.get(key, 0) - move['qty_done']
 
         return initial_stock_dict
 
+    def _get_report_data(self, start_dt, end_dt):
+        domain_prod = [('product_id', 'in', self.products.ids)] if self.products else []
+        initial_stock_dict = self._compute_initial_stock(self.products.ids if self.products else [], self.location_ids,
+                                                         start_dt)
+
+        domain_in = [('date', '>=', start_dt), ('date', '<=', end_dt), ('state', '=', 'done')] + domain_prod
+        domain_out = list(domain_in)
+
+        if self.location_ids:
+            domain_in.append(('location_dest_id', 'in', self.location_ids.ids))
+            domain_out.append(('location_id', 'in', self.location_ids.ids))
+        else:
+            domain_in.append(('location_dest_id.usage', '=', 'internal'))
+            domain_out.append(('location_id.usage', '=', 'internal'))
+
+        incoming_moves = self.env['stock.move.line'].read_group(domain_in,
+                                                                ['product_id', 'location_dest_id', 'qty_done:sum'],
+                                                                ['product_id', 'location_dest_id'], lazy=False)
+        incoming_dict = {}
+        for move in incoming_moves:
+            key = (move['location_dest_id'][0], move['product_id'][0])
+            incoming_dict[key] = incoming_dict.get(key, 0) + move['qty_done']
+
+        outgoing_moves = self.env['stock.move.line'].read_group(domain_out,
+                                                                ['product_id', 'location_id', 'qty_done:sum'],
+                                                                ['product_id', 'location_id'], lazy=False)
+        outgoing_dict = {}
+        for move in outgoing_moves:
+            key = (move['location_id'][0], move['product_id'][0])
+            outgoing_dict[key] = outgoing_dict.get(key, 0) + move['qty_done']
+
+        all_keys = set(initial_stock_dict.keys()) | set(incoming_dict.keys()) | set(outgoing_dict.keys())
+
+        loc_ids = list(set([k[0] for k in all_keys]))
+        prod_ids = list(set([k[1] for k in all_keys]))
+
+        locations_obj = self.env['stock.location'].browse(loc_ids)
+        products_obj = self.env['product.product'].browse(prod_ids).with_company(self.company_id)
+
+        loc_dict = {l.id: l.name for l in locations_obj}
+        prod_dict = {p.id: p for p in products_obj}
+
+        record_list = []
+        for loc_id, prod_id in all_keys:
+            initial = initial_stock_dict.get((loc_id, prod_id), 0)
+            in_qty = incoming_dict.get((loc_id, prod_id), 0)
+            out_qty = outgoing_dict.get((loc_id, prod_id), 0)
+            balance = initial + in_qty - out_qty
+
+            if initial == 0 and in_qty == 0 and out_qty == 0 and balance == 0:
+                continue
+
+            product = prod_dict[prod_id]
+            sale_price = round(float(product.list_price or 0.0), 2)
+            cost_price = round(float(product.standard_price or 0.0), 2)
+
+            record_list.append({
+                'location_name': loc_dict[loc_id],
+                'product': product.name,
+                'default_code': product.default_code or '',
+                'uom': product.uom_id.name,
+                'hsn': product.product_tmpl_id.l10n_in_hsn_code or '',
+                'initial_stock': initial,
+                'in': in_qty,
+                'out': out_qty,
+                'balance': balance,
+                'sale_price': sale_price,
+                'sale_value': round(sale_price * balance, 2),
+                'cost_price': cost_price,
+                'cost_value': round(cost_price * balance, 2),
+                'rec_set': product,
+            })
+
+        return sorted(record_list, key=lambda k: (k['location_name'], k['product']))
+
     def _calculate_totals(self, record_list):
-        """Calculate total sums for initial stock, in, out, balance and value."""
-        totals = {
+        return {
             'initial_stock': sum(rec.get('initial_stock', 0) for rec in record_list),
             'in': sum(rec.get('in', 0) for rec in record_list),
             'out': sum(rec.get('out', 0) for rec in record_list),
@@ -79,393 +178,195 @@ class ReportWizard(models.TransientModel):
             'sale_value': sum(rec.get('sale_value', 0) for rec in record_list),
             'cost_value': sum(rec.get('cost_value', 0) for rec in record_list),
         }
-        return totals
 
     def _calculate_category_totals(self, category_dict):
-        """Calculate totals for each category including value."""
         category_totals = {}
         for category_name, records in category_dict.items():
             category_totals[category_name] = self._calculate_totals(records)
         return category_totals
 
+    def _prepare_grouped_data(self, record_list):
+        locations_data = {}
+        location_totals = {}
+        category_totals_by_loc = {}
+
+        for loc_name in set(r['location_name'] for r in record_list):
+            loc_recs = [r for r in record_list if r['location_name'] == loc_name]
+            location_totals[loc_name] = self._calculate_totals(loc_recs)
+
+            if self.group_by_category:
+                cat_dict = {}
+                for r in loc_recs:
+                    cat_name = r['rec_set'].categ_id.name
+                    cat_dict.setdefault(cat_name, []).append(r)
+                locations_data[loc_name] = cat_dict
+                category_totals_by_loc[loc_name] = self._calculate_category_totals(cat_dict)
+            else:
+                locations_data[loc_name] = loc_recs
+
+        return locations_data, location_totals, category_totals_by_loc
+
     def button_export_pdf(self):
-        # Determine product filter
-        if not self.products:
-            if self.location_id:
-                category_group = self.env['stock.move.line'].read_group(
-                    [('date', '>=', self.start_date), ('date', '<=', self.end_date),
-                     ('location_dest_id', 'in', self.location_id.ids)], ['product_id'],
-                    ['product_id'])
-            else:
-                category_group = self.env['stock.move.line'].read_group(
-                    [('date', '>=', self.start_date), ('date', '<=', self.end_date)], ['product_id'],
-                    ['product_id'])
-        else:
-            if self.location_id:
-                category_group = self.env['stock.move.line'].read_group(
-                    [('date', '>=', self.start_date), ('date', '<=', self.end_date),
-                     ('product_id', 'in', self.products.ids), ('location_dest_id', 'in', self.location_id.ids)],
-                    fields=['product_id'],
-                    groupby=['product_id'], lazy=False)
-            else:
-                category_group = self.env['stock.move.line'].read_group(
-                    [('date', '>=', self.start_date), ('date', '<=', self.end_date),
-                     ('product_id', 'in', self.products.ids)],
-                    fields=['product_id'],
-                    groupby=['product_id'], lazy=False)
+        if not self.start_date or not self.end_date:
+            raise UserError(_("Please select both a Start Date and an End Date."))
 
-        filter_ids = []
-        for rec in category_group:
-            product_id = rec['product_id'][0]
-            if product_id not in filter_ids:
-                filter_ids.append(product_id)
+        start_dt = datetime.combine(self.start_date, time.min)
+        end_dt = datetime.combine(self.end_date, time.max)
 
-        # Compute initial stock for filtered products
-        initial_stock_dict = self._compute_initial_stock(filter_ids, self.location_id, self.start_date)
-
-        all_search = self.env['stock.move.line'].search([('product_id', 'in', filter_ids)])
-        search = []
-        product_list = []
-        for each_item in all_search:
-            if each_item.product_id.id not in product_list:
-                search.append(each_item)
-            product_list.append(each_item.product_id.id)
-
-        # Compute incoming and outgoing quantities within the date range
-        object = self.env['stock.move.line'].search([
-            ('date', '>=', self.start_date),
-            ('date', '<=', self.end_date),
-            ('product_id', 'in', filter_ids),
-            ('state', '=', 'done')
-        ])
-        incoming_dict = {}
-        outgoing_dict = {}
-        for rec in object:
-            if self.location_id:
-                if rec.location_dest_id == self.location_id:
-                    incoming_dict[rec.product_id.id] = incoming_dict.get(rec.product_id.id, 0) + rec.qty_done
-                if rec.location_id == self.location_id:
-                    outgoing_dict[rec.product_id.id] = outgoing_dict.get(rec.product_id.id, 0) + rec.qty_done
-            else:
-                if rec.location_dest_id.usage == 'internal':
-                    incoming_dict[rec.product_id.id] = incoming_dict.get(rec.product_id.id, 0) + rec.qty_done
-                if rec.location_id.usage == 'internal':
-                    outgoing_dict[rec.product_id.id] = outgoing_dict.get(rec.product_id.id, 0) + rec.qty_done
-
-        record_list = []
-        for res in search:
-            initial_stock = initial_stock_dict.get(res.product_id.id, 0)
-            in_com = incoming_dict.get(res.product_id.id, 0)
-            out_go = outgoing_dict.get(res.product_id.id, 0)
-            balance = initial_stock + in_com - out_go
-
-            # --- CHANGE 1: Rounding Logic ---
-            product = res.product_id.with_company(self.company_id)
-
-            # Round prices and values to 2 decimal places
-            sale_price = round(float(product.list_price or 0.0), 2)
-            cost_price = round(float(product.standard_price or 0.0), 2)
-
-            sale_value = round(sale_price * balance, 2)
-            cost_value = round(cost_price * balance, 2)
-            # --------------------------------
-
-            vals = {
-                'product': res.product_id.name,
-                # --- CHANGE 2: Fix "False" text ---
-                'default_code': res.product_id.default_code or '',
-                'uom': res.product_uom_id.name,
-                'reference': res.reference or '',
-                # ----------------------------------
-                'initial_stock': initial_stock,
-                'hsn': res.product_id.product_tmpl_id.l10n_in_hsn_code or '',
-                'in': in_com,
-                'out': out_go,
-                'balance': balance,
-                'sale_price': sale_price,
-                'sale_value': sale_value,
-                'cost_price': cost_price,
-                'cost_value': cost_value,
-                'rec_set': res,
-            }
-            record_list.append(vals)
-        # Calculate totals
+        record_list = self._get_report_data(start_dt, end_dt)
         grand_totals = self._calculate_totals(record_list)
+        locations_data, location_totals, category_totals_by_loc = self._prepare_grouped_data(record_list)
 
-        category_dict = {}
-        for rec_list in record_list:
-            category_name = rec_list.get('rec_set').product_id.categ_id.name
-            if category_name in category_dict:
-                category_dict[category_name].append(rec_list)
-            else:
-                category_dict[category_name] = [rec_list]
-
-        # Calculate category totals
-        category_totals = self._calculate_category_totals(category_dict)
-
-        locations = (self.read()[0]['location_id'] and self.read()[0]['location_id'][1]) or \
-                    self.env['stock.location'].search([]).mapped('name')
+        locations_str = ', '.join(self.location_ids.mapped('name')) if self.location_ids else "All Locations"
 
         data = {
-            'report_start_date': self.read()[0]['start_date'],
-            'report_end_date': self.read()[0]['end_date'],
-            'report_company_id': self.read()[0]['company_id'][1],
-            'report_location': locations,
-            # Add totals to data
+            'report_start_date': self.start_date,
+            'report_end_date': self.end_date,
+            'report_company_id': self.company_id.name,
+            'report_location': locations_str,
             'total_initial_stock': grand_totals['initial_stock'],
             'total_in': grand_totals['in'],
             'total_out': grand_totals['out'],
             'total_balance': grand_totals['balance'],
             'total_sale_value': grand_totals['sale_value'],
             'total_cost_value': grand_totals['cost_value'],
+            'report_group_by_category': self.group_by_category,
+            'locations_data': locations_data,
+            'location_totals': location_totals,
+            'category_totals_by_loc': category_totals_by_loc,
         }
-
-        if self.group_by_category:
-            data.update({
-                'search_record_grouped': category_dict,
-                'category_totals': category_totals
-            })
-        else:
-            data.update({
-                'report_group_by_category': self.read()[0]['group_by_category'],
-                'search_record': record_list,
-            })
 
         return self.env.ref('stock_report_cr.action_report_stock_report').report_action(self, data=data)
 
     def button_export_xlsx(self):
+        if not self.start_date or not self.end_date:
+            raise UserError(_("Please select both a Start Date and an End Date."))
+
         output = io.BytesIO()
         workbook = xlsxwriter.Workbook(output, {'in_memory': True})
         sheet = workbook.add_worksheet('Inventory Excel Report')
 
-        # Determine product filter
-        if not self.products:
-            if self.location_id:
-                category_group = self.env['stock.move.line'].read_group(
-                    [('date', '>=', self.start_date), ('date', '<=', self.end_date),
-                     ('location_dest_id', 'in', self.location_id.ids)], ['product_id'],
-                    ['product_id'])
-            else:
-                category_group = self.env['stock.move.line'].read_group(
-                    [('date', '>=', self.start_date), ('date', '<=', self.end_date)], ['product_id'],
-                    ['product_id'])
-        else:
-            if self.location_id:
-                category_group = self.env['stock.move.line'].read_group(
-                    [('date', '>=', self.start_date), ('date', '<=', self.end_date),
-                     ('product_id', 'in', self.products.ids), ('location_dest_id', 'in', self.location_id.ids)],
-                    fields=['product_id'],
-                    groupby=['product_id'], lazy=False)
-            else:
-                category_group = self.env['stock.move.line'].read_group(
-                    [('date', '>=', self.start_date), ('date', '<=', self.end_date),
-                     ('product_id', 'in', self.products.ids)],
-                    fields=['product_id'],
-                    groupby=['product_id'], lazy=False)
+        start_dt = datetime.combine(self.start_date, time.min)
+        end_dt = datetime.combine(self.end_date, time.max)
 
-        filter_ids = []
-        for rec in category_group:
-            product_id = rec['product_id'][0]
-            if product_id not in filter_ids:
-                filter_ids.append(product_id)
-
-        # Compute initial stock for filtered products
-        initial_stock_dict = self._compute_initial_stock(filter_ids, self.location_id, self.start_date)
-
-        all_search = self.env['stock.move.line'].search([('product_id', 'in', filter_ids)])
-        search = []
-        product_list = []
-        for each_item in all_search:
-            if each_item.product_id.id not in product_list:
-                search.append(each_item)
-            product_list.append(each_item.product_id.id)
-
-        # Compute incoming and outgoing quantities within the date range
-        object = self.env['stock.move.line'].search([
-            ('date', '>=', self.start_date),
-            ('date', '<=', self.end_date),
-            ('product_id', 'in', filter_ids),
-            ('state', '=', 'done')
-        ])
-        incoming_dict = {}
-        outgoing_dict = {}
-        for rec in object:
-            if self.location_id:
-                if rec.location_dest_id == self.location_id:
-                    incoming_dict[rec.product_id.id] = incoming_dict.get(rec.product_id.id, 0) + rec.qty_done
-                if rec.location_id == self.location_id:
-                    outgoing_dict[rec.product_id.id] = outgoing_dict.get(rec.product_id.id, 0) + rec.qty_done
-            else:
-                if rec.location_dest_id.usage == 'internal':
-                    incoming_dict[rec.product_id.id] = incoming_dict.get(rec.product_id.id, 0) + rec.qty_done
-                if rec.location_id.usage == 'internal':
-                    outgoing_dict[rec.product_id.id] = outgoing_dict.get(rec.product_id.id, 0) + rec.qty_done
-
-        record_list = []
-        for res in search:
-            initial_stock = initial_stock_dict.get(res.product_id.id, 0)
-            in_com = incoming_dict.get(res.product_id.id, 0)
-            out_go = outgoing_dict.get(res.product_id.id, 0)
-            balance = initial_stock + in_com - out_go
-
-            # --- CHANGE 1: Rounding Logic ---
-            product = res.product_id.with_company(self.company_id)
-
-            # Round prices and values to 2 decimal places
-            sale_price = round(float(product.list_price or 0.0), 2)
-            cost_price = round(float(product.standard_price or 0.0), 2)
-
-            sale_value = round(sale_price * balance, 2)
-            cost_value = round(cost_price * balance, 2)
-            # --------------------------------
-
-            vals = {
-                'product': res.product_id.name,
-                # --- CHANGE 2: Fix "False" text ---
-                'default_code': res.product_id.default_code or '',
-                'uom': res.product_uom_id.name,
-                'reference': res.reference or '',
-                # ----------------------------------
-                'initial_stock': initial_stock,
-                'hsn': res.product_id.product_tmpl_id.l10n_in_hsn_code or '',
-                'in': in_com,
-                'out': out_go,
-                'balance': balance,
-                'sale_price': sale_price,
-                'sale_value': sale_value,
-                'cost_price': cost_price,
-                'cost_value': cost_value,
-                'rec_set': res,
-            }
-            record_list.append(vals)
-        # Calculate totals for Excel
+        record_list = self._get_report_data(start_dt, end_dt)
         grand_totals = self._calculate_totals(record_list)
+        locations_data, location_totals, category_totals_by_loc = self._prepare_grouped_data(record_list)
 
-        category_dict = {}
-        for rec_list in record_list:
-            category_name = rec_list.get('rec_set').product_id.categ_id.name
-            if category_name in category_dict:
-                category_dict[category_name].append(rec_list)
-            else:
-                category_dict[category_name] = [rec_list]
+        header_style = workbook.add_format({'bold': True, 'align': 'left'})
+        date_style = workbook.add_format({'align': 'left', 'num_format': 'dd-mm-yyyy'})
 
-        # Calculate category totals for Excel
-        category_totals = self._calculate_category_totals(category_dict)
+        # Row styling for grouping
+        loc_header_style = workbook.add_format({'bg_color': '#dbeafe', 'bold': True, 'align': 'left', 'font_size': 12})
+        cat_header_style = workbook.add_format({'bg_color': '#f1f5f9', 'bold': True, 'align': 'left'})
+        subtotal_style = workbook.add_format({'bold': True, 'align': 'center', 'bg_color': '#f8fafc'})
+        loc_total_style = workbook.add_format({'bold': True, 'align': 'center', 'bg_color': '#e2e8f0'})
+        total_style = workbook.add_format(
+            {'bold': True, 'align': 'center', 'bg_color': '#10b981', 'font_color': 'white'})
 
-        # Write to Excel
-        header_style = workbook.add_format({'bold': True, 'align': 'center'})
-        date_style = workbook.add_format({'align': 'center', 'num_format': 'dd-mm-yyyy'})
-        total_style = workbook.add_format({'bold': True, 'align': 'center', 'bg_color': '#90EE90'})
-        subtotal_style = workbook.add_format({'bold': True, 'align': 'center', 'bg_color': '#ADD8E6'})
+        locations_str = ', '.join(self.location_ids.mapped('name')) if self.location_ids else "All Locations"
 
-        locations = self.env['stock.location'].search([])
-        locations_name = ', '.join(locations.mapped('name'))
-
-        sheet.write(0, 0, 'Warehouse', header_style)
-        sheet.write(2, 0, 'Location', header_style)
-        sheet.write(4, 0, 'Start Date', header_style)
-        sheet.write(6, 0, 'End Date', header_style)
+        # --- UPDATED TOP INFORMATION LAYOUT ---
+        sheet.write(0, 0, 'Company:', header_style)
         sheet.write(0, 1, self.company_id.name, date_style)
-        sheet.write(2, 1, self.location_id.name or locations_name, date_style)
-        sheet.write(4, 1, self.start_date, date_style)
-        sheet.write(6, 1, self.end_date, date_style)
+        sheet.write(0, 3, 'Start Date:', header_style)
+        sheet.write(0, 4, str(self.start_date), date_style)
 
-        sheet.set_column('A2:E5', 27)
-        head_style = workbook.add_format({'align': 'center', 'bold': True, 'bg_color': '#dedede'})
-        row_head = 8
-        sheet.write(row_head, 0, 'Reference', head_style)
-        sheet.write(row_head, 1, 'Designation', head_style)
-        sheet.write(row_head, 2, 'UoM', head_style)
-        sheet.write(row_head, 3, 'HSN', head_style)
-        sheet.write(row_head, 4, 'Initial stock', head_style)
-        sheet.write(row_head, 5, 'IN', head_style)
-        sheet.write(row_head, 6, 'OUT', head_style)
-        sheet.write(row_head, 7, 'Balance', head_style)
-        sheet.write(row_head, 8, 'Sale Price', head_style)  # New
-        sheet.write(row_head, 9, 'Sale Value', head_style)  # New
-        sheet.write(row_head, 10, 'Cost Price', head_style)  # New
-        sheet.write(row_head, 11, 'Cost Value', head_style)  # Updated
-        sheet.freeze_panes(10, 0)
+        sheet.write(2, 0, 'Location Filter:', header_style)
+        sheet.write(2, 1, locations_str, date_style)
+        sheet.write(2, 3, 'End Date:', header_style)
+        sheet.write(2, 4, str(self.end_date), date_style)
 
-        categ_style = workbook.add_format({'bg_color': '#dedede', 'align': 'center'})
+        # --- WIDER COLUMNS FIXED ---
+        sheet.set_column('A:A', 15)  # Reference
+        sheet.set_column('B:B', 38)  # Designation (Extra wide)
+        sheet.set_column('C:D', 10)  # UoM, HSN
+        sheet.set_column('E:L', 13)  # Initial Stock, Values, etc.
+
+        head_style = workbook.add_format(
+            {'align': 'center', 'bold': True, 'bg_color': '#1e3a8a', 'font_color': 'white'})
         data_font_style = workbook.add_format({'align': 'center'})
-        row = 10
+        data_left_style = workbook.add_format({'align': 'left'})
 
-        if self.group_by_category:
-            for main in category_dict:
-                sheet.write(row, 0, main, categ_style)
-                sheet.write(row, 1, '', categ_style)
-                sheet.write(row, 2, '', categ_style)
-                sheet.write(row, 3, '', categ_style)
-                sheet.write(row, 4, '', categ_style)
-                sheet.write(row, 5, '', categ_style)
-                sheet.write(row, 6, '', categ_style)
-                sheet.write(row, 7, '', categ_style)
-                sheet.write(row, 8, '', categ_style)
-                sheet.write(row, 9, '', categ_style)
-                sheet.write(row, 10, '', categ_style)
-                sheet.write(row, 11, '', categ_style)
+        row = 5
+        # --- REMOVED LOCATION FROM TABLE HEADER ---
+        headers = ['Reference', 'Designation', 'UoM', 'HSN', 'Initial stock', 'IN', 'OUT', 'Balance', 'Sale Price',
+                   'Sale Value', 'Cost Price', 'Cost Value']
+        for col_num, header in enumerate(headers):
+            sheet.write(row, col_num, header, head_style)
+        sheet.freeze_panes(6, 0)
 
-                for line in category_dict[main]:
+        row = 6
+
+        def _write_line(sheet, row, line):
+            sheet.write(row, 0, line.get('default_code'), data_font_style)
+            sheet.write(row, 1, line.get('product'), data_left_style)
+            sheet.write(row, 2, line.get('uom'), data_font_style)
+            sheet.write(row, 3, line.get('hsn'), data_font_style)
+            sheet.write(row, 4, line.get('initial_stock'), data_font_style)
+            sheet.write(row, 5, line.get('in'), data_font_style)
+            sheet.write(row, 6, line.get('out'), data_font_style)
+            sheet.write(row, 7, line.get('balance'), data_font_style)
+            sheet.write(row, 8, line.get('sale_price'), data_font_style)
+            sheet.write(row, 9, line.get('sale_value'), data_font_style)
+            sheet.write(row, 10, line.get('cost_price'), data_font_style)
+            sheet.write(row, 11, line.get('cost_value'), data_font_style)
+
+        for loc_name, loc_data in locations_data.items():
+            # Write Location Header Row
+            sheet.merge_range(row, 0, row, 11, loc_name, loc_header_style)
+            row += 1
+
+            if self.group_by_category:
+                for cat_name, recs in loc_data.items():
+                    # Write Category Header Row
+                    sheet.merge_range(row, 0, row, 11, f"  Category: {cat_name}", cat_header_style)
                     row += 1
-                    sheet.write(row, 0, line.get('default_code'), data_font_style)
-                    sheet.write(row, 1, line.get('product'), data_font_style)
-                    sheet.write(row, 2, line.get('uom'), data_font_style)
-                    sheet.write(row, 3, line.get('hsn'), data_font_style)
-                    sheet.write(row, 4, line.get('initial_stock'), data_font_style)
-                    sheet.write(row, 5, line.get('in'), data_font_style)
-                    sheet.write(row, 6, line.get('out'), data_font_style)
-                    sheet.write(row, 7, line.get('balance'), data_font_style)
-                    sheet.write(row, 8, line.get('sale_price'), data_font_style)  # New
-                    sheet.write(row, 9, line.get('sale_value'), data_font_style)  # New
-                    sheet.write(row, 10, line.get('cost_price'), data_font_style)  # New
-                    sheet.write(row, 11, line.get('cost_value'), data_font_style)  # Updated
+                    for line in recs:
+                        _write_line(sheet, row, line)
+                        row += 1
 
-                # Add category subtotal
-                row += 1
-                sheet.write(row, 0, 'Category Subtotal:', subtotal_style)
-                sheet.write(row, 1, '', subtotal_style)
-                sheet.write(row, 2, '', subtotal_style)
-                sheet.write(row, 3, '', subtotal_style)
-                sheet.write(row, 4, category_totals[main]['initial_stock'], subtotal_style)
-                sheet.write(row, 5, category_totals[main]['in'], subtotal_style)
-                sheet.write(row, 6, category_totals[main]['out'], subtotal_style)
-                sheet.write(row, 7, category_totals[main]['balance'], subtotal_style)
-                sheet.write(row, 8, '', subtotal_style)  # Spacer
-                sheet.write(row, 9, category_totals[main]['sale_value'], subtotal_style)  # Sale Value
-                sheet.write(row, 10, '', subtotal_style)  # Spacer
-                sheet.write(row, 11, category_totals[main]['cost_value'], subtotal_style)  # Cost Value
-                row += 2
-        else:
-            for line in record_list:
-                row += 1
-                sheet.write(row, 0, line.get('default_code'), data_font_style)
-                sheet.write(row, 1, line.get('product'), data_font_style)
-                sheet.write(row, 2, line.get('uom'), data_font_style)
-                sheet.write(row, 3, line.get('hsn'), data_font_style)
-                sheet.write(row, 4, line.get('initial_stock'), data_font_style)
-                sheet.write(row, 5, line.get('in'), data_font_style)
-                sheet.write(row, 6, line.get('out'), data_font_style)
-                sheet.write(row, 7, line.get('balance'), data_font_style)
-                sheet.write(row, 8, line.get('sale_price'), data_font_style)  # New
-                sheet.write(row, 9, line.get('sale_value'), data_font_style)  # New
-                sheet.write(row, 10, line.get('cost_price'), data_font_style)  # New
-                sheet.write(row, 11, line.get('cost_value'), data_font_style)  # Updated
+                    # Category Subtotal
+                    sheet.write(row, 0, 'Category Subtotal:', subtotal_style)
+                    for i in range(1, 4): sheet.write(row, i, '', subtotal_style)
+                    sheet.write(row, 4, category_totals_by_loc[loc_name][cat_name]['initial_stock'], subtotal_style)
+                    sheet.write(row, 5, category_totals_by_loc[loc_name][cat_name]['in'], subtotal_style)
+                    sheet.write(row, 6, category_totals_by_loc[loc_name][cat_name]['out'], subtotal_style)
+                    sheet.write(row, 7, category_totals_by_loc[loc_name][cat_name]['balance'], subtotal_style)
+                    sheet.write(row, 8, '', subtotal_style)
+                    sheet.write(row, 9, category_totals_by_loc[loc_name][cat_name]['sale_value'], subtotal_style)
+                    sheet.write(row, 10, '', subtotal_style)
+                    sheet.write(row, 11, category_totals_by_loc[loc_name][cat_name]['cost_value'], subtotal_style)
+                    row += 1
+            else:
+                for line in loc_data:
+                    _write_line(sheet, row, line)
+                    row += 1
 
-        # Add grand total row
-        row += 2
+            # Location Subtotal
+            sheet.write(row, 0, 'Total', loc_total_style)
+            for i in range(1, 4): sheet.write(row, i, '', loc_total_style)
+            sheet.write(row, 4, location_totals[loc_name]['initial_stock'], loc_total_style)
+            sheet.write(row, 5, location_totals[loc_name]['in'], loc_total_style)
+            sheet.write(row, 6, location_totals[loc_name]['out'], loc_total_style)
+            sheet.write(row, 7, location_totals[loc_name]['balance'], loc_total_style)
+            sheet.write(row, 8, '', loc_total_style)
+            sheet.write(row, 9, location_totals[loc_name]['sale_value'], loc_total_style)
+            sheet.write(row, 10, '', loc_total_style)
+            sheet.write(row, 11, location_totals[loc_name]['cost_value'], loc_total_style)
+            row += 2
+
+        # Grand Total
         sheet.write(row, 0, 'GRAND TOTAL:', total_style)
-        sheet.write(row, 1, '', total_style)
-        sheet.write(row, 2, '', total_style)
-        sheet.write(row, 3, '', total_style)
+        for i in range(1, 4): sheet.write(row, i, '', total_style)
         sheet.write(row, 4, grand_totals['initial_stock'], total_style)
         sheet.write(row, 5, grand_totals['in'], total_style)
         sheet.write(row, 6, grand_totals['out'], total_style)
         sheet.write(row, 7, grand_totals['balance'], total_style)
-        sheet.write(row, 8, '', total_style)  # Spacer for Sale Price
-        sheet.write(row, 9, grand_totals['sale_value'], total_style)  # Total Sale Value
-        sheet.write(row, 10, '', total_style)  # Spacer for Cost Price
-        sheet.write(row, 11, grand_totals['cost_value'], total_style)  # Total Cost Value
+        sheet.write(row, 8, '', total_style)
+        sheet.write(row, 9, grand_totals['sale_value'], total_style)
+        sheet.write(row, 10, '', total_style)
+        sheet.write(row, 11, grand_totals['cost_value'], total_style)
 
         workbook.close()
         xlsx_data = output.getvalue()
@@ -475,6 +376,5 @@ class ReportWizard(models.TransientModel):
         return {
             'type': 'ir.actions.act_url',
             'name': 'Inventory Excel Report',
-            'url': '/web/content/stock.reports/%s/xls_file/%s?download=true' % (
-                self.id, 'Stock Excel Report.xlsx'),
+            'url': '/web/content/stock.reports/%s/xls_file/%s?download=true' % (self.id, 'Stock Excel Report.xlsx'),
         }
