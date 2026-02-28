@@ -13,19 +13,19 @@ class StockMoveLine(models.Model):
         self.ensure_one()
         return not self.quality_check_ids
 
-    historical_cost_price = fields.Float(
-        string='Cost Price',
-        compute='_compute_historical_prices',
-        store=True,
-        digits='Product Price'
-    )
-
-    historical_sale_price = fields.Float(
-        string='Sale Price',
-        compute='_compute_historical_prices',
-        store=True,
-        digits='Product Price'
-    )
+    # historical_cost_price = fields.Float(
+    #     string='Cost Price',
+    #     compute='_compute_historical_prices',
+    #     store=True,
+    #     digits='Product Price'
+    # )
+    #
+    # historical_sale_price = fields.Float(
+    #     string='Sale Price',
+    #     compute='_compute_historical_prices',
+    #     store=True,
+    #     digits='Product Price'
+    # )
 
     # @api.depends('state', 'move_id.state')
     # def _compute_historical_prices(self):
