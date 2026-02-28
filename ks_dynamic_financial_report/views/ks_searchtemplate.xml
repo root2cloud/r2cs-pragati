@@ -378,7 +378,16 @@
             </button>
             <t t-if="ks_df_informations.get('ks_option_enable')">
                 <div class="dropdown-menu o_filter_menu ks_d_block" role="menu">
+                    <a role="menuitem" class="dropdown-item js_account_report_bool_filter"
+                       title="Ignore Closing Entry" data-bs-filter="ks_ignore_closing_entry"
+                       t-if="ks_df_informations.get('ks_ignore_closing_entry') != None">
 
+                        <t t-if="ks_df_informations.get('ks_ignore_closing_entry')">
+                            <i class="fa fa-check"/>
+                        </t>
+
+                        Ignore Closing Entry
+                    </a>
                     <a role="menuitem" class="dropdown-item js_account_report_bool_filter"
                        title="Posted entries" data-bs-filter="ks_posted_entries"
                        t-if="ks_df_informations.get('ks_posted_entries') != None"
@@ -417,6 +426,13 @@
             </t>
             <t t-else="">
                 <div class="dropdown-menu o_filter_menu" role="menu">
+
+                    <a role="menuitem" class="dropdown-item js_account_report_bool_filter"
+                       title="Ignore Closing Entry" data-bs-filter="ks_ignore_closing_entry"
+                       t-if="ks_df_informations.get('ks_ignore_closing_entry') != None">
+                        Ignore Closing Entry
+                    </a>
+
                     <a role="menuitem" class="dropdown-item js_account_report_bool_filter"
                        title="Posted entries" data-bs-filter="ks_posted_entries"
                        t-if="ks_df_informations.get('ks_posted_entries') != None"
