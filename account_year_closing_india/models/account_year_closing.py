@@ -69,6 +69,8 @@ class AccountYearClosing(models.Model):
                                                    domain="[('account_type', '=', 'asset_control'), ('company_id', '=', company_id)]",
                                                    required=True, states={'posted': [('readonly', True)]},
                                                    tracking=True)
+    payment_narration = fields.Text(string="Narration", required=True,
+                                    states={'posted': [('readonly', True)]}, tracking=True)
 
     # --- Financial Summary (Net Only) ---
     net_pl_amount = fields.Monetary(string="Net P&L", compute="_compute_financial_summary", store=True,
@@ -93,7 +95,7 @@ class AccountYearClosing(models.Model):
             # If sum is Negative, it means Credits > Debits (Profit)
             # If sum is Positive, it means Debits > Credits (Loss)
             record.net_pl_amount = abs(net_balance)
-            record.net_pl_type = 'profit' if net_balance < 0 else 'loss'
+            record.net_pl_type = 'profit' if net_balance <= 0 else 'loss'
 
     @api.model
     def default_get(self, fields_list):
@@ -199,12 +201,17 @@ class AccountYearClosing(models.Model):
                 res_vals.update({'debit': abs(net_diff), 'credit': 0.0})
             move_lines.append((0, 0, res_vals))
 
+        ref_val = f"{self.name} - {self.payment_narration}" if self.payment_narration else self.name
+
         move = self.env['account.move'].create({
+            'name':self.name,
             'ref': self.name,
             'date': self.date_end,
             'journal_id': self.journal_id.id,
             'company_id': self.company_id.id,
             'move_type': 'entry',
+            'is_closing_entry': True,  # <--- ADD THIS LINE
+            'payment_narration': self.payment_narration,
             'line_ids': move_lines,
         })
         move.action_post()
@@ -262,3 +269,9 @@ class AccountYearClosingLine(models.Model):
             else:
                 line.amount_display = abs(line.period_balance)
                 line.dr_cr_display = 'cr'
+
+
+class AccountMove(models.Model):
+    _inherit = 'account.move'
+
+    is_closing_entry = fields.Boolean(string='Is Year Closing Entry', default=False, copy=False)
