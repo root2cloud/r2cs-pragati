@@ -325,6 +325,11 @@ class ks_dynamic_financial_base(models.Model):
             wheres = [""]
             if ks_where_clause.strip():
                 wheres.append(ks_where_clause.strip())
+            # --- INJECT CUSTOM FILTER FOR P&L BALANCES ---
+            if ks_df_informations.get('ks_ignore_closing_entry'):
+                wheres.append(
+                    "account_move_line.move_id IN (SELECT id FROM account_move WHERE is_closing_entry IS NULL OR is_closing_entry = False)")
+            # ---------------------------------------------
             ks_filters = " AND ".join(wheres)
 
             if prv_year_dates:
@@ -467,6 +472,10 @@ class ks_dynamic_financial_base(models.Model):
             state_filter = "AND am.state = 'posted'"
         elif ks_df_informations.get('ks_unposted_entries') and not ks_df_informations.get('ks_posted_entries'):
             state_filter = "AND am.state = 'draft'"
+
+        # Add the closing entry filter directly into the raw SQL states
+        if ks_df_informations.get('ks_ignore_closing_entry'):
+            state_filter += " AND (am.is_closing_entry IS NULL OR am.is_closing_entry = False)"
         # -----------------------------------
 
         # Check if this is Balance Sheet
@@ -3105,12 +3114,10 @@ class ks_dynamic_financial_base(models.Model):
         return [i + 1 for i in range(0, int(ks_page_count))] or []
 
     def ks_df_build_where_clause(self, ks_df_informations=False):
-
+        WHERE = '(1=1)'
         if ks_df_informations:
-            WHERE = '(1=1)'
             journal_domain = None
             analytics_domain = None
-            analytics_tag_domain = None
             account_domain = None
             for journal in ks_df_informations.get('journals', []):
                 if not journal['id'] in ('divider', 'group') and journal['selected']:
@@ -3171,8 +3178,15 @@ class ks_dynamic_financial_base(models.Model):
                 WHERE += " AND m.state = 'draft'"
             else:
                 WHERE += " AND m.state IN ('posted', 'draft') "
+                # Add this block before returning WHERE:
+            if ks_df_informations.get('ks_ignore_closing_entry'):
+                # IMPORTANT: Adjust this condition to match how your custom module identifies the closing entry.
+                # Example 1: If using a specific Journal Code (e.g., 'YE')
+                # WHERE += " AND j.code != 'YE'"
+                # Example 2: If your custom module added a boolean to account_move
+                WHERE += " AND m.is_closing_entry = False"
 
-            return WHERE
+        return WHERE
 
     ###########################################################################################
     # For partner ledger
@@ -3488,11 +3502,9 @@ class ks_dynamic_financial_base(models.Model):
 
     @api.model
     def ks_build_where_clause(self, ks_df_informations=False, partner_ledger=False):
+        WHERE = '(1=1)'
         if ks_df_informations:
-
-            # WHERE = '(1=1)'
             ks_type = ('asset_receivable', 'liability_payable')
-            WHERE = '(1=1)'
             journal_domain = None
             for journal in ks_df_informations.get('journals', []):
                 if not journal['id'] in ('divider', 'group') and journal['selected']:
@@ -3531,7 +3543,11 @@ class ks_dynamic_financial_base(models.Model):
             if ks_df_informations.get('company_id', False):
                 WHERE += ' AND l.company_id in %s' % str(tuple(ks_df_informations.get('company_ids')) + tuple([0]))
 
-            return WHERE
+            # Added NULL-safe block for P&L auto-close filtering
+            if ks_df_informations.get('ks_ignore_closing_entry'):
+                WHERE += " AND (m.is_closing_entry IS NULL OR m.is_closing_entry = False)"
+
+        return WHERE
 
     def ks_build_detailed_move_lines(self, offset=0, partner=0, ks_df_informations=False, partner_ledger=False,
                                      fetch_range=FETCH_RANGE):
@@ -4828,7 +4844,8 @@ class ks_dynamic_financial_base(models.Model):
 
                                       },
             'ks_comparison_range': self.ks_comparison_range,
-
+            'ks_ignore_closing_entry': ks_earlier_informations.get('ks_ignore_closing_entry',
+                                                                   False) if ks_earlier_informations else False,
             'ks_report_with_lines': ks_earlier_informations and ks_earlier_informations.get(
                 'ks_report_with_lines') or False,
             'ks_journal_filter_visiblity': self.ks_journal_filter_visiblity,
@@ -5336,6 +5353,10 @@ class ks_dynamic_financial_base(models.Model):
             ks_domain += [('move_id.state', '=', 'draft')]
         else:
             ks_domain += [('move_id.state', 'in', ['draft', 'posted'])]
+
+        # Added NULL-safe ORM domain check
+        if ks_df_informations.get('ks_ignore_closing_entry'):
+            ks_domain += [('move_id.is_closing_entry', '!=', True)]
 
         self.env['account.move.line'].check_access_rights('read')
 

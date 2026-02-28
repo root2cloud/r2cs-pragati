@@ -48,10 +48,12 @@
                                        decoration-danger="net_pl_type == 'loss'"/>
 
                                 <span class="badge badge-pill badge-success ml-2"
-                                      attrs="{'invisible': [('net_pl_type', '!=', 'profit')]}">Net Profit
+                                      attrs="{'invisible': ['|', ('net_pl_type', '!=', 'profit'), ('net_pl_amount', '=', 0.0)]}">
+                                    Net Profit
                                 </span>
                                 <span class="badge badge-pill badge-danger ml-2"
-                                      attrs="{'invisible': [('net_pl_type', '!=', 'loss')]}">Net Loss
+                                      attrs="{'invisible': ['|', ('net_pl_type', '!=', 'loss'), ('net_pl_amount', '=', 0.0)]}">
+                                    Net Loss
                                 </span>
                             </h2>
                         </div>
@@ -67,6 +69,7 @@
                         <group string="Closing Target">
                             <field name="retained_earnings_account_id" string="Transfer To (Control A/c)"
                                    placeholder="Select Reserves Account"/>
+                            <field name="payment_narration" placeholder="Enter Narration for Journal Entry..."/>
                         </group>
                     </group>
 
