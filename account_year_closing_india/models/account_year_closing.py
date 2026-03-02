@@ -112,8 +112,19 @@ class AccountYearClosing(models.Model):
 
     @api.model
     def create(self, vals):
+        # We check the date_end to determine which year should be in the sequence
+        closing_date = vals.get('date_end')
+
         if vals.get('name', 'Draft') == 'Draft':
-            vals['name'] = self.env['ir.sequence'].next_by_code('account.year.closing') or 'FY-CLOSE/001'
+            # Force the sequence to use the year from the Closing Date
+            # context_today ensures we use the correct timezone-aware year if date is missing
+            ctx = self.env.context.copy()
+            if closing_date:
+                ctx['ir_sequence_date'] = closing_date
+
+            vals['name'] = self.env['ir.sequence'].with_context(ctx).next_by_code(
+                'account.year.closing') or 'FY-CLOSE/001'
+
         return super(AccountYearClosing, self).create(vals)
 
     def action_calculate_balances(self):
