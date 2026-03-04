@@ -37,7 +37,7 @@
             font-family: "SFMono-Regular", Menlo, Monaco, Consolas, monospace;
             font-size: 14px !important;
             color: #000000 !important;
-            white-space: nowrap !important; /* Forces Amount and Dr/Cr on the same line */
+            white-space: nowrap !important;
             }
 
             .ks_badge {
@@ -56,7 +56,9 @@
             <table id="data-bs-lines" class="ks_tb_table" cellspacing="0" width="100%">
                 <thead class="ks_thead">
                     <tr class="ks_report_lines_row">
-                        <th colspan="1" style="text-align: left;">Account Details</th>
+                        <th style="text-align: center; width: 8%;">Code</th>
+                        <th style="text-align: left;">Account Name</th>
+
                         <t t-if="ks_report_lines.length > 0 and ks_report_lines[0]['is_bs']">
                             <th class="text-right" colspan="1">
                                 <span>Initial Balance</span>
@@ -95,15 +97,15 @@
                             </tr>
                         </t>
                         <t t-else="">
-                            <t t-if="a['ks_level'] == 0">
-                                <t t-set="style"
-                                   t-value="'font-weight: 800 !important; background-color: #f1f5f9 !important; color: #1e293b;'"/>
-                            </t>
-                            <t t-else="">
-                                <t t-set="style" t-value="'font-weight: 400 !important;'"/>
-                            </t>
+                            <t t-set="style"
+                               t-value="a['ks_level'] === 0 ? 'font-weight: 800 !important; background-color: #f1f5f9 !important; color: #1e293b;' : 'font-weight: 400 !important;'"/>
 
                             <tr t-att-style="style" t-attf-class="ks_py-mline ks_level_{{a['ks_level']}}">
+
+                                <td class="text-center">
+                                    <t t-esc="a['ks_code'] or ''"/>
+                                </td>
+
                                 <td t-att-data-bs-account-id="a['account']">
                                     <t t-if="a['account']">
                                         <div class="dropdown">
@@ -137,31 +139,34 @@
                                 </td>
 
                                 <t t-if="a['is_bs']">
-                                    <td class="ks_amt text-right" style="font-weight: 700 !important;">
+                                    <td class="ks_amt text-right"
+                                        t-att-style="a['ks_level'] === 0 ? 'font-weight: 700 !important;' : 'font-weight: 400 !important;'">
                                         <span t-raw="a['initial_balance']"/>
                                     </td>
                                 </t>
 
                                 <t t-if="ks_df_report_opt['ks_diff_filter']['ks_debit_credit_visibility']">
                                     <td class="ks_amt text-right"
-                                        style="font-weight: 400 !important; color: #64748b !important;">
+                                        t-att-style="a['ks_level'] === 0 ? 'font-weight: 700 !important;' : 'font-weight: 400 !important; color: #64748b !important;'">
                                         <span t-raw="a['debit']"/>
                                     </td>
                                     <td class="ks_amt text-right"
-                                        style="font-weight: 400 !important; color: #64748b !important;">
+                                        t-att-style="a['ks_level'] === 0 ? 'font-weight: 700 !important;' : 'font-weight: 400 !important; color: #64748b !important;'">
                                         <span t-raw="a['credit']"/>
                                     </td>
                                 </t>
 
                                 <t t-if="ks_df_report_opt['ks_diff_filter']['ks_diff_filter_enablity']">
                                     <t t-foreach="a['balance_cmp']" t-as="current_interval">
-                                        <td class="ks_amt text-right" style="font-weight: 400 !important;">
+                                        <td class="ks_amt text-right"
+                                            t-att-style="a['ks_level'] === 0 ? 'font-weight: 700 !important;' : 'font-weight: 400 !important;'">
                                             <span t-raw="a['balance_cmp'][current_interval]"/>
                                         </td>
                                     </t>
                                 </t>
 
-                                <td class="ks_amt text-right" style="font-weight: 700 !important;">
+                                <td class="ks_amt text-right"
+                                    t-att-style="a['ks_level'] === 0 ? 'font-weight: 700 !important;' : 'font-weight: 400 !important;'">
                                     <t t-raw="a['balance']"/>
                                 </td>
 
@@ -590,14 +595,14 @@
                             </td>
 
                             <td colspan="1" class="ks_amt"
-                                style="padding: 12px 15px; vertical-align: middle; text-align: right; font-weight: 800; color: #111827; font-size: 14px; border-right: 1px solid #dee2e6; white-space: nowrap;">
+                                style="padding: 12px 15px; vertical-align: middle; text-align: right; font-size: 14px; color: #555555; border-right: 1px solid #dee2e6; white-space: nowrap;">
                                 <t t-raw="ks_report_lines[account]['balance']"/>
                             </td>
 
                             <td colspan="1" class="ks_name"
                                 style="padding: 12px 15px; vertical-align: middle; text-align: center; border-right: 1px solid #dee2e6;">
                                 <span t-esc="ks_report_lines[account]['main_group']"
-                                      style="background-color: #e2e8f0; color: #475569; padding: 4px 10px; border-radius: 6px; font-size: 11px; font-weight: 700; text-transform: uppercase;"/>
+                                      style="color: #64748b; font-size: 12px; font-weight: 500;"/>
                             </td>
 
                             <td colspan="1" class="ks_name"
@@ -1340,12 +1345,11 @@
                                 <t t-raw="account_data[acc]['credit']"/>
                             </td>
 
-                            <td class="ks_amt" style="font-weight: 700 !important; color: #111827 !important;">
+                            <td class="ks_amt">
                                 <t t-raw="account_data[acc]['ending_debit']"/>
                             </td>
 
-                            <td class="ks_amt ks_section_divider"
-                                style="font-weight: 700 !important; color: #111827 !important;">
+                            <td class="ks_amt ks_section_divider">
                                 <t t-raw="account_data[acc]['ending_credit']"/>
                             </td>
 
