@@ -23,14 +23,14 @@ class KsDynamicFinancialXlsxTB(models.Model):
 
         # Hide default Excel gridlines and freeze panes
         sheet.hide_gridlines(2)
-        sheet.freeze_panes(6, 2)  # Freezes headers and the first 2 columns
+        sheet.freeze_panes(3, 2)
 
         # ================= ADJUSTED COLUMN WIDTHS =================
         sheet.set_column(0, 0, 15)  # Code
         sheet.set_column(1, 1, 45)  # Account Name
-        sheet.set_column(2, 7, 18)  # Amount Columns
+        sheet.set_column(2, 7, 20)  # Amount Columns
         sheet.set_column(8, 9, 20)  # Main Group & Account Type
-        sheet.set_column(10, 11, 20)  # Sub Type (Merged across 10 & 11 for massive width)
+        sheet.set_column(10, 11, 20)  # Sub Type (Merged across 10 & 11)
 
         # ================= PROFESSIONAL FORMATS =================
         color_primary = '#2d5b8c'
@@ -45,30 +45,17 @@ class KsDynamicFinancialXlsxTB(models.Model):
 
         format_title = workbook.add_format({
             'bold': True, 'align': 'center', 'valign': 'vcenter',
-            'font_size': 14, 'bg_color': color_primary,
-            'font_color': 'white', 'border': 1, 'border_color': color_primary
-        })
-
-        format_date_range = workbook.add_format({
-            'bold': True, 'align': 'center', 'valign': 'vcenter',
-            'italic': False, 'font_size': 11, 'font_color': '#333333'
+            'font_size': 14, 'font_color': color_primary, 'border': 0
         })
 
         # Main Header Format
         format_header = workbook.add_format({
             'bold': True, 'align': 'center', 'valign': 'vcenter',
             'bg_color': color_primary, 'font_color': 'white',
-            'border': 1, 'border_color': '#b5c4d3'
+            'border': 1, 'border_color': '#b5c4d3', 'text_wrap': True
         })
 
-        # Subheader Format
-        format_subheader = workbook.add_format({
-            'bold': True, 'align': 'center', 'valign': 'vcenter',
-            'bg_color': color_secondary, 'font_color': color_text_dark,
-            'border': 1, 'border_color': '#b5c4d3'
-        })
-
-        # Base Data Row Formatting (Added text_wrap for long Sub Types just in case)
+        # Base Data Row Formatting
         base_fmt = {'valign': 'vcenter', 'border': 1, 'border_color': '#ced4da', 'font_size': 11, 'text_wrap': True}
         acct_num_fmt = '#,##0.00'
 
@@ -88,7 +75,7 @@ class KsDynamicFinancialXlsxTB(models.Model):
         format_total_label = workbook.add_format({
             'bold': True, 'align': 'right', 'valign': 'vcenter',
             'bg_color': '#d1e3f8', 'font_color': '#000000',
-            'border': 1, 'bottom': 6, 'border_color': '#2d5b8c'  # bottom: 6 creates a double border
+            'border': 1, 'bottom': 6, 'border_color': '#2d5b8c'
         })
         format_total_amt = workbook.add_format({
             'bold': True, 'align': 'right', 'valign': 'vcenter',
@@ -107,49 +94,41 @@ class KsDynamicFinancialXlsxTB(models.Model):
         start_fmt = datetime.datetime.strptime(start_date, '%Y-%m-%d').strftime('%d/%m/%Y')
         end_fmt = datetime.datetime.strptime(end_date, '%Y-%m-%d').strftime('%d/%m/%Y')
 
+        # For the title
         date_range_text = f"Period: {start_fmt} to {end_fmt}"
-        column_date_range = f"{start_fmt} to {end_fmt}"
 
         # ================= WRITE TOP TITLES (Merged up to 11 now) =================
         sheet.set_row(row_pos, 25)
         sheet.merge_range(row_pos, 0, row_pos, 11, ks_company_id.name.upper(), format_company)
         row_pos += 1
 
+        # Combine Trial Balance and Period onto one line with white background
         sheet.set_row(row_pos, 22)
-        sheet.merge_range(row_pos, 0, row_pos, 11, "TRIAL BALANCE", format_title)
+        combined_title = f"TRIAL BALANCE ({date_range_text})"
+        sheet.merge_range(row_pos, 0, row_pos, 11, combined_title, format_title)
         row_pos += 1
 
-        sheet.set_row(row_pos, 18)
-        sheet.merge_range(row_pos, 0, row_pos, 11, date_range_text, format_date_range)
-        row_pos += 2
-
-        # ================= MAIN & SUB HEADERS =================
-        sheet.set_row(row_pos, 22)
+        # ================= SINGLE ROW MAIN HEADERS =================
+        sheet.set_row(row_pos, 30)
 
         # Code & Account Name
-        sheet.merge_range(row_pos, 0, row_pos + 1, 0, "Code", format_header)
-        sheet.merge_range(row_pos, 1, row_pos + 1, 1, "Account Name", format_header)
+        sheet.write(row_pos, 0, "Code", format_header)
+        sheet.write(row_pos, 1, "Account Name", format_header)
 
-        # Amounts
-        sheet.merge_range(row_pos, 2, row_pos, 3, "Opening Balance", format_header)
-        sheet.merge_range(row_pos, 4, row_pos, 5, column_date_range, format_header)
-        sheet.merge_range(row_pos, 6, row_pos, 7, "Ending Balance", format_header)
+        # Amounts (Dates removed from the middle Debit/Credit columns)
+        sheet.write(row_pos, 2, "Debit ( OPB )", format_header)
+        sheet.write(row_pos, 3, "Credit ( OPB )", format_header)
+
+        sheet.write(row_pos, 4, "Debit", format_header)
+        sheet.write(row_pos, 5, "Credit", format_header)
+
+        sheet.write(row_pos, 6, "Debit ( EB )", format_header)
+        sheet.write(row_pos, 7, "Credit ( EB )", format_header)
 
         # Groups (Sub Type merged across 10 and 11)
-        sheet.merge_range(row_pos, 8, row_pos + 1, 8, "Main Group", format_header)
-        sheet.merge_range(row_pos, 9, row_pos + 1, 9, "Account Type", format_header)
-        sheet.merge_range(row_pos, 10, row_pos + 1, 11, "Sub Type", format_header)
-
-        row_pos += 1
-
-        # Write the sub-headers into the split columns
-        sheet.set_row(row_pos, 20)
-        sheet.write(row_pos, 2, "Debit", format_subheader)
-        sheet.write(row_pos, 3, "Credit", format_subheader)
-        sheet.write(row_pos, 4, "Debit", format_subheader)
-        sheet.write(row_pos, 5, "Credit", format_subheader)
-        sheet.write(row_pos, 6, "Debit", format_subheader)
-        sheet.write(row_pos, 7, "Credit", format_subheader)
+        sheet.write(row_pos, 8, "Main Group", format_header)
+        sheet.write(row_pos, 9, "Account Type", format_header)
+        sheet.merge_range(row_pos, 10, row_pos, 11, "Sub Type", format_header)
 
         row_pos += 1
 

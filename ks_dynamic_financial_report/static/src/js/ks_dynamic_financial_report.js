@@ -1236,17 +1236,46 @@ if (k.initial_balance) {
         ksRenderTrialBalance: function () {
             var self = this;
 
-
-            /*
+            // 1. Pre-format Trial Balance specific columns in ks_report_lines
             _.each(self.ks_report_lines, function (k, v) {
-                var ksFormatConfigurations = {
-                    currency_id: k.company_currency_id,
+                var ksFormatConfigNoSymbol = {
+                    currency_id: k.company_currency_id || self.ks_currency,
                     noSymbol: true,
                 };
-                // Removed k.initial_debit = self.ksFormatCurrencySign(k.initial_debit, ...); and all similar lines.
+                // Note: debit and credit are already formatted globally by ksSetReportCurrencyConfig, so we skip them here
+                if (typeof k.initial_debit === 'number') k.initial_debit = self.ksFormatCurrencySign(k.initial_debit, ksFormatConfigNoSymbol, '');
+                if (typeof k.initial_credit === 'number') k.initial_credit = self.ksFormatCurrencySign(k.initial_credit, ksFormatConfigNoSymbol, '');
+                if (typeof k.ending_debit === 'number') k.ending_debit = self.ksFormatCurrencySign(k.ending_debit, ksFormatConfigNoSymbol, '');
+                if (typeof k.ending_credit === 'number') k.ending_credit = self.ksFormatCurrencySign(k.ending_credit, ksFormatConfigNoSymbol, '');
             });
-            // Removed similar formatting for self.ks_retained and self.ks_subtotal
-            */
+
+            // 2. Pre-format Subtotals
+            _.each(self.ks_subtotal, function (k, v) {
+                var ksFormatConfigNoSymbol = {
+                    currency_id: k.company_currency_id || self.ks_currency,
+                    noSymbol: true,
+                };
+                if (typeof k.initial_debit === 'number') k.initial_debit = self.ksFormatCurrencySign(k.initial_debit, ksFormatConfigNoSymbol, '');
+                if (typeof k.initial_credit === 'number') k.initial_credit = self.ksFormatCurrencySign(k.initial_credit, ksFormatConfigNoSymbol, '');
+                if (typeof k.debit === 'number') k.debit = self.ksFormatCurrencySign(k.debit, ksFormatConfigNoSymbol, '');
+                if (typeof k.credit === 'number') k.credit = self.ksFormatCurrencySign(k.credit, ksFormatConfigNoSymbol, '');
+                if (typeof k.ending_debit === 'number') k.ending_debit = self.ksFormatCurrencySign(k.ending_debit, ksFormatConfigNoSymbol, '');
+                if (typeof k.ending_credit === 'number') k.ending_credit = self.ksFormatCurrencySign(k.ending_credit, ksFormatConfigNoSymbol, '');
+            });
+
+            // 3. Pre-format Retained Earnings (if applicable)
+            _.each(self.ks_retained, function (k, v) {
+                var ksFormatConfigNoSymbol = {
+                    currency_id: k.company_currency_id || self.ks_currency,
+                    noSymbol: true,
+                };
+                if (typeof k.initial_debit === 'number') k.initial_debit = self.ksFormatCurrencySign(k.initial_debit, ksFormatConfigNoSymbol, '');
+                if (typeof k.initial_credit === 'number') k.initial_credit = self.ksFormatCurrencySign(k.initial_credit, ksFormatConfigNoSymbol, '');
+                if (typeof k.debit === 'number') k.debit = self.ksFormatCurrencySign(k.debit, ksFormatConfigNoSymbol, '');
+                if (typeof k.credit === 'number') k.credit = self.ksFormatCurrencySign(k.credit, ksFormatConfigNoSymbol, '');
+                if (typeof k.ending_debit === 'number') k.ending_debit = self.ksFormatCurrencySign(k.ending_debit, ksFormatConfigNoSymbol, '');
+                if (typeof k.ending_credit === 'number') k.ending_credit = self.ksFormatCurrencySign(k.ending_credit, ksFormatConfigNoSymbol, '');
+            });
 
             // Date formatting (Unchanged)
             let options = { // Set the options for the datetimepickers
@@ -1262,8 +1291,7 @@ if (k.initial_balance) {
             var ks_df_new_start_report_opt = moment(self.ks_df_report_opt['date']['ks_start_date']).format(new_date_format)
             var ks_df_new_end_report_opt = moment(self.ks_df_report_opt['date']['ks_end_date']).format(new_date_format)
 
-
-            console.log(self.ks_report_lines)
+            // Render straight to DOM. The buggy `formatCell` DOM-manipulation logic has been completely removed.
             self.$('.o_content').html(QWeb.render('ks_df_trial_balance', {
                 account_data: self.ks_report_lines,
                 retained: self.ks_retained,
@@ -1271,38 +1299,7 @@ if (k.initial_balance) {
                 ks_df_new_end_report_opt: ks_df_new_end_report_opt,
                 subtotal: self.ks_subtotal,
             }));
-
-            var company_currency_id = self.ks_report_lines.length > 0 ? self.ks_report_lines[0].company_currency_id : null;
-            var ksFormatConfigurations = {
-                currency_id: company_currency_id,
-                noSymbol: true,
-            };
-
-            // Helper to format a single cell
-            function formatCell(cell) {
-                var value = parseFloat($(cell).text().trim()) || 0.0;
-                var currency_id = $(cell).data('company-currency-id') || company_currency_id;
-                var configs = {currency_id: currency_id, noSymbol: true};
-
-                // Use the existing formatting logic from your original code
-                var formattedValue = self.ksFormatCurrencySign(value, configs, value < 0 ? '-' : '');
-                $(cell).html(formattedValue);
-            }
-
-            // A. Format the newly added group total cells
-            // The classes used here are the ones added to the XML above.
-            self.$('.ks_total_init_debit, .ks_total_init_credit, .ks_total_init_balance, .ks_total_debit, .ks_total_credit, .ks_total_balance, .ks_total_end_debit, .ks_total_end_credit, .ks_total_end_balance').each(function () {
-                formatCell(this);
-            });
-
-            // B. Re-format the main account lines (which were passed as raw numbers)
-            // We target the cells in the account details rows (which lack the new total classes)
-            self.$('tr:not([id$="-header"]):not([style*="#E5CCFF"]) td.ks_amt').each(function () {
-                formatCell(this);
-            });
         },
-// ...
-
         /**
          * @method to render partner ledger report
          */
@@ -1444,50 +1441,59 @@ ksSetReportCurrencyConfig: function () {
             var self = this;
 
             _.each(self.ks_report_lines, function (k, v) {
-                // FALLBACK FIX: If line is missing currency, use global report currency
-                var ksFormatConfigurations = {
+
+                // CONFIG 1: WITH SYMBOL (For Initial Balance & Final Balance)
+                var ksFormatConfigWithSymbol = {
                     currency_id: k.company_currency_id || self.ks_currency,
-                    noSymbol: true,
+                    noSymbol: false, // KEEP the symbol (₹)
                 };
 
-                // 1. Logic for Initial Balance (Main Lines)
+                // CONFIG 2: WITHOUT SYMBOL (For Debit & Credit)
+                var ksFormatConfigNoSymbol = {
+                    currency_id: k.company_currency_id || self.ks_currency,
+                    noSymbol: true, // This removes the ₹ symbol
+                };
+
+                // 1. Format Debit and Credit (No Symbol + Indian Commas)
+                if (k.debit !== undefined && typeof k.debit === 'number') {
+                    k.debit = self.ksFormatCurrencySign(k.debit, ksFormatConfigNoSymbol, '');
+                }
+                if (k.credit !== undefined && typeof k.credit === 'number') {
+                    k.credit = self.ksFormatCurrencySign(k.credit, ksFormatConfigNoSymbol, '');
+                }
+
+                // 2. Logic for Initial Balance - WITH SYMBOL
                 if (self.controlPanelProps.action.xml_id !== _t('ks_dynamic_financial_report.ks_df_tb_action')) {
                    if (k.initial_balance !== undefined && k.initial_balance !== '') {
                         var init_suffix = k.initial_balance < 0 ? ' Cr' : ' Dr';
-                            k.initial_balance = self.ksFormatCurrencySign(k.initial_balance, ksFormatConfigurations, '') + init_suffix;                    } else {
-                        k.initial_balance = self.ksFormatCurrencySign(k.initial_balance, ksFormatConfigurations, '');
-                    }
+                        k.initial_balance = self.ksFormatCurrencySign(k.initial_balance, ksFormatConfigWithSymbol, '') + init_suffix;
+                   } else if (k.initial_balance !== undefined) {
+                        k.initial_balance = self.ksFormatCurrencySign(k.initial_balance, ksFormatConfigWithSymbol, '');
+                   }
                 }
 
-                // 2. Logic for Final Balance (Main Lines)
+                // 3. Logic for Final Balance - WITH SYMBOL
                 if (!k['percentage']) {
-
-                    // ---> SPACER FIX: If it's our spacer row, force it to be completely empty <---
                     if (k.is_spacer) {
                         k.balance = '';
-                    }
-                    // -----------------------------------------------------------------------------
-                    else if (k.balance !== undefined && k.balance !== '') {
-
-                        // ---> PRO NET SECTION FIX <---
+                    } else if (k.balance !== undefined && k.balance !== '') {
                         if (k.is_net_section) {
-                            // SUMMARY ROWS: Only Symbol + Amount. NO Dr/Cr suffix!
-                            k.balance = self.ksFormatCurrencySign(k.balance, ksFormatConfigurations, k.balance < 0 ? '-' : '');
+                            k.balance = self.ksFormatCurrencySign(k.balance, ksFormatConfigWithSymbol, k.balance < 0 ? '-' : '');
                         } else {
-                            // NORMAL ROWS: Symbol + Amount + Dr/Cr suffix
                             var bal_suffix = k.balance < 0 ? ' Cr' : ' Dr';
-k.balance = self.ksFormatCurrencySign(k.balance, ksFormatConfigurations, '')+ bal_suffix;                        }
-                    } else {
-                        k.balance = self.ksFormatCurrencySign(k.balance, ksFormatConfigurations, '');
+                            k.balance = self.ksFormatCurrencySign(k.balance, ksFormatConfigWithSymbol, '') + bal_suffix;
+                        }
+                    } else if (k.balance !== undefined) {
+                        k.balance = self.ksFormatCurrencySign(k.balance, ksFormatConfigWithSymbol, '');
                     }
                 } else {
                     k.balance = String(Math.round(k.balance)) + "%";
                 }
 
-                // 3. Logic for Comparison Balances
+                // 4. Logic for Comparison Balances - FIXING THE ERROR HERE
                 if (k.balance_cmp) {
                     for (const prop in k.balance_cmp) {
-                        k.balance_cmp[prop] = self.ksFormatCurrencySign(k.balance_cmp[prop], ksFormatConfigurations, k.balance_cmp[prop] < 0 ? '-' : '');
+                        k.balance_cmp[prop] = self.ksFormatCurrencySign(k.balance_cmp[prop], ksFormatConfigWithSymbol, k.balance_cmp[prop] < 0 ? '-' : '');
                     }
                 }
             });
@@ -1597,17 +1603,26 @@ k.balance = self.ksFormatCurrencySign(k.balance, ksFormatConfigurations, '')+ ba
 
             // Ensure amount is handled as a float so 0 formats as 0.00
             var amount_value = amount || 0.0;
-            var without_sign = field_utils.format.monetary(Math.abs(amount_value), {}, ksFormatConfigurations);
 
-            if (currency_id) {
+            // FIX: Force Indian comma formatting (e.g., 4,05,78,629.80)
+            var without_sign = Math.abs(amount_value).toLocaleString('en-IN', {
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2
+            });
+
+            // ADDED: !ksFormatConfigurations.noSymbol to respect symbol removal
+            if (currency_id && !ksFormatConfigurations.noSymbol) {
                 if (currency_id.position === "after") {
-                    return sign + '&nbsp;' + without_sign + '&nbsp;' + currency_id.symbol;
+                    return sign + without_sign + ' ' + currency_id.symbol;
                 } else {
-                    return currency_id.symbol + '&nbsp;' + sign + '&nbsp;' + without_sign;
+                    return currency_id.symbol + ' ' + sign + without_sign;
                 }
             }
-            return without_sign;
+            // Retain the sign (e.g., '-') even if no symbol is used
+            return sign + without_sign;
         },
+
+
         /**
          * @method to get the storage session keys
          */

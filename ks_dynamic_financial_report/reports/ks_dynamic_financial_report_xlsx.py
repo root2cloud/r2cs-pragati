@@ -48,6 +48,11 @@ class KsDynamicFinancialXlsxAR(models.Model):
                     acc['parent'] = False
                     acc['ks_level'] = 1
                     acc['list_len'] = [0]
+
+                    # --- EXTRACT CODE AND NAME SEPARATELY ---
+                    acc['ks_code'] = account_rec.code or ''
+                    acc['ks_name'] = account_rec.name or ''
+
                     acc['main_group'] = dict(account_rec._fields['main_group'].selection).get(
                         account_rec.main_group) or '' if account_rec.main_group else ''
                     acc['sub_group'] = dict(account_rec._fields['account_type'].selection).get(
@@ -82,15 +87,16 @@ class KsDynamicFinancialXlsxAR(models.Model):
             tot_exp_cre = sum(a.get('credit', 0.0) for a in expense_accounts)
 
             new_report_lines = []
+            # Added empty ks_code for summary rows
             new_report_lines.append({
-                'ks_name': 'Income', 'ks_level': 0, 'parent': False, 'list_len': [],
+                'ks_code': '', 'ks_name': 'Income', 'ks_level': 0, 'parent': False, 'list_len': [],
                 'balance': round(tot_inc_deb - tot_inc_cre, 2),
                 'debit': tot_inc_deb, 'credit': tot_inc_cre,
             })
             new_report_lines.extend(income_accounts)
 
             new_report_lines.append({
-                'ks_name': 'Expenses', 'ks_level': 0, 'parent': False, 'list_len': [],
+                'ks_code': '', 'ks_name': 'Expenses', 'ks_level': 0, 'parent': False, 'list_len': [],
                 'balance': round(tot_exp_deb - tot_exp_cre, 2),
                 'debit': tot_exp_deb, 'credit': tot_exp_cre,
             })
@@ -98,12 +104,15 @@ class KsDynamicFinancialXlsxAR(models.Model):
 
             new_report_lines.append({'is_spacer': True})
             new_report_lines.append(
-                {'ks_name': 'Total Income', 'ks_level': 0, 'parent': False, 'list_len': [], 'balance': tot_inc_display,
+                {'ks_code': '', 'ks_name': 'Total Income', 'ks_level': 0, 'parent': False, 'list_len': [],
+                 'balance': tot_inc_display,
                  'debit': '', 'credit': '', 'is_net_section': True})
-            new_report_lines.append({'ks_name': 'Total Expenses', 'ks_level': 0, 'parent': False, 'list_len': [],
-                                     'balance': tot_exp_display, 'debit': '', 'credit': '', 'is_net_section': True})
             new_report_lines.append(
-                {'ks_name': net_label, 'ks_level': 0, 'parent': False, 'list_len': [], 'balance': display_net,
+                {'ks_code': '', 'ks_name': 'Total Expenses', 'ks_level': 0, 'parent': False, 'list_len': [],
+                 'balance': tot_exp_display, 'debit': '', 'credit': '', 'is_net_section': True})
+            new_report_lines.append(
+                {'ks_code': '', 'ks_name': net_label, 'ks_level': 0, 'parent': False, 'list_len': [],
+                 'balance': display_net,
                  'debit': '', 'credit': '', 'is_net_section': True})
 
             # --- PROFESSIONAL CA EXCEL FORMATTING ---
@@ -149,37 +158,30 @@ class KsDynamicFinancialXlsxAR(models.Model):
                  'valign': 'vcenter', 'bg_color': '#f2f2f2'})
             c_bold_net.set_num_format(f'"{curr_sym}" #,##0.00')
 
-            # Expanded Column Widths
-            sheet.set_column(0, 0, 45)  # Account Name
-            sheet.set_column(1, 3, 18)  # Dr, Cr, Balance
-            sheet.set_column(4, 4, 20)  # Main Group
-            sheet.set_column(5, 5, 25)  # Sub Group
-            sheet.set_column(6, 6, 45)  # Sub Sub Group (Extra Wide)
+            # --- ADJUSTED COLUMN WIDTHS FOR EXTRA COLUMN ---
+            sheet.set_column(0, 0, 12)  # Code
+            sheet.set_column(1, 1, 45)  # Account Name
+            sheet.set_column(2, 4, 18)  # Dr, Cr, Balance
+            sheet.set_column(5, 5, 20)  # Main Group
+            sheet.set_column(6, 6, 25)  # Sub Group
+            sheet.set_column(7, 7, 45)  # Sub Sub Group
 
-            sheet.freeze_panes(5, 1)
+            sheet.freeze_panes(5, 2)  # Freeze Code and Name
 
-            # Clean Single-Row Date Formatting
-            lang = self.env.user.lang
-            lang_id_rec = self.env['res.lang'].search([('code', '=', lang)], limit=1)
-            date_fmt_str = lang_id_rec.date_format.replace('/', '-') if lang_id_rec else '%Y-%m-%d'
+            # Date Logic: Period (Start to End)
             ks_start = ks_df_informations['date'].get('ks_start_date')
             ks_end = ks_df_informations['date'].get('ks_end_date')
-            start_dt = datetime.datetime.strptime(ks_start, '%Y-%m-%d').date().strftime(
-                date_fmt_str) if ks_start else ''
-            end_dt = datetime.datetime.strptime(ks_end, '%Y-%m-%d').date().strftime(date_fmt_str) if ks_end else ''
-
             if ks_df_informations['date']['ks_process'] == 'range':
-                date_string = f"From: {start_dt}   To: {end_dt}"
+                date_string = f" (Period: {ks_start} to {ks_end})"
             else:
-                date_string = f"As of: {end_dt}"
+                date_string = f" (Period: {ks_end})"
 
-            # --- WRITE TOP HEADERS ---
-            sheet.merge_range(0, 0, 0, 6, ks_company_id.name.upper(), title_fmt)
-            sheet.merge_range(1, 0, 1, 6, self.display_name.upper(), subtitle_fmt)
-            sheet.merge_range(2, 0, 2, 6, date_string, subtitle_fmt)
+            # --- WRITE HEADERS: Combined Report Name and Period ---
+            sheet.merge_range(0, 0, 0, 7, ks_company_id.name.upper(), title_fmt)
+            sheet.merge_range(1, 0, 1, 7, self.display_name.upper() + date_string, subtitle_fmt)
 
-            # --- WRITE TABLE HEADERS ---
-            headers = ['Account Name', 'Debit', 'Credit', 'Balance', 'Main Group', 'Sub Group', 'Sub Sub Group']
+            # --- UPDATED HEADERS ---
+            headers = ['Code', 'Account Name', 'Debit', 'Credit', 'Balance', 'Main Group', 'Sub Group', 'Sub Sub Group']
             for col, head in enumerate(headers):
                 sheet.write_string(4, col, head, header_fmt)
 
@@ -188,7 +190,7 @@ class KsDynamicFinancialXlsxAR(models.Model):
             for a in new_report_lines:
                 # Blank Spacer Row
                 if a.get('is_spacer'):
-                    for col in range(7):
+                    for col in range(8):
                         sheet.write_string(row_pos, col, '', str_fmt)
                     row_pos += 1
                     continue
@@ -199,42 +201,41 @@ class KsDynamicFinancialXlsxAR(models.Model):
                 # Select exact style per cell type
                 c_str_style = bold_str if is_main_row else str_fmt
                 c_drcr_style = c_bold_dr_cr if is_main_row else c_num_dr_cr
+                c_bal_style = c_bold_net if is_net_section else (c_bold_bal if is_main_row else c_num_bal)
 
-                if is_net_section:
-                    c_bal_style = c_bold_net
-                else:
-                    c_bal_style = c_bold_bal if is_main_row else c_num_bal
+                # 1. Account Code
+                sheet.write_string(row_pos, 0, a.get('ks_code', ''), c_str_style)
 
-                # 1. Name
+                # 2. Account Name
                 name = a.get('ks_name', '')
                 indent = '   ' * len(a.get('list_len', []))
-                sheet.write_string(row_pos, 0, indent + name, c_str_style)
+                sheet.write_string(row_pos, 1, indent + name, c_str_style)
 
-                # 2. Debit
+                # 3. Debit
                 if a.get('debit', '') != '':
-                    sheet.write_number(row_pos, 1, float(a.get('debit', 0.0)), c_drcr_style)
-                else:
-                    sheet.write_string(row_pos, 1, '', c_str_style)
-
-                # 3. Credit
-                if a.get('credit', '') != '':
-                    sheet.write_number(row_pos, 2, float(a.get('credit', 0.0)), c_drcr_style)
+                    sheet.write_number(row_pos, 2, float(a.get('debit', 0.0)), c_drcr_style)
                 else:
                     sheet.write_string(row_pos, 2, '', c_str_style)
 
-                # 4. Balance (Applying the custom Dr/Cr mask logic)
-                if a.get('balance', '') != '':
-                    val = float(a.get('balance', 0.0))
-                    if is_net_section:
-                        val = abs(val)  # Forces absolute value for the net mask
-                    sheet.write_number(row_pos, 3, val, c_bal_style)
+                # 4. Credit
+                if a.get('credit', '') != '':
+                    sheet.write_number(row_pos, 3, float(a.get('credit', 0.0)), c_drcr_style)
                 else:
                     sheet.write_string(row_pos, 3, '', c_str_style)
 
-                # 5-7. Groups
-                sheet.write_string(row_pos, 4, a.get('main_group', ''), c_str_style)
-                sheet.write_string(row_pos, 5, a.get('sub_group', ''), c_str_style)
-                sheet.write_string(row_pos, 6, a.get('sub_sub_group', ''), c_str_style)
+                # 5. Balance
+                if a.get('balance', '') != '':
+                    val = float(a.get('balance', 0.0))
+                    if is_net_section:
+                        val = abs(val)
+                    sheet.write_number(row_pos, 4, val, c_bal_style)
+                else:
+                    sheet.write_string(row_pos, 4, '', c_str_style)
+
+                # 6-8. Groups
+                sheet.write_string(row_pos, 5, a.get('main_group', ''), c_str_style)
+                sheet.write_string(row_pos, 6, a.get('sub_group', ''), c_str_style)
+                sheet.write_string(row_pos, 7, a.get('sub_sub_group', ''), c_str_style)
                 row_pos += 1
 
             workbook.close()
@@ -255,7 +256,6 @@ class KsDynamicFinancialXlsxAR(models.Model):
             ks_company_id = self.env['res.company'].sudo().browse(current_company_id)
             Account = self.env['account.account'].sudo()
 
-            # EXACT UI CLONE FLATTENING
             bs_grouped_accounts = {}
             processed_accounts = set()
 
@@ -282,6 +282,10 @@ class KsDynamicFinancialXlsxAR(models.Model):
                     acc['ks_level'] = 1
                     acc['list_len'] = [0]
                     acc['is_bs'] = True
+
+                    # --- FIX: SPLIT CODE AND NAME ---
+                    acc['ks_code'] = account_rec.code or ''
+                    acc['ks_name'] = account_rec.name or ''
 
                     acc['main_group'] = dict(account_rec._fields['main_group'].selection).get(
                         account_rec.main_group) or '' if account_rec.main_group else ''
@@ -322,6 +326,7 @@ class KsDynamicFinancialXlsxAR(models.Model):
                 tot_init = round(sum(a.get('initial_balance', 0.0) for a in accounts_in_group), 2)
 
                 new_report_lines.append({
+                    'ks_code': '',  # Summary rows have no code
                     'ks_name': str(m_group_label).upper(),
                     'ks_level': 0,
                     'balance': tot_bal,
@@ -332,7 +337,6 @@ class KsDynamicFinancialXlsxAR(models.Model):
                 })
                 new_report_lines.extend(accounts_in_group)
 
-            # PROFESSIONAL CA EXCEL FORMATTING FOR BALANCE SHEET
             curr_sym = ks_company_id.currency_id.symbol or '₹'
 
             title_fmt = workbook.add_format(
@@ -343,7 +347,6 @@ class KsDynamicFinancialXlsxAR(models.Model):
             header_fmt = workbook.add_format(
                 {'bold': True, 'align': 'center', 'valign': 'vcenter', 'font_size': 11, 'font_name': 'Arial',
                  'bg_color': '#2d5b8c', 'font_color': '#ffffff', 'border': 1})
-
             str_fmt = workbook.add_format(
                 {'font_size': 10, 'font_name': 'Arial', 'border': 1, 'align': 'left', 'valign': 'vcenter',
                  'text_wrap': True})
@@ -367,13 +370,14 @@ class KsDynamicFinancialXlsxAR(models.Model):
                  'valign': 'vcenter', 'bg_color': '#f2f2f2'})
             c_bold_bal.set_num_format(f'"{curr_sym}" #,##0.00 "Dr";"{curr_sym}" #,##0.00 "Cr";"{curr_sym}" 0.00')
 
-            # Includes Initial Balance width
-            sheet.set_column(0, 0, 45)
-            sheet.set_column(1, 4, 18)
-            sheet.set_column(5, 5, 20)
-            sheet.set_column(6, 6, 25)
-            sheet.set_column(7, 7, 35)
-            sheet.freeze_panes(5, 1)
+            # Expanded Column Widths for Extra Column
+            sheet.set_column(0, 0, 12)  # Code Column
+            sheet.set_column(1, 1, 45)  # Account Name Column
+            sheet.set_column(2, 5, 18)  # Financial Columns
+            sheet.set_column(6, 6, 20)  # Main Group
+            sheet.set_column(7, 7, 25)  # Sub Group
+            sheet.set_column(8, 8, 35)  # Sub Sub Group
+            sheet.freeze_panes(5, 2)  # Freeze Code and Name
 
             lang = self.env.user.lang
             lang_id_rec = self.env['res.lang'].search([('code', '=', lang)], limit=1)
@@ -389,12 +393,14 @@ class KsDynamicFinancialXlsxAR(models.Model):
             else:
                 date_string = f"As of: {end_dt}"
 
-            sheet.merge_range(0, 0, 0, 7, ks_company_id.name.upper(), title_fmt)
-            sheet.merge_range(1, 0, 1, 7, self.display_name.upper(), subtitle_fmt)
-            sheet.merge_range(2, 0, 2, 7, date_string, subtitle_fmt)
+            # Range Extended to 9 columns (0 to 8)
+            sheet.merge_range(0, 0, 0, 8, ks_company_id.name.upper(), title_fmt)
+            sheet.merge_range(1, 0, 1, 8, self.display_name.upper(), subtitle_fmt)
+            sheet.merge_range(2, 0, 2, 8, date_string, subtitle_fmt)
 
-            headers = ['Account Details', 'Initial Balance', 'Debit', 'Credit', 'Balance', 'Main Group', 'Sub Group',
-                       'Sub Sub Group']
+            # Updated Headers
+            headers = ['Code', 'Account Name', 'Initial Balance', 'Debit', 'Credit', 'Balance', 'Main Group',
+                       'Sub Group', 'Sub Sub Group']
             for col, head in enumerate(headers):
                 sheet.write_string(4, col, head, header_fmt)
 
@@ -406,46 +412,48 @@ class KsDynamicFinancialXlsxAR(models.Model):
                 c_drcr_style = c_bold_dr_cr if is_main_row else c_num_dr_cr
                 c_bal_style = c_bold_bal if is_main_row else c_num_bal
 
-                # 1. Name
+                # 1. Code
+                sheet.write_string(row_pos, 0, a.get('ks_code', ''), c_str_style)
+
+                # 2. Name
                 name = a.get('ks_name', '')
                 indent = '   ' * len(a.get('list_len', []))
-                sheet.write_string(row_pos, 0, indent + name, c_str_style)
+                sheet.write_string(row_pos, 1, indent + name, c_str_style)
 
-                # 2. Initial Balance
+                # 3. Initial Balance
                 if a.get('initial_balance', '') != '':
-                    sheet.write_number(row_pos, 1, float(a.get('initial_balance', 0.0)), c_bal_style)
-                else:
-                    sheet.write_string(row_pos, 1, '', c_str_style)
-
-                # 3. Debit
-                if a.get('debit', '') != '':
-                    sheet.write_number(row_pos, 2, float(a.get('debit', 0.0)), c_drcr_style)
+                    sheet.write_number(row_pos, 2, float(a.get('initial_balance', 0.0)), c_bal_style)
                 else:
                     sheet.write_string(row_pos, 2, '', c_str_style)
 
-                # 4. Credit
-                if a.get('credit', '') != '':
-                    sheet.write_number(row_pos, 3, float(a.get('credit', 0.0)), c_drcr_style)
+                # 4. Debit
+                if a.get('debit', '') != '':
+                    sheet.write_number(row_pos, 3, float(a.get('debit', 0.0)), c_drcr_style)
                 else:
                     sheet.write_string(row_pos, 3, '', c_str_style)
 
-                # 5. Balance
-                if a.get('balance', '') != '':
-                    sheet.write_number(row_pos, 4, float(a.get('balance', 0.0)), c_bal_style)
+                # 5. Credit
+                if a.get('credit', '') != '':
+                    sheet.write_number(row_pos, 4, float(a.get('credit', 0.0)), c_drcr_style)
                 else:
                     sheet.write_string(row_pos, 4, '', c_str_style)
 
-                # 6-8. Groups
-                sheet.write_string(row_pos, 5, a.get('main_group', ''), c_str_style)
-                sheet.write_string(row_pos, 6, a.get('sub_group', ''), c_str_style)
-                sheet.write_string(row_pos, 7, a.get('sub_sub_group', ''), c_str_style)
+                # 6. Balance
+                if a.get('balance', '') != '':
+                    sheet.write_number(row_pos, 5, float(a.get('balance', 0.0)), c_bal_style)
+                else:
+                    sheet.write_string(row_pos, 5, '', c_str_style)
+
+                # 7-9. Groups
+                sheet.write_string(row_pos, 6, a.get('main_group', ''), c_str_style)
+                sheet.write_string(row_pos, 7, a.get('sub_group', ''), c_str_style)
+                sheet.write_string(row_pos, 8, a.get('sub_sub_group', ''), c_str_style)
 
                 row_pos += 1
 
             workbook.close()
             output.seek(0)
             return output.read()
-
         # =========================================================================================
         # SECTION 3: EXISTING FEATURES (EXECUTIVE SUMMARY AND OTHERS)
         # =========================================================================================

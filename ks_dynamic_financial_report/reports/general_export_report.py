@@ -25,7 +25,34 @@ class KsDynamicFinancialXlsxGLInherit(models.Model):
         sheet = workbook.add_worksheet('General Ledger')
 
         # ==========================================
-        # 1. STRICT ACCOUNTING EXCEL FORMATS (WITH CURRENCY)
+        # HELPER: FORCE INDIAN COMMA FORMATTING
+        # This completely bypasses Excel's local PC settings
+        # ==========================================
+        def ks_in_fmt(amount, symbol=False, is_bal=False):
+            val = float(amount or 0.0)
+            is_neg = val < 0
+            abs_val = abs(val)
+            s = f"{abs_val:.2f}"
+            parts = s.split('.')
+            int_part = parts[0]
+            dec_part = parts[1]
+            if len(int_part) > 3:
+                int_part = int_part[:-3][::-1]
+                int_part = ','.join([int_part[i:i + 2] for i in range(0, len(int_part), 2)])[::-1] + ',' + parts[0][-3:]
+            res = f"{int_part}.{dec_part}"
+
+            if symbol:
+                res = f"₹ {res}"
+
+            if is_bal:
+                res += " Cr" if is_neg else " Dr"
+            elif is_neg:
+                res = f"-{res}"
+
+            return res
+
+        # ==========================================
+        # 1. STRICT ACCOUNTING EXCEL FORMATS
         # ==========================================
         title_fmt = workbook.add_format({'font_size': 14, 'bold': True, 'align': 'center', 'valign': 'vcenter'})
         subtitle_fmt = workbook.add_format({'font_size': 11, 'bold': True, 'align': 'center', 'valign': 'vcenter'})
@@ -42,38 +69,33 @@ class KsDynamicFinancialXlsxGLInherit(models.Model):
             'align': 'left', 'valign': 'vcenter'
         })
 
-        # STRICT Dr / Cr FORMATTING WITH RUPEE SYMBOL
-        accounting_num_format = '[$₹-4009] #,##0.00 "Dr";[$₹-4009] #,##0.00 "Cr";"₹ 0.00"'
-        standard_currency_fmt = '[$₹-4009] #,##0.00'
-
+        # INITIAL & TOTAL ROWS (Bold, Aligned Right)
         init_bal_label_fmt = workbook.add_format({
             'bg_color': '#f8f9fa', 'bold': True, 'border': 1, 'border_color': '#7a7a7a',
             'align': 'right', 'valign': 'vcenter'
         })
         init_bal_num_fmt = workbook.add_format({
             'bg_color': '#f8f9fa', 'bold': True, 'border': 1, 'border_color': '#7a7a7a',
-            'align': 'right', 'valign': 'vcenter', 'num_format': accounting_num_format
+            'align': 'right', 'valign': 'vcenter'
         })
         total_num_fmt = workbook.add_format({
             'bg_color': '#f8f9fa', 'bold': True, 'border': 1, 'border_color': '#7a7a7a',
-            'align': 'right', 'valign': 'vcenter', 'num_format': standard_currency_fmt
+            'align': 'right', 'valign': 'vcenter'
         })
         init_bal_empty_fmt = workbook.add_format({
             'bg_color': '#f8f9fa', 'border': 1, 'border_color': '#7a7a7a',
         })
 
         cell_center = workbook.add_format(
-            {'border': 1, 'border_color': '#7a7a7a', 'align': 'center', 'valign': 'vcenter'})
+            {'border': 1, 'border_color': '#7a7a7a', 'align': 'center', 'valign': 'top'})
 
-        # Changed valign to 'top' so if a row is tall, text starts at the top
         cell_left = workbook.add_format({'border': 1, 'border_color': '#7a7a7a', 'align': 'left', 'valign': 'top'})
         cell_wrap = workbook.add_format(
             {'border': 1, 'border_color': '#7a7a7a', 'align': 'left', 'valign': 'top', 'text_wrap': True})
 
-        num_fmt = workbook.add_format({'border': 1, 'border_color': '#7a7a7a', 'align': 'right', 'valign': 'top',
-                                       'num_format': standard_currency_fmt})
-        balance_fmt = workbook.add_format({'border': 1, 'border_color': '#7a7a7a', 'align': 'right', 'valign': 'top',
-                                           'num_format': accounting_num_format, 'bold': True})
+        # REGULAR TRANSACTION ROWS (Not Bold, Aligned Right)
+        num_fmt = workbook.add_format({'border': 1, 'border_color': '#7a7a7a', 'align': 'right', 'valign': 'top'})
+        balance_fmt = workbook.add_format({'border': 1, 'border_color': '#7a7a7a', 'align': 'right', 'valign': 'top'})
 
         # ==========================================
         # 2. DETERMINE BRS COLUMN VISIBILITY
@@ -99,7 +121,7 @@ class KsDynamicFinancialXlsxGLInherit(models.Model):
         total_cols = len(headers)
 
         sheet.set_column(0, 0, 12)  # Date
-        sheet.set_column(1, 1, 28)  # Journal (Increased width for better visibility)
+        sheet.set_column(1, 1, 28)  # Journal
         sheet.set_column(2, 2, 25)  # Voucher
         sheet.set_column(3, 3, 50)  # Accounts
         sheet.set_column(4, 5, 16)  # Debit, Credit
@@ -123,7 +145,6 @@ class KsDynamicFinancialXlsxGLInherit(models.Model):
             s_date = str(ks_df_informations['date'].get('ks_start_date'))
             e_date = str(ks_df_informations['date'].get('ks_end_date'))
 
-            # Safely convert YYYY-MM-DD to DD/MM/YYYY
             try:
                 s_date = datetime.datetime.strptime(str(s_date)[:10], '%Y-%m-%d').strftime('%d/%m/%Y')
             except Exception:
@@ -171,7 +192,8 @@ class KsDynamicFinancialXlsxGLInherit(models.Model):
                 sheet.merge_range(row, 0, row, 3, "Initial Balance", init_bal_label_fmt)
                 sheet.write(row, 4, '', init_bal_empty_fmt)
                 sheet.write(row, 5, '', init_bal_empty_fmt)
-                sheet.write_number(row, 6, forced_init_bal, init_bal_num_fmt)
+                # Guarantees Indian Formatted Output (Bold + Symbol)
+                sheet.write(row, 6, ks_in_fmt(forced_init_bal, symbol=True, is_bal=True), init_bal_num_fmt)
                 sheet.write(row, 7, '', init_bal_empty_fmt)
                 sheet.write(row, 8, '', init_bal_empty_fmt)
                 if has_bank_acc:
@@ -183,7 +205,9 @@ class KsDynamicFinancialXlsxGLInherit(models.Model):
                     sheet.merge_range(row, 0, row, 3, "Initial Balance", init_bal_label_fmt)
                     sheet.write(row, 4, '', init_bal_empty_fmt)
                     sheet.write(row, 5, '', init_bal_empty_fmt)
-                    sheet.write_number(row, 6, float(line.get('balance', 0.0)), init_bal_num_fmt)
+                    # Guarantees Indian Formatted Output (Bold + Symbol)
+                    sheet.write(row, 6, ks_in_fmt(float(line.get('balance', 0.0)), symbol=True, is_bal=True),
+                                init_bal_num_fmt)
                     sheet.write(row, 7, '', init_bal_empty_fmt)
                     sheet.write(row, 8, '', init_bal_empty_fmt)
                     if has_bank_acc:
@@ -194,7 +218,6 @@ class KsDynamicFinancialXlsxGLInherit(models.Model):
                     continue
 
                 else:
-                    # ONE-LINE PER ACCOUNT USING \n
                     opp_acc_raw = str(line.get('corresponding_accounts') or '')
                     if opp_acc_raw:
                         raw_list = opp_acc_raw.split(', ')
@@ -203,7 +226,6 @@ class KsDynamicFinancialXlsxGLInherit(models.Model):
                     else:
                         opp_acc_clean = ''
 
-                    # ONE-LINE FOR REF/NARRATION USING \n
                     lref = str(line.get('lref') or '').strip().replace('\n', ' ')
                     lname = str(line.get('lname') or '').strip().replace('\n', ' ')
                     if lref and lname and lref != lname:
@@ -211,22 +233,17 @@ class KsDynamicFinancialXlsxGLInherit(models.Model):
                     else:
                         ref_narration = lref or lname
 
-                    # ---- DYNAMIC ROW HEIGHT LOGIC ----
-                    # Count the newlines to force Excel to open the row height automatically
                     newlines_opp = opp_acc_clean.count('\n') if opp_acc_clean else 0
                     newlines_ref = ref_narration.count('\n') if ref_narration else 0
                     max_lines = max(newlines_opp, newlines_ref) + 1
 
                     if max_lines > 1:
-                        # Default excel row height is 15. We multiply by number of lines + slight padding
                         sheet.set_row(row, 15 * max_lines)
 
-                    # Format the date to DD/MM/YYYY
                     ldate = line.get('ldate', '')
                     if ldate and isinstance(ldate, (datetime.date, datetime.datetime)):
                         ldate = ldate.strftime('%d/%m/%Y')
                     elif isinstance(ldate, str) and '-' in ldate:
-                        # Convert string 'YYYY-MM-DD' to 'DD/MM/YYYY'
                         try:
                             ldate = datetime.datetime.strptime(ldate, '%Y-%m-%d').strftime('%d/%m/%Y')
                         except:
@@ -243,9 +260,11 @@ class KsDynamicFinancialXlsxGLInherit(models.Model):
                     total_debit += debit
                     total_credit += credit
 
-                    sheet.write_number(row, 4, debit, num_fmt)
-                    sheet.write_number(row, 5, credit, num_fmt)
-                    sheet.write_number(row, 6, balance, balance_fmt)
+                    # Regular Debits/Credits (No Symbol, Indian Commas, Plain Font)
+                    sheet.write(row, 4, ks_in_fmt(debit, symbol=False, is_bal=False), num_fmt)
+                    sheet.write(row, 5, ks_in_fmt(credit, symbol=False, is_bal=False), num_fmt)
+                    # Regular Balance (With Symbol, Indian Commas, Plain Font)
+                    sheet.write(row, 6, ks_in_fmt(balance, symbol=True, is_bal=True), balance_fmt)
 
                     sheet.write(row, 7, line.get('move_state', ''), cell_center)
                     sheet.write(row, 8, ref_narration, cell_wrap)
@@ -258,11 +277,13 @@ class KsDynamicFinancialXlsxGLInherit(models.Model):
 
             # --- ACCOUNT TOTAL ROW ---
             sheet.merge_range(row, 0, row, 3, "Total:", init_bal_label_fmt)
-            sheet.write_number(row, 4, total_debit, total_num_fmt)
-            sheet.write_number(row, 5, total_credit, total_num_fmt)
+
+            # Total Row (Bold + Rupee Symbol applied via helper)
+            sheet.write(row, 4, ks_in_fmt(total_debit, symbol=True, is_bal=False), total_num_fmt)
+            sheet.write(row, 5, ks_in_fmt(total_credit, symbol=True, is_bal=False), total_num_fmt)
 
             final_balance = account_data.get('balance', 0.0)
-            sheet.write_number(row, 6, float(final_balance), init_bal_num_fmt)
+            sheet.write(row, 6, ks_in_fmt(float(final_balance), symbol=True, is_bal=True), init_bal_num_fmt)
 
             sheet.write(row, 7, '', init_bal_empty_fmt)
             sheet.write(row, 8, '', init_bal_empty_fmt)
