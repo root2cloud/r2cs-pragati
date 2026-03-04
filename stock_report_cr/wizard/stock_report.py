@@ -279,7 +279,7 @@ class ReportWizard(models.TransientModel):
 
         # --- WIDER COLUMNS FIXED ---
         sheet.set_column('A:A', 15)  # Reference
-        sheet.set_column('B:B', 38)  # Designation (Extra wide)
+        sheet.set_column('B:B', 38)  # Product Name (Extra wide)
         sheet.set_column('C:D', 10)  # UoM, HSN
         sheet.set_column('E:L', 13)  # Initial Stock, Values, etc.
 
@@ -290,7 +290,7 @@ class ReportWizard(models.TransientModel):
 
         row = 5
         # --- REMOVED LOCATION FROM TABLE HEADER ---
-        headers = ['Reference', 'Designation', 'UoM', 'HSN', 'Initial stock', 'IN', 'OUT', 'Balance', 'Sale Price',
+        headers = ['Reference', 'Product Name', 'UoM', 'HSN', 'Initial stock', 'IN', 'OUT', 'Balance', 'Sale Price',
                    'Sale Value', 'Cost Price', 'Cost Value']
         for col_num, header in enumerate(headers):
             sheet.write(row, col_num, header, head_style)

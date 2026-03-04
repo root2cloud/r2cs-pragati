@@ -4413,6 +4413,10 @@ class ks_dynamic_financial_base(models.Model):
                     acc['ks_level'] = 1
                     acc['list_len'] = [0]
 
+                    # --- FIX: SPLIT CODE AND NAME ---
+                    acc['ks_code'] = account_rec.code  # New separate field for Code
+                    acc['ks_name'] = account_rec.name  # Overwrite with JUST the Name
+
                     acc['main_group'] = dict(account_rec._fields['main_group'].selection).get(
                         account_rec.main_group) or '' if account_rec.main_group else ''
                     acc['sub_group'] = dict(account_rec._fields['account_type'].selection).get(
@@ -4430,7 +4434,7 @@ class ks_dynamic_financial_base(models.Model):
                     elif account_rec.internal_group == 'expense':
                         expense_accounts.append(acc)
 
-            # --- CALCULATE PURE MAGNITUDES (Fixes all Date Range Anomalies) ---
+            # --- CALCULATE PURE MAGNITUDES ---
             tot_inc_raw = sum(a.get('balance', 0.0) for a in income_accounts)
             tot_exp_raw = sum(a.get('balance', 0.0) for a in expense_accounts)
 
@@ -4455,18 +4459,18 @@ class ks_dynamic_financial_base(models.Model):
 
             # A. INCOME SECTION
             new_report_lines.append({
-                'ks_name': 'Income', 'ks_level': 0, 'parent': False, 'list_len': [],
-                'balance': round(tot_inc_deb - tot_inc_cre, 2),  # Native
+                'ks_code': '', 'ks_name': 'Income', 'ks_level': 0, 'parent': False, 'list_len': [],
+                'balance': round(tot_inc_deb - tot_inc_cre, 2),
                 'debit': tot_inc_deb, 'credit': tot_inc_cre,
                 'company_currency_id': curr_id,
-                'is_pl_report': True  # <--- ADD THIS MAGIC FLAG
+                'is_pl_report': True
             })
             new_report_lines.extend(income_accounts)
 
             # B. EXPENSE SECTION
             new_report_lines.append({
-                'ks_name': 'Expenses', 'ks_level': 0, 'parent': False, 'list_len': [],
-                'balance': round(tot_exp_deb - tot_exp_cre, 2),  # Native
+                'ks_code': '', 'ks_name': 'Expenses', 'ks_level': 0, 'parent': False, 'list_len': [],
+                'balance': round(tot_exp_deb - tot_exp_cre, 2),
                 'debit': tot_exp_deb, 'credit': tot_exp_cre,
                 'company_currency_id': curr_id
             })
@@ -4474,22 +4478,22 @@ class ks_dynamic_financial_base(models.Model):
 
             # C. PRO SUMMARY SECTION (Absolute Math)
             new_report_lines.append({
-                'ks_name': '', 'ks_level': 0, 'parent': False, 'list_len': [],
+                'ks_code': '', 'ks_name': '', 'ks_level': 0, 'parent': False, 'list_len': [],
                 'balance': '', 'debit': '', 'credit': '', 'is_net_section': True, 'is_spacer': True,
                 'company_currency_id': curr_id
             })
             new_report_lines.append({
-                'ks_name': 'Total Income', 'ks_level': 0, 'parent': False, 'list_len': [],
+                'ks_code': '', 'ks_name': 'Total Income', 'ks_level': 0, 'parent': False, 'list_len': [],
                 'balance': tot_inc_display, 'debit': '', 'credit': '', 'is_net_section': True,
                 'company_currency_id': curr_id
             })
             new_report_lines.append({
-                'ks_name': 'Total Expenses', 'ks_level': 0, 'parent': False, 'list_len': [],
+                'ks_code': '', 'ks_name': 'Total Expenses', 'ks_level': 0, 'parent': False, 'list_len': [],
                 'balance': tot_exp_display, 'debit': '', 'credit': '', 'is_net_section': True,
                 'company_currency_id': curr_id
             })
             new_report_lines.append({
-                'ks_name': net_label, 'ks_level': 0, 'parent': False, 'list_len': [],
+                'ks_code': '', 'ks_name': net_label, 'ks_level': 0, 'parent': False, 'list_len': [],
                 'balance': display_net, 'debit': '', 'credit': '', 'is_net_section': True,
                 'company_currency_id': curr_id
             })
@@ -4637,11 +4641,15 @@ class ks_dynamic_financial_base(models.Model):
 
                     acc = dict(line)
                     acc['parent'] = False
-                    acc['ks_level'] = 1  # Flatten hierarchy: make accounts level 1
+                    acc['ks_level'] = 1  # Regular account rows are level 1
                     acc['list_len'] = [0]
                     acc['is_bs'] = True
 
-                    # Injecting Main Group, Sub Group, Sub Sub Group just like PL
+                    # --- FIX 1: SPLIT CODE AND NAME ---
+                    acc['ks_code'] = account_rec.code or ''
+                    acc['ks_name'] = account_rec.name or ''
+
+                    # Injecting Main Group, Sub Group, Sub Sub Group
                     acc['main_group'] = dict(account_rec._fields['main_group'].selection).get(
                         account_rec.main_group) or '' if account_rec.main_group else ''
                     acc['sub_group'] = dict(account_rec._fields['account_type'].selection).get(
@@ -4658,7 +4666,7 @@ class ks_dynamic_financial_base(models.Model):
             new_report_lines = []
             curr_id = info.get('ks_currency')
 
-            # Sort the main groups for a standard presentation: Assets -> Liabilities -> Equity -> Other
+            # Sort the main groups for a standard presentation
             def get_sort_weight(m_group):
                 m = (m_group or '').lower()
                 if 'asset' in m: return 1
@@ -4671,7 +4679,6 @@ class ks_dynamic_financial_base(models.Model):
             for m_group_key in sorted_main_groups:
                 accounts_in_group = bs_grouped_accounts[m_group_key]
 
-                # Fetch readable label for the Main Group header
                 if accounts_in_group:
                     sample_acc = Account.browse(accounts_in_group[0]['account'])
                     m_group_label = dict(sample_acc._fields['main_group'].selection).get(
@@ -4685,8 +4692,9 @@ class ks_dynamic_financial_base(models.Model):
                 tot_bal = round(sum(a.get('balance', 0.0) for a in accounts_in_group), 2)
                 tot_init = round(sum(a.get('initial_balance', 0.0) for a in accounts_in_group), 2)
 
-                # 1. Add Main Group Header (ks_level = 0)
+                # 1. Add Main Group Header (ks_level = 0 -> This will trigger BOLD in UI)
                 new_report_lines.append({
+                    'ks_code': '',  # Summary rows have no code
                     'ks_name': str(m_group_label).upper(),
                     'ks_level': 0,
                     'parent': False,
@@ -4699,7 +4707,7 @@ class ks_dynamic_financial_base(models.Model):
                     'is_bs': True
                 })
 
-                # 2. Add Accounts directly under the main group (removing secondary sub-groups)
+                # 2. Add Accounts (ks_level = 1 -> This will be PLAIN in UI)
                 new_report_lines.extend(accounts_in_group)
 
             info['ks_report_lines'] = new_report_lines
