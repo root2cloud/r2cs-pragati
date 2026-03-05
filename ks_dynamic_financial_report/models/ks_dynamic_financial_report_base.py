@@ -158,7 +158,7 @@ class ks_dynamic_financial_base(models.Model):
                                         ('supplier', 'Supplier Only')], string='Partner Type')
 
     ks_posted_entries = fields.Boolean('Posted Entries', default=True)
-    ks_unposted_entries = fields.Boolean('UnPosted Entries', default=True)
+    ks_unposted_entries = fields.Boolean('UnPosted Entries', default=False)
     ks_reconciled = fields.Boolean('reconciled')
     ks_comparison_range = fields.Boolean("Date Range Constrained")
 
@@ -4463,7 +4463,8 @@ class ks_dynamic_financial_base(models.Model):
                 'balance': round(tot_inc_deb - tot_inc_cre, 2),
                 'debit': tot_inc_deb, 'credit': tot_inc_cre,
                 'company_currency_id': curr_id,
-                'is_pl_report': True
+                'is_pl_report': True,
+                'balance_cmp': {},  # <--- ADD THIS LINE
             })
             new_report_lines.extend(income_accounts)
 
@@ -4472,7 +4473,8 @@ class ks_dynamic_financial_base(models.Model):
                 'ks_code': '', 'ks_name': 'Expenses', 'ks_level': 0, 'parent': False, 'list_len': [],
                 'balance': round(tot_exp_deb - tot_exp_cre, 2),
                 'debit': tot_exp_deb, 'credit': tot_exp_cre,
-                'company_currency_id': curr_id
+                'company_currency_id': curr_id,
+                'balance_cmp': {},  # <--- ADD THIS LINE
             })
             new_report_lines.extend(expense_accounts)
 
@@ -4840,7 +4842,7 @@ class ks_dynamic_financial_base(models.Model):
             'ks_posted_entries': ks_earlier_informations.get('ks_posted_entries',
                                                              True) if ks_earlier_informations else True,
             'ks_unposted_entries': ks_earlier_informations.get('ks_unposted_entries',
-                                                               True) if ks_earlier_informations else True,
+                                                               False) if ks_earlier_informations else False,
             'ks_reconciled': ks_earlier_informations and ks_earlier_informations.get(
                 'ks_reconciled') or False,
             'ks_unreconciled': ks_earlier_informations and ks_earlier_informations.get(
