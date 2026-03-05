@@ -20,52 +20,54 @@
 #
 #############################################################################
 
-import odoo
 from odoo import http, _
-from odoo.http import request, dispatch_rpc
+from odoo.http import request
 
 from odoo.addons.web.controllers.database import Database
 
 
 class DatabaseInherit(Database):
+
     @http.route('/web/reset_by_master_pass/submit', type='http',
                 methods=['POST'], auth="public", website=True, csrf=False)
     def change_password_by_master(self, **kw):
         """
-        Endpoint to change a user's password by a master password.
+        Handle the Forgot Password form submission.
 
-        :param kw: Keyword arguments received from the request.
+        UPDATED: Now only requires two fields:
+            - user_name       : the login/username of the account
+            - change_password : the new password to set directly
 
-        :return: A redirect to the login page with a success message or an
-         error message.
+        No new_password / confirm_new_password fields needed anymore.
+        Password is changed immediately upon form submission.
+
+        :param kw: POST fields from the forgot-password form.
+        :return:   Redirect to /web/login on success, or re-render the
+                   forgot_password template with an error on failure.
         """
         values = {}
 
-        # Check if the new password and confirm new password match.
-        if kw['confirm_new_password'] == kw['new_password']:
-            # Verify the master password using Odoo's config.
-            if odoo.tools.config.verify_admin_password(kw['master_password']):
-                # Search for a user with the provided user_name.
-                user_valid = request.env['res.users'].sudo().search([
-                    ('login', '=', kw['user_name'])])
-                if user_valid:
-                    # Update the user's password with the new password.
-                    user_valid.sudo().write({
-                        'password': kw['confirm_new_password']
-                    })
-                    # Redirect to the login page with a success message.
-                    return request.redirect('/web/login?message=%s'
-                                            % _('Password Changed'))
-                else:
-                    values['error'] = _("User Name Is Not Valid")
-                    return request.render(
-                        'password_reset_manager.forgot_password', values)
-            else:
-                values['error'] = _("Master Password Is Incorrect")
-                return request.render('password_reset_manager.forgot_password',
-                                      values)
+        # ── Step 1: Make sure the change_password field is not empty ──────────
+        if not kw.get('change_password'):
+            values['error'] = _("Please Enter a New Password")
+            return request.render(
+                'password_reset_manager.forgot_password', values)
 
-        else:
-            values['error'] = _("Password Not Matched")
-            return request.render('password_reset_manager.forgot_password',
-                                  values)
+        # ── Step 2: Find the user by login/username ───────────────────────────
+        user_valid = request.env['res.users'].sudo().search([
+            ('login', '=', kw['user_name'])
+        ], limit=1)
+
+        # ── Step 3: If no user found, show an error ───────────────────────────
+        if not user_valid:
+            values['error'] = _("User Name Is Not Valid")
+            return request.render(
+                'password_reset_manager.forgot_password', values)
+
+        # ── Step 4: Directly set the new password ─────────────────────────────
+        user_valid.sudo().write({
+            'password': kw['change_password']
+        })
+
+        # ── Step 5: Redirect to login with a success message ──────────────────
+        return request.redirect('/web/login?message=%s' % _('Password Changed'))
