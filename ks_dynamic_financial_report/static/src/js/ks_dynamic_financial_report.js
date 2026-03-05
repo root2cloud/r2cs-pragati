@@ -1490,12 +1490,19 @@ ksSetReportCurrencyConfig: function () {
                     k.balance = String(Math.round(k.balance)) + "%";
                 }
 
-                // 4. Logic for Comparison Balances - FIXING THE ERROR HERE
-                if (k.balance_cmp) {
-                    for (const prop in k.balance_cmp) {
-                        k.balance_cmp[prop] = self.ksFormatCurrencySign(k.balance_cmp[prop], ksFormatConfigWithSymbol, k.balance_cmp[prop] < 0 ? '-' : '');
-                    }
-                }
+// 4. Logic for Comparison Balances
+if (k.balance_cmp && typeof k.balance_cmp === 'object') { // <--- ADDED NULL/TYPE CHECK
+    for (const prop in k.balance_cmp) {
+        if (k.balance_cmp.hasOwnProperty(prop)) { // Safety check
+            k.balance_cmp[prop] = self.ksFormatCurrencySign(
+                k.balance_cmp[prop],
+                ksFormatConfigWithSymbol,
+                k.balance_cmp[prop] < 0 ? '-' : ''
+            );
+        }
+    }
+}
+
             });
         },        /**
 
