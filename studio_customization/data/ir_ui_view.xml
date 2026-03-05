@@ -1004,105 +1004,105 @@
         <field name="priority">160</field>
         <field name="type">tree</field>
     </record>
-    <record id="studio_customization.studio_customization_611d4dec-89a5-474e-88a9-6855f0da943f" model="ir.ui.view"
-            context="{'studio': True}">
-        <field name="active" eval="True"/>
-        <field name="arch" type="xml">
-            <t t-name="studio_customization.studio_report_docume_e45feeab-4e04-4c12-944b-99b031b54680_document_copy_5">
-                <t t-call="web.external_layout">
-                    <div class="page">
-                        <div class="row">
-                            <div class="col text-center h1">
-                                <span>Journal Entry</span>
-                            </div>
-                        </div>
-                        <div class="row">
-                            <div class="col">
-                                <span t-field="doc.name" class="h2"/>
-                            </div>
-                        </div>
-                        <div class="row">
-                            <div class="col-3">
-                                <span>
-                                    <br/>
-                                </span>
-                                <span/>
-                            </div>
-                            <div class="col-3"/>
-                            <div class="col-3"/>
-                            <div class="col-3"/>
-                        </div>
-                        <table class="table o_report_block_table table-bordered">
-                            <thead>
-                                <tr>
-                                    <th>
-                                        <span>Journal Name</span>
-                                    </th>
-                                    <th>
-                                        <span>Display Name</span>
-                                    </th>
-                                    <th>
-                                        <span>Date</span>
-                                    </th>
-                                    <th>
-                                        <br/>
-                                    </th>
-                                    <th>
-                                        <span>Debit</span>
-                                    </th>
-                                    <th>
-                                        <span>Credit</span>
-                                    </th>
-                                    <th>
-                                        <br/>
-                                        <br/>
-                                    </th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <tr t-foreach="doc.line_ids" t-as="table_line">
-                                    <td>
-                                        <span t-field="table_line.account_id.name"/>
-                                    </td>
-                                    <td>
-                                        <span t-field="table_line.display_name"/>
-                                    </td>
-                                    <td>
-                                        <span t-field="table_line.date"/>
-                                    </td>
-                                    <td>
-                                        <span/>
-                                    </td>
-                                    <td>
-                                        <span t-field="table_line.debit"/>
-                                    </td>
-                                    <td>
-                                        <span t-field="table_line.credit"/>
-                                    </td>
-                                    <td>
-                                        <span/>
-                                    </td>
-                                </tr>
-                            </tbody>
-                        </table>
-                    </div>
-                </t>
-            </t>
-        </field>
-        <field name="field_parent" eval="False"/>
-        <field name="groups_id" eval="[(6, 0, [])]"/>
-        <field name="inherit_id" eval="False"/>
-        <field name="key">
-            studio_customization.studio_report_docume_e45feeab-4e04-4c12-944b-99b031b54680_document_copy_5
-        </field>
-        <field name="mode">primary</field>
-        <field name="model" eval="False"/>
-        <field name="name">studio_customization.studio_report_docume_e45feeab-4e04-4c12-944b-99b031b54680_document
-            copy(5)
-        </field>
-        <field name="priority">16</field>
-        <field name="type">qweb</field>
-    </record>
+<!--    <record id="studio_customization.studio_customization_611d4dec-89a5-474e-88a9-6855f0da943f" model="ir.ui.view"-->
+<!--            context="{'studio': True}">-->
+<!--        <field name="active" eval="True"/>-->
+<!--        <field name="arch" type="xml">-->
+<!--            <t t-name="studio_customization.studio_report_docume_e45feeab-4e04-4c12-944b-99b031b54680_document_copy_5">-->
+<!--                <t t-call="web.external_layout">-->
+<!--                    <div class="page">-->
+<!--                        <div class="row">-->
+<!--                            <div class="col text-center h1">-->
+<!--                                <span>Journal Entry</span>-->
+<!--                            </div>-->
+<!--                        </div>-->
+<!--                        <div class="row">-->
+<!--                            <div class="col">-->
+<!--                                <span t-field="doc.name" class="h2"/>-->
+<!--                            </div>-->
+<!--                        </div>-->
+<!--                        <div class="row">-->
+<!--                            <div class="col-3">-->
+<!--                                <span>-->
+<!--                                    <br/>-->
+<!--                                </span>-->
+<!--                                <span/>-->
+<!--                            </div>-->
+<!--                            <div class="col-3"/>-->
+<!--                            <div class="col-3"/>-->
+<!--                            <div class="col-3"/>-->
+<!--                        </div>-->
+<!--                        <table class="table o_report_block_table table-bordered">-->
+<!--                            <thead>-->
+<!--                                <tr>-->
+<!--                                    <th>-->
+<!--                                        <span>Journal Name</span>-->
+<!--                                    </th>-->
+<!--                                    <th>-->
+<!--                                        <span>Display Name</span>-->
+<!--                                    </th>-->
+<!--                                    <th>-->
+<!--                                        <span>Date</span>-->
+<!--                                    </th>-->
+<!--                                    <th>-->
+<!--                                        <br/>-->
+<!--                                    </th>-->
+<!--                                    <th>-->
+<!--                                        <span>Debit</span>-->
+<!--                                    </th>-->
+<!--                                    <th>-->
+<!--                                        <span>Credit</span>-->
+<!--                                    </th>-->
+<!--                                    <th>-->
+<!--                                        <br/>-->
+<!--                                        <br/>-->
+<!--                                    </th>-->
+<!--                                </tr>-->
+<!--                            </thead>-->
+<!--                            <tbody>-->
+<!--                                <tr t-foreach="doc.line_ids" t-as="table_line">-->
+<!--                                    <td>-->
+<!--                                        <span t-field="table_line.account_id.name"/>-->
+<!--                                    </td>-->
+<!--                                    <td>-->
+<!--                                        <span t-field="table_line.display_name"/>-->
+<!--                                    </td>-->
+<!--                                    <td>-->
+<!--                                        <span t-field="table_line.date"/>-->
+<!--                                    </td>-->
+<!--                                    <td>-->
+<!--                                        <span/>-->
+<!--                                    </td>-->
+<!--                                    <td>-->
+<!--                                        <span t-field="table_line.debit"/>-->
+<!--                                    </td>-->
+<!--                                    <td>-->
+<!--                                        <span t-field="table_line.credit"/>-->
+<!--                                    </td>-->
+<!--                                    <td>-->
+<!--                                        <span/>-->
+<!--                                    </td>-->
+<!--                                </tr>-->
+<!--                            </tbody>-->
+<!--                        </table>-->
+<!--                    </div>-->
+<!--                </t>-->
+<!--            </t>-->
+<!--        </field>-->
+<!--        <field name="field_parent" eval="False"/>-->
+<!--        <field name="groups_id" eval="[(6, 0, [])]"/>-->
+<!--        <field name="inherit_id" eval="False"/>-->
+<!--        <field name="key">-->
+<!--            studio_customization.studio_report_docume_e45feeab-4e04-4c12-944b-99b031b54680_document_copy_5-->
+<!--        </field>-->
+<!--        <field name="mode">primary</field>-->
+<!--        <field name="model" eval="False"/>-->
+<!--        <field name="name">studio_customization.studio_report_docume_e45feeab-4e04-4c12-944b-99b031b54680_document-->
+<!--            copy(5)-->
+<!--        </field>-->
+<!--        <field name="priority">16</field>-->
+<!--        <field name="type">qweb</field>-->
+<!--    </record>-->
     <record id="studio_customization.odoo_studio_studio_c_04b4b6c1-7d6a-4c53-9732-de196d7b48aa" model="ir.ui.view"
             context="{'studio': True}">
         <field name="active" eval="True"/>
