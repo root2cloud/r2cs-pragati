@@ -457,7 +457,9 @@ class ks_dynamic_financial_base(models.Model):
                             for account_id, val in ks_main_cmp_res['comp_bal_'
                                                                    + rec['ks_string']][ks_report_id].get(
                                 'account').items():
-                                ks_report_acc[account_id]['comp_bal_' + rec['ks_string']] = val['balance']
+                                # Only set comparison balance if the account also exists in the current period
+                                if account_id in ks_report_acc:
+                                    ks_report_acc[account_id]['comp_bal_' + rec['ks_string']] = val['balance']
         return self.sudo().ks_df_account_report_lines(ks_child_reports, ks_df_informations, res, ks_main_res)
 
     def ks_df_account_report_lines(self, ks_child_reports, ks_df_informations, res, ks_main_res):
@@ -598,8 +600,8 @@ class ks_dynamic_financial_base(models.Model):
                         ks_vals['balance_cmp'] = {}
                         if len(ks_df_informations['ks_differ']['ks_intervals']):
                             for rec_inter in ks_df_informations['ks_differ']['ks_intervals']:
-                                ks_vals['balance_cmp']['comp_bal_' + rec_inter['ks_string']] = ks_value[
-                                    'comp_bal_' + rec_inter['ks_string']]
+                                ks_vals['balance_cmp']['comp_bal_' + rec_inter['ks_string']] = ks_value.get(
+                                    'comp_bal_' + rec_inter['ks_string'], 0.0)
 
                     # -------------------------------
                     # Balance Sheet: FY-only debit/credit
@@ -719,7 +721,7 @@ class ks_dynamic_financial_base(models.Model):
                         if len(ks_df_informations['ks_differ']['ks_intervals']):
                             for rec_inter in ks_df_informations['ks_differ']['ks_intervals']:
                                 ks_vals['balance_cmp']['comp_bal_' + rec_inter['ks_string']] = \
-                                    ks_value['comp_bal_' + rec_inter['ks_string']]
+                                    ks_value.get('comp_bal_' + rec_inter['ks_string'], 0.0)
                     if ks_df_informations:
                         ks_vals['debit'] = ks_value['debit']
                         ks_vals['credit'] = ks_value['credit']

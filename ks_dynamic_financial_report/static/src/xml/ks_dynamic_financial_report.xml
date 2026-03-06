@@ -60,19 +60,10 @@
                         </t>
 
                         <t t-if="ks_df_report_opt.ks_diff_filter.ks_diff_filter_enablity">
-                            <t t-set="header_source" t-value="false"/>
-                            <t t-foreach="ks_report_lines" t-as="line">
-                                <t t-if="!header_source and line.balance_cmp">
-                                    <t t-set="header_source" t-value="line"/>
-                                </t>
-                            </t>
-
-                            <t t-if="header_source">
-                                <t t-foreach="header_source.balance_cmp" t-as="current_interval">
-                                    <th class="text-right" colspan="1">
-                                        <span t-esc="current_interval.split('comp_bal_')[1]"/>
-                                    </th>
-                                </t>
+                            <t t-foreach="ks_df_report_opt.ks_differ.ks_intervals" t-as="interval">
+                                <th class="text-right" colspan="1">
+                                    <span t-esc="interval.ks_string"/>
+                                </th>
                             </t>
                         </t>
                         <th class="text-right" colspan="1">
@@ -148,13 +139,13 @@
                                 </t>
 
                                 <t t-if="ks_df_report_opt.ks_diff_filter.ks_diff_filter_enablity">
-                                    <t t-if="a.balance_cmp">
-                                        <t t-foreach="a.balance_cmp" t-as="current_interval">
-                                            <td class="ks_amt text-right"
-                                                t-att-style="a.ks_level === 0 ? 'font-weight: 700 !important;' : 'font-weight: 400 !important;'">
-                                                <span t-raw="a.balance_cmp[current_interval]"/>
-                                            </td>
-                                        </t>
+                                    <t t-foreach="ks_df_report_opt.ks_differ.ks_intervals" t-as="interval">
+                                        <td class="ks_amt text-right"
+                                            t-att-style="a.ks_level === 0 ? 'font-weight: 700 !important;' : 'font-weight: 400 !important;'">
+                                            <t t-if="a.balance_cmp">
+                                                <span t-raw="a.balance_cmp['comp_bal_' + interval.ks_string] || ''"/>
+                                            </t>
+                                        </td>
                                     </t>
                                 </t>
 
