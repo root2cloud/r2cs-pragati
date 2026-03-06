@@ -2040,7 +2040,10 @@ class ks_dynamic_financial_base(models.Model):
             if self.env['ir.config_parameter'].sudo().get_param('ks_disable_trial_en_bal', False) and ks_domain:
                 for ksaccountid in ksaccount_ids:
                     ksaccount = self.env['account.account'].sudo().browse(int(ksaccountid))
-                    if ksaccount.account_type.name == 'Current Year Earnings':
+                    if dict(ksaccount._fields['account_type'].selection).get(
+                            ksaccount.account_type) == 'Current Year Earnings' or ksaccount.account_type == 'equity_unaffected':
+
+                    # if ksaccount.account_type.name == 'Current Year Earnings':
                         ks_account_type_ids = self.env['account.account'].search(
                             ["|", ('account_type', 'ilike', 'Income'), ('account_type', 'ilike', 'Expenses ')])
                         for ks_account_type_id in ks_account_type_ids:
@@ -4613,6 +4616,8 @@ class ks_dynamic_financial_base(models.Model):
         # return info
 
         # --------------------------- BALANCE SHEET---------------------------
+
+        # --------------------------- BALANCE SHEET ---------------------------
         if self.display_name == 'Balance Sheet':
             Account = self.env['account.account'].sudo()
 
@@ -4621,6 +4626,11 @@ class ks_dynamic_financial_base(models.Model):
 
             report_lines = info.get('ks_report_lines', [])
 
+            # --- FIX: Get the list of accounts selected in the Search Dropdown ---
+            selected_accounts = ks_df_informations.get('account', [])
+            selected_account_ids = [acc.get('id') for acc in selected_accounts if acc.get('selected')]
+            # ---------------------------------------------------------------------
+
             for line in report_lines:
                 # Skip existing headers from original processing
                 if line.get('ks_level') == 0:
@@ -4628,6 +4638,12 @@ class ks_dynamic_financial_base(models.Model):
 
                 if line.get('ks_level') == 4 and 'account' in line:
                     account_id = line.get('account')
+
+                    # --- FIX: Skip this account if it is not in the search selection ---
+                    if selected_account_ids and account_id not in selected_account_ids:
+                        continue
+                    # -------------------------------------------------------------------
+
                     if account_id in processed_accounts:
                         continue
                     processed_accounts.add(account_id)
@@ -4643,7 +4659,7 @@ class ks_dynamic_financial_base(models.Model):
 
                     acc = dict(line)
                     acc['parent'] = False
-                    acc['ks_level'] = 1  # Regular account rows are level 1
+                    acc['ks_level'] = 1
                     acc['list_len'] = [0]
                     acc['is_bs'] = True
 
@@ -4696,7 +4712,7 @@ class ks_dynamic_financial_base(models.Model):
 
                 # 1. Add Main Group Header (ks_level = 0 -> This will trigger BOLD in UI)
                 new_report_lines.append({
-                    'ks_code': '',  # Summary rows have no code
+                    'ks_code': '',
                     'ks_name': str(m_group_label).upper(),
                     'ks_level': 0,
                     'parent': False,
@@ -4706,7 +4722,8 @@ class ks_dynamic_financial_base(models.Model):
                     'debit': tot_deb,
                     'credit': tot_cre,
                     'company_currency_id': curr_id,
-                    'is_bs': True
+                    'is_bs': True,
+                    'balance_cmp': {},
                 })
 
                 # 2. Add Accounts (ks_level = 1 -> This will be PLAIN in UI)
