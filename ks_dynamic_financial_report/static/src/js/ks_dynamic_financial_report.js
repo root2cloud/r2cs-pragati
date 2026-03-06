@@ -1494,11 +1494,13 @@ ksSetReportCurrencyConfig: function () {
 if (k.balance_cmp && typeof k.balance_cmp === 'object') { // <--- ADDED NULL/TYPE CHECK
     for (const prop in k.balance_cmp) {
         if (k.balance_cmp.hasOwnProperty(prop)) { // Safety check
+            var cmp_val = k.balance_cmp[prop];
+            var cmp_suffix = cmp_val < 0 ? ' Dr' : ' Cr';
             k.balance_cmp[prop] = self.ksFormatCurrencySign(
-                k.balance_cmp[prop],
+                cmp_val,
                 ksFormatConfigWithSymbol,
-                k.balance_cmp[prop] < 0 ? '-' : ''
-            );
+                ''
+            ) + cmp_suffix;
         }
     }
 }

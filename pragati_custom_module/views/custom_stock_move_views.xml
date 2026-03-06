@@ -29,5 +29,17 @@
             </field>
         </record>
 
+        <record id="stock_move_line_view_search_inherit_locations" model="ir.ui.view">
+            <field name="name">stock.move.line.search.inherit.locations</field>
+            <field name="model">stock.move.line</field>
+            <field name="inherit_id" ref="stock.stock_move_line_view_search"/>
+            <field name="arch" type="xml">
+                <xpath expr="//field[@name='location_id']" position="before">
+                    <field name="location_id" string="From (Source)"/>
+                    <field name="location_dest_id" string="To (Destination)"/>
+                    <separator/>
+                </xpath>
+            </field>
+        </record>
     </data>
 </odoo>
