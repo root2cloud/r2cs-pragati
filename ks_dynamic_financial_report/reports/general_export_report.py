@@ -25,34 +25,39 @@ class KsDynamicFinancialXlsxGLInherit(models.Model):
         sheet = workbook.add_worksheet('General Ledger')
 
         # ==========================================
-        # HELPER: FORCE INDIAN COMMA FORMATTING
-        # This completely bypasses Excel's local PC settings
+        # 1. ULTIMATE INDIAN NUMBER FORMATS (FORCING EXCEL)
+        # These 3-part conditions guarantee perfect Crores, Lakhs, Thousands, and Zeros.
         # ==========================================
-        def ks_in_fmt(amount, symbol=False, is_bal=False):
-            val = float(amount or 0.0)
-            is_neg = val < 0
-            abs_val = abs(val)
-            s = f"{abs_val:.2f}"
-            parts = s.split('.')
-            int_part = parts[0]
-            dec_part = parts[1]
-            if len(int_part) > 3:
-                int_part = int_part[:-3][::-1]
-                int_part = ','.join([int_part[i:i + 2] for i in range(0, len(int_part), 2)])[::-1] + ',' + parts[0][-3:]
-            res = f"{int_part}.{dec_part}"
+        fmt_amount_pos = workbook.add_format({'border': 1, 'border_color': '#7a7a7a', 'align': 'right', 'valign': 'top',
+                                              'num_format': '[>=10000000]##\,##\,##\,##0.00;[>=100000]##\,##\,##0.00;##,##0.00'})
+        fmt_amount_neg = workbook.add_format({'border': 1, 'border_color': '#7a7a7a', 'align': 'right', 'valign': 'top',
+                                              'num_format': '[>=10000000]-##\,##\,##\,##0.00;[>=100000]-##\,##\,##0.00;-##,##0.00'})
 
-            if symbol:
-                res = f"₹ {res}"
+        fmt_total_pos = workbook.add_format(
+            {'bg_color': '#f8f9fa', 'bold': True, 'border': 1, 'border_color': '#7a7a7a', 'align': 'right',
+             'valign': 'vcenter',
+             'num_format': '[>=10000000]"₹" ##\,##\,##\,##0.00;[>=100000]"₹" ##\,##\,##0.00;"₹" ##,##0.00'})
+        fmt_total_neg = workbook.add_format(
+            {'bg_color': '#f8f9fa', 'bold': True, 'border': 1, 'border_color': '#7a7a7a', 'align': 'right',
+             'valign': 'vcenter',
+             'num_format': '[>=10000000]"₹" -##\,##\,##\,##0.00;[>=100000]"₹" -##\,##\,##0.00;"₹" -##,##0.00'})
 
-            if is_bal:
-                res += " Cr" if is_neg else " Dr"
-            elif is_neg:
-                res = f"-{res}"
+        fmt_bal_dr = workbook.add_format({'border': 1, 'border_color': '#7a7a7a', 'align': 'right', 'valign': 'top',
+                                          'num_format': '[>=10000000]"₹" ##\,##\,##\,##0.00 "Dr";[>=100000]"₹" ##\,##\,##0.00 "Dr";"₹" ##,##0.00 "Dr"'})
+        fmt_bal_cr = workbook.add_format({'border': 1, 'border_color': '#7a7a7a', 'align': 'right', 'valign': 'top',
+                                          'num_format': '[>=10000000]"₹" ##\,##\,##\,##0.00 "Cr";[>=100000]"₹" ##\,##\,##0.00 "Cr";"₹" ##,##0.00 "Cr"'})
 
-            return res
+        fmt_init_bal_dr = workbook.add_format(
+            {'bg_color': '#f8f9fa', 'bold': True, 'border': 1, 'border_color': '#7a7a7a', 'align': 'right',
+             'valign': 'vcenter',
+             'num_format': '[>=10000000]"₹" ##\,##\,##\,##0.00 "Dr";[>=100000]"₹" ##\,##\,##0.00 "Dr";"₹" ##,##0.00 "Dr"'})
+        fmt_init_bal_cr = workbook.add_format(
+            {'bg_color': '#f8f9fa', 'bold': True, 'border': 1, 'border_color': '#7a7a7a', 'align': 'right',
+             'valign': 'vcenter',
+             'num_format': '[>=10000000]"₹" ##\,##\,##\,##0.00 "Cr";[>=100000]"₹" ##\,##\,##0.00 "Cr";"₹" ##,##0.00 "Cr"'})
 
         # ==========================================
-        # 1. STRICT ACCOUNTING EXCEL FORMATS
+        # 2. STRICT ACCOUNTING EXCEL STYLES
         # ==========================================
         title_fmt = workbook.add_format({'font_size': 14, 'bold': True, 'align': 'center', 'valign': 'vcenter'})
         subtitle_fmt = workbook.add_format({'font_size': 11, 'bold': True, 'align': 'center', 'valign': 'vcenter'})
@@ -69,36 +74,22 @@ class KsDynamicFinancialXlsxGLInherit(models.Model):
             'align': 'left', 'valign': 'vcenter'
         })
 
-        # INITIAL & TOTAL ROWS (Bold, Aligned Right)
         init_bal_label_fmt = workbook.add_format({
             'bg_color': '#f8f9fa', 'bold': True, 'border': 1, 'border_color': '#7a7a7a',
             'align': 'right', 'valign': 'vcenter'
         })
-        init_bal_num_fmt = workbook.add_format({
-            'bg_color': '#f8f9fa', 'bold': True, 'border': 1, 'border_color': '#7a7a7a',
-            'align': 'right', 'valign': 'vcenter'
-        })
-        total_num_fmt = workbook.add_format({
-            'bg_color': '#f8f9fa', 'bold': True, 'border': 1, 'border_color': '#7a7a7a',
-            'align': 'right', 'valign': 'vcenter'
-        })
+
         init_bal_empty_fmt = workbook.add_format({
             'bg_color': '#f8f9fa', 'border': 1, 'border_color': '#7a7a7a',
         })
 
-        cell_center = workbook.add_format(
-            {'border': 1, 'border_color': '#7a7a7a', 'align': 'center', 'valign': 'top'})
-
+        cell_center = workbook.add_format({'border': 1, 'border_color': '#7a7a7a', 'align': 'center', 'valign': 'top'})
         cell_left = workbook.add_format({'border': 1, 'border_color': '#7a7a7a', 'align': 'left', 'valign': 'top'})
         cell_wrap = workbook.add_format(
             {'border': 1, 'border_color': '#7a7a7a', 'align': 'left', 'valign': 'top', 'text_wrap': True})
 
-        # REGULAR TRANSACTION ROWS (Not Bold, Aligned Right)
-        num_fmt = workbook.add_format({'border': 1, 'border_color': '#7a7a7a', 'align': 'right', 'valign': 'top'})
-        balance_fmt = workbook.add_format({'border': 1, 'border_color': '#7a7a7a', 'align': 'right', 'valign': 'top'})
-
         # ==========================================
-        # 2. DETERMINE BRS COLUMN VISIBILITY
+        # 3. DETERMINE BRS COLUMN VISIBILITY
         # ==========================================
         bank_journals = self.env['account.journal'].search([('type', '=', 'bank')])
         bank_account_ids = bank_journals.mapped('default_account_id').ids
@@ -111,7 +102,7 @@ class KsDynamicFinancialXlsxGLInherit(models.Model):
                 break
 
         # ==========================================
-        # 3. SET EXPANDED COLUMNS FOR CLEAR VISIBILITY
+        # 4. SET EXPANDED COLUMNS FOR CLEAR VISIBILITY
         # ==========================================
         headers = ['Date', 'Journal', 'Voucher', 'Accounts', 'Debit', 'Credit', 'Balance', 'Status',
                    'Reference / Narration']
@@ -132,7 +123,7 @@ class KsDynamicFinancialXlsxGLInherit(models.Model):
             sheet.set_column(9, 9, 14)  # BRS
 
         # ==========================================
-        # 4. PRINT REPORT TITLES
+        # 5. PRINT REPORT TITLES (MERGED FOR CENTERING)
         # ==========================================
         row = 0
         sheet.merge_range(row, 0, row, total_cols - 1, ks_company_id.name, title_fmt)
@@ -140,20 +131,17 @@ class KsDynamicFinancialXlsxGLInherit(models.Model):
         sheet.merge_range(row, 0, row, total_cols - 1, 'General Ledger', subtitle_fmt)
         row += 1
 
-        # --- FIXED HEADER DATE LOGIC ---
         if ks_df_informations.get('date') and ks_df_informations['date'].get('ks_start_date'):
             s_date = str(ks_df_informations['date'].get('ks_start_date'))
             e_date = str(ks_df_informations['date'].get('ks_end_date'))
-
             try:
                 s_date = datetime.datetime.strptime(str(s_date)[:10], '%Y-%m-%d').strftime('%d/%m/%Y')
             except Exception:
-                s_date = str(s_date)
+                pass
             try:
                 e_date = datetime.datetime.strptime(str(e_date)[:10], '%Y-%m-%d').strftime('%d/%m/%Y')
             except Exception:
-                e_date = str(e_date)
-
+                pass
             date_str = f"Period: {s_date} To {e_date}"
             sheet.merge_range(row, 0, row, total_cols - 1, date_str, subtitle_fmt)
         row += 2
@@ -165,7 +153,7 @@ class KsDynamicFinancialXlsxGLInherit(models.Model):
         sheet.freeze_panes(row, 0)
 
         # ==========================================
-        # 5. PRINT TRANSACTION DATA
+        # 6. PRINT TRANSACTION DATA
         # ==========================================
         for account_key, account_data in accounts_dict.items():
             if account_key == 'Total' or not isinstance(account_data, dict):
@@ -178,112 +166,150 @@ class KsDynamicFinancialXlsxGLInherit(models.Model):
             sub_grp = account_data.get('sub_group', 'N/A')
             ss_grp = account_data.get('sub_sub_group', 'N/A')
 
-            # Clean Account Header
+            # Clean Account Header (UNMERGED)
             acc_header_text = f"Account: {actual_code} {actual_name}    [ Main Group: {main_grp}  |  Sub Group: {sub_grp}  |  Sub Sub Group: {ss_grp} ]"
-            sheet.merge_range(row, 0, row, total_cols - 1, acc_header_text, account_header_fmt)
+            sheet.write(row, 0, acc_header_text, account_header_fmt)
+            for col_idx in range(1, total_cols):
+                sheet.write(row, col_idx, '', account_header_fmt)
             row += 1
 
             total_debit = 0.0
             total_credit = 0.0
 
-            has_init_bal = any(l.get('initial_bal') for l in account_data.get('lines', []))
-            if not has_init_bal:
-                forced_init_bal = account_data.get('initial_balance', 0.0)
-                sheet.merge_range(row, 0, row, 3, "Initial Balance", init_bal_label_fmt)
-                sheet.write(row, 4, '', init_bal_empty_fmt)
-                sheet.write(row, 5, '', init_bal_empty_fmt)
-                # Guarantees Indian Formatted Output (Bold + Symbol)
-                sheet.write(row, 6, ks_in_fmt(forced_init_bal, symbol=True, is_bal=True), init_bal_num_fmt)
-                sheet.write(row, 7, '', init_bal_empty_fmt)
-                sheet.write(row, 8, '', init_bal_empty_fmt)
-                if has_bank_acc:
-                    sheet.write(row, 9, '', init_bal_empty_fmt)
-                row += 1
+            # ----------------------------------------------------
+            # INITIAL BALANCE LOGIC
+            # ----------------------------------------------------
+            has_init_bal = False
+            start_balance = 0.0
 
             for line in account_data.get('lines', []):
                 if line.get('initial_bal'):
-                    sheet.merge_range(row, 0, row, 3, "Initial Balance", init_bal_label_fmt)
-                    sheet.write(row, 4, '', init_bal_empty_fmt)
-                    sheet.write(row, 5, '', init_bal_empty_fmt)
-                    # Guarantees Indian Formatted Output (Bold + Symbol)
-                    sheet.write(row, 6, ks_in_fmt(float(line.get('balance', 0.0)), symbol=True, is_bal=True),
-                                init_bal_num_fmt)
-                    sheet.write(row, 7, '', init_bal_empty_fmt)
-                    sheet.write(row, 8, '', init_bal_empty_fmt)
-                    if has_bank_acc:
-                        sheet.write(row, 9, '', init_bal_empty_fmt)
-                    row += 1
+                    has_init_bal = True
+                    start_balance = float(line.get('balance', 0.0))
+                    break
 
-                elif line.get('ending_bal'):
+            if not has_init_bal:
+                start_balance = float(account_data.get('initial_balance', 0.0))
+
+            # Print Initial Balance Row
+            sheet.write(row, 0, '', init_bal_label_fmt)
+            sheet.write(row, 1, '', init_bal_label_fmt)
+            sheet.write(row, 2, '', init_bal_label_fmt)
+            sheet.write(row, 3, "Initial Balance", init_bal_label_fmt)
+            sheet.write(row, 4, '', init_bal_empty_fmt)
+            sheet.write(row, 5, '', init_bal_empty_fmt)
+
+            # Apply format based on Dr/Cr logic safely using absolute values
+            if start_balance >= 0:
+                sheet.write_number(row, 6, abs(start_balance), fmt_init_bal_dr)
+            else:
+                sheet.write_number(row, 6, abs(start_balance), fmt_init_bal_cr)
+
+            sheet.write(row, 7, '', init_bal_empty_fmt)
+            sheet.write(row, 8, '', init_bal_empty_fmt)
+            if has_bank_acc:
+                sheet.write(row, 9, '', init_bal_empty_fmt)
+            row += 1
+
+            # ----------------------------------------------------
+            # TRANSACTION LINES
+            # ----------------------------------------------------
+            for line in account_data.get('lines', []):
+                if line.get('initial_bal') or line.get('ending_bal'):
                     continue
 
+                opp_acc_raw = str(line.get('corresponding_accounts') or '')
+                if opp_acc_raw:
+                    raw_list = opp_acc_raw.split(', ')
+                    clean_list = [re.sub(r'^\d+\s*-?\s*', '', o.strip()) for o in raw_list if o.strip()]
+                    opp_acc_clean = '\n'.join(clean_list)
                 else:
-                    opp_acc_raw = str(line.get('corresponding_accounts') or '')
-                    if opp_acc_raw:
-                        raw_list = opp_acc_raw.split(', ')
-                        clean_list = [re.sub(r'^\d+\s*-?\s*', '', o.strip()) for o in raw_list if o.strip()]
-                        opp_acc_clean = '\n'.join(clean_list)
-                    else:
-                        opp_acc_clean = ''
+                    opp_acc_clean = ''
 
-                    lref = str(line.get('lref') or '').strip().replace('\n', ' ')
-                    lname = str(line.get('lname') or '').strip().replace('\n', ' ')
-                    if lref and lname and lref != lname:
-                        ref_narration = f"{lref}\n{lname}"
-                    else:
-                        ref_narration = lref or lname
+                lref = str(line.get('lref') or '').strip().replace('\n', ' ')
+                lname = str(line.get('lname') or '').strip().replace('\n', ' ')
+                if lref and lname and lref != lname:
+                    ref_narration = f"{lref}\n{lname}"
+                else:
+                    ref_narration = lref or lname
 
-                    newlines_opp = opp_acc_clean.count('\n') if opp_acc_clean else 0
-                    newlines_ref = ref_narration.count('\n') if ref_narration else 0
-                    max_lines = max(newlines_opp, newlines_ref) + 1
+                newlines_opp = opp_acc_clean.count('\n') if opp_acc_clean else 0
+                newlines_ref = ref_narration.count('\n') if ref_narration else 0
+                max_lines = max(newlines_opp, newlines_ref) + 1
 
-                    if max_lines > 1:
-                        sheet.set_row(row, 15 * max_lines)
+                if max_lines > 1:
+                    sheet.set_row(row, 15 * max_lines)
 
-                    ldate = line.get('ldate', '')
-                    if ldate and isinstance(ldate, (datetime.date, datetime.datetime)):
-                        ldate = ldate.strftime('%d/%m/%Y')
-                    elif isinstance(ldate, str) and '-' in ldate:
-                        try:
-                            ldate = datetime.datetime.strptime(ldate, '%Y-%m-%d').strftime('%d/%m/%Y')
-                        except:
-                            pass
+                ldate = line.get('ldate', '')
+                if ldate and isinstance(ldate, (datetime.date, datetime.datetime)):
+                    ldate = ldate.strftime('%d/%m/%Y')
+                elif isinstance(ldate, str) and '-' in ldate:
+                    try:
+                        ldate = datetime.datetime.strptime(ldate, '%Y-%m-%d').strftime('%d/%m/%Y')
+                    except:
+                        pass
 
-                    sheet.write(row, 0, ldate, cell_center)
-                    sheet.write(row, 1, line.get('lcode', ''), cell_center)
-                    sheet.write(row, 2, line.get('move_name', ''), cell_left)
-                    sheet.write(row, 3, opp_acc_clean, cell_wrap)
+                sheet.write(row, 0, ldate, cell_center)
+                sheet.write(row, 1, line.get('lcode', ''), cell_center)
+                sheet.write(row, 2, line.get('move_name', ''), cell_left)
+                sheet.write(row, 3, opp_acc_clean, cell_wrap)
 
-                    debit = float(line.get('debit', 0.0))
-                    credit = float(line.get('credit', 0.0))
-                    balance = float(line.get('balance', 0.0))
-                    total_debit += debit
-                    total_credit += credit
+                debit = float(line.get('debit', 0.0))
+                credit = float(line.get('credit', 0.0))
+                balance = float(line.get('balance', 0.0))
 
-                    # Regular Debits/Credits (No Symbol, Indian Commas, Plain Font)
-                    sheet.write(row, 4, ks_in_fmt(debit, symbol=False, is_bal=False), num_fmt)
-                    sheet.write(row, 5, ks_in_fmt(credit, symbol=False, is_bal=False), num_fmt)
-                    # Regular Balance (With Symbol, Indian Commas, Plain Font)
-                    sheet.write(row, 6, ks_in_fmt(balance, symbol=True, is_bal=True), balance_fmt)
+                total_debit += debit
+                total_credit += credit
 
-                    sheet.write(row, 7, line.get('move_state', ''), cell_center)
-                    sheet.write(row, 8, ref_narration, cell_wrap)
+                if debit >= 0:
+                    sheet.write_number(row, 4, abs(debit), fmt_amount_pos)
+                else:
+                    sheet.write_number(row, 4, abs(debit), fmt_amount_neg)
 
-                    if has_bank_acc:
-                        brs = line.get('brs_status_en', '') if is_bank_account else ''
-                        sheet.write(row, 9, brs, cell_center)
+                if credit >= 0:
+                    sheet.write_number(row, 5, abs(credit), fmt_amount_pos)
+                else:
+                    sheet.write_number(row, 5, abs(credit), fmt_amount_neg)
 
-                    row += 1
+                if balance >= 0:
+                    sheet.write_number(row, 6, abs(balance), fmt_bal_dr)
+                else:
+                    sheet.write_number(row, 6, abs(balance), fmt_bal_cr)
 
-            # --- ACCOUNT TOTAL ROW ---
-            sheet.merge_range(row, 0, row, 3, "Total:", init_bal_label_fmt)
+                sheet.write(row, 7, line.get('move_state', ''), cell_center)
+                sheet.write(row, 8, ref_narration, cell_wrap)
 
-            # Total Row (Bold + Rupee Symbol applied via helper)
-            sheet.write(row, 4, ks_in_fmt(total_debit, symbol=True, is_bal=False), total_num_fmt)
-            sheet.write(row, 5, ks_in_fmt(total_credit, symbol=True, is_bal=False), total_num_fmt)
+                if has_bank_acc:
+                    brs = line.get('brs_status_en', '') if is_bank_account else ''
+                    sheet.write(row, 9, brs, cell_center)
 
-            final_balance = account_data.get('balance', 0.0)
-            sheet.write(row, 6, ks_in_fmt(float(final_balance), symbol=True, is_bal=True), init_bal_num_fmt)
+                row += 1
+
+            # ----------------------------------------------------
+            # ACCOUNT TOTAL ROW (UNMERGED) & BUG FIX
+            # ----------------------------------------------------
+            sheet.write(row, 0, '', init_bal_label_fmt)
+            sheet.write(row, 1, '', init_bal_label_fmt)
+            sheet.write(row, 2, '', init_bal_label_fmt)
+            sheet.write(row, 3, "Total:", init_bal_label_fmt)
+
+            if total_debit >= 0:
+                sheet.write_number(row, 4, abs(total_debit), fmt_total_pos)
+            else:
+                sheet.write_number(row, 4, abs(total_debit), fmt_total_neg)
+
+            if total_credit >= 0:
+                sheet.write_number(row, 5, abs(total_credit), fmt_total_pos)
+            else:
+                sheet.write_number(row, 5, abs(total_credit), fmt_total_neg)
+
+            # FIX: Manually calculating the final balance to prevent the module's doubling bug
+            calculated_final_balance = start_balance + total_debit - total_credit
+
+            if calculated_final_balance >= 0:
+                sheet.write_number(row, 6, abs(calculated_final_balance), fmt_init_bal_dr)
+            else:
+                sheet.write_number(row, 6, abs(calculated_final_balance), fmt_init_bal_cr)
 
             sheet.write(row, 7, '', init_bal_empty_fmt)
             sheet.write(row, 8, '', init_bal_empty_fmt)
