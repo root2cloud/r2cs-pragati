@@ -58,33 +58,6 @@ class StockMoveLine(models.Model):
         digits='Product Price'
     )
 
-    # @api.depends('state', 'move_id.stock_valuation_layer_ids', 'move_id.company_id')
-    # def _compute_historical_prices(self):
-    #     for line in self:
-    #         if line.state == 'done':
-    #
-    #             # 1. COST PRICE LOGIC
-    #             val_layers = line.move_id.stock_valuation_layer_ids
-    #             if val_layers:
-    #                 # Priority: Automated Valuation Layer (Receipts/Deliveries)
-    #                 line.historical_cost_price = abs(val_layers[0].unit_cost)
-    #             else:
-    #                 # Priority: Internal Transfers / Manual History
-    #                 # THE FIX: Explicitly pass the company context to read standard_price
-    #                 company = line.move_id.company_id or self.env.company
-    #                 cost = line.product_id.with_company(company).standard_price
-    #                 line.historical_cost_price = cost
-    #
-    #             # 2. SALE PRICE LOGIC
-    #             sale_line = line.move_id.sale_line_id
-    #             if sale_line:
-    #                 line.historical_sale_price = sale_line.price_unit
-    #             else:
-    #                 line.historical_sale_price = line.product_id.lst_price
-    #         else:
-    #             line.historical_cost_price = 0.0
-    #             line.historical_sale_price = 0.0
-
     @api.depends('state', 'move_id.stock_valuation_layer_ids')
     def _compute_historical_prices(self):
         for line in self:
@@ -118,68 +91,93 @@ class StockMoveLine(models.Model):
             else:
                 line.historical_sale_price = line.product_id.lst_price or 0.0
 
-    historical_cgst_percent = fields.Float(string='CGST %', compute='_compute_historical_taxes', store=True)
-    historical_sgst_percent = fields.Float(string='SGST %', compute='_compute_historical_taxes', store=True)
-    historical_igst_percent = fields.Float(string='IGST %', compute='_compute_historical_taxes', store=True)
-    historical_other_percent = fields.Float(string='Other Tax %', compute='_compute_historical_taxes', store=True)
+    # --- TAX AND TOTAL FIELDS ---
+    historical_cgst_amount = fields.Monetary(string='CGST Amount', compute='_compute_historical_taxes', store=True,
+                                             currency_field='company_currency_id')
+    historical_sgst_amount = fields.Monetary(string='SGST Amount', compute='_compute_historical_taxes', store=True,
+                                             currency_field='company_currency_id')
+    historical_igst_amount = fields.Monetary(string='IGST Amount', compute='_compute_historical_taxes', store=True,
+                                             currency_field='company_currency_id')
 
-    @api.depends('state', 'move_id.sale_line_id.tax_id', 'product_id.taxes_id', 'product_id.supplier_taxes_id')
+    historical_sale_price_incl = fields.Float(string='Sale Price (Incl)', compute='_compute_historical_taxes',
+                                              store=True, digits='Product Price')
+    historical_total_sale_excl = fields.Monetary(string='Total Sale (Excl)', compute='_compute_historical_taxes',
+                                                 store=True, currency_field='company_currency_id')
+    historical_total_sale_incl = fields.Monetary(string='Total Sale (Incl)', compute='_compute_historical_taxes',
+                                                 store=True, currency_field='company_currency_id')
+
+    company_currency_id = fields.Many2one('res.currency', related='move_id.company_id.currency_id',
+                                          string="Company Currency", readonly=True)
+
+    @api.depends('state', 'move_id.sale_line_id.tax_id', 'product_id.taxes_id', 'product_id.supplier_taxes_id',
+                 'historical_sale_price', 'qty_done')
     def _compute_historical_taxes(self):
         for line in self:
-            # 1. Reset all columns to 0.0
-            line.historical_cgst_percent = 0.0
-            line.historical_sgst_percent = 0.0
-            line.historical_igst_percent = 0.0
-            line.historical_other_percent = 0.0
+            # 1. Reset all amounts to 0.0
+            line.historical_cgst_amount = 0.0
+            line.historical_sgst_amount = 0.0
+            line.historical_igst_amount = 0.0
+            line.historical_sale_price_incl = 0.0
+            line.historical_total_sale_excl = 0.0
+            line.historical_total_sale_incl = 0.0
 
-            if line.state != 'done':
+            # SAFEST CHECK: Ensure we have a state and it is 'done'
+            current_state = getattr(line, 'state', False)
+            if current_state != 'done':
                 continue
 
-            # 2. IDENTIFY TAXES WITH COMPANY CONTEXT
+            # 2. GET THE BASE VALUE (Fix applied here: line.qty_done)
+            qty = line.qty_done or 0.0
+            base_amount = (line.historical_sale_price or 0.0) * qty
+
+            # 3. IDENTIFY TAXES
             taxes = self.env['account.tax']
             company = line.move_id.company_id or self.env.company
 
-            # Check direct source documents first
+            # Check direct source documents
             if line.move_id.sale_line_id:
                 taxes = line.move_id.sale_line_id.tax_id
             elif hasattr(line.move_id, 'purchase_line_id') and line.move_id.purchase_line_id:
                 taxes = line.move_id.purchase_line_id.taxes_id
 
-            # If no source document, fallback to the Product Card
             if not taxes:
-                # CRITICAL FIX: Apply company context so Odoo actually reads the tabs
+                # Use sudo() here during upgrade to avoid permission-based cache misses
                 product_ctx = line.product_id.with_company(company)
-
-                # Merge both Customer and Vendor tabs. This guarantees we find IGST
-                # regardless of which tab you typed it into on the product card.
                 taxes = product_ctx.taxes_id | product_ctx.supplier_taxes_id
 
-            # 3. EXTRACT PERCENTAGES WITHOUT DOUBLING
-            if taxes:
-                all_taxes = taxes.flatten_taxes_hierarchy()
+            # 4. CALCULATE CURRENCY AMOUNTS & TOTALS
+            cgst_amt = sgst_amt = igst_amt = 0.0
 
-                # Using local variables to track the highest percentage found
-                cgst = sgst = igst = other = 0.0
+            if taxes and base_amount > 0:
+                all_taxes = taxes.flatten_taxes_hierarchy()
+                cgst_perc = sgst_perc = igst_perc = 0.0
 
                 for tax in all_taxes:
-                    if tax.amount_type == 'group':
-                        continue
-
+                    if tax.amount_type == 'group': continue
                     name = (tax.name or '').upper()
 
-                    # CRITICAL FIX: Using max() ensures that if 'GST 2.5%' is on BOTH
-                    # the Sales and Purchase tabs, it stays 2.5% and doesn't become 5.0%.
                     if 'IGST' in name:
-                        igst = max(igst, tax.amount)
+                        igst_perc = max(igst_perc, tax.amount)
                     elif 'CGST' in name:
-                        cgst = max(cgst, tax.amount)
+                        cgst_perc = max(cgst_perc, tax.amount)
                     elif 'SGST' in name:
-                        sgst = max(sgst, tax.amount)
-                    else:
-                        other = max(other, tax.amount)
+                        sgst_perc = max(sgst_perc, tax.amount)
 
-                # Assign the final clean values
-                line.historical_cgst_percent = cgst
-                line.historical_sgst_percent = sgst
-                line.historical_igst_percent = igst
-                line.historical_other_percent = other
+                cgst_amt = (base_amount * cgst_perc) / 100.0
+                sgst_amt = (base_amount * sgst_perc) / 100.0
+                igst_amt = (base_amount * igst_perc) / 100.0
+
+            # Assign Tax Values
+            line.historical_cgst_amount = cgst_amt
+            line.historical_sgst_amount = sgst_amt
+            line.historical_igst_amount = igst_amt
+
+            # 5. ASSIGN TOTALS AND INCLUSIVE PRICES
+            line.historical_total_sale_excl = base_amount
+            total_tax = cgst_amt + sgst_amt + igst_amt
+            line.historical_total_sale_incl = base_amount + total_tax
+
+            if qty > 0:
+                line.historical_sale_price_incl = line.historical_total_sale_incl / qty
+            else:
+                line.historical_sale_price_incl = line.historical_sale_price
