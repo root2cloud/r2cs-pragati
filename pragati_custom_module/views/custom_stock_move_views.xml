@@ -1,30 +1,35 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
     <data>
-        <record id="stock_move_line_view_tree" model="ir.ui.view">
-            <field name="name">stock.move.line.tree</field>
-            <field name="model">stock.move.line</field>
-            <field name="inherit_id" ref="stock.view_move_line_tree"/>
-            <field name="arch" type="xml">
-                <xpath expr="//field[@name='qty_done']" position="after">
-                    <field name="product_quantity_loss" readonly="1"/>
-                </xpath>
-            </field>
-        </record>
-
         <record id="view_move_line_tree_inherit_historical_prices" model="ir.ui.view">
             <field name="name">stock.move.line.tree.inherit.prices</field>
             <field name="model">stock.move.line</field>
             <field name="inherit_id" ref="stock.view_move_line_tree"/>
             <field name="arch" type="xml">
+                <xpath expr="//field[@name='qty_done']" position="after">
+                    <field name="product_quantity_loss" readonly="1" optional="hide" sum="Total Loss"/>
+                </xpath>
                 <xpath expr="//field[@name='product_id']" position="after">
-                    <field name="historical_cost_price" readonly="1" optional="show" widget="monetary"/>
-                    <field name="historical_sale_price" readonly="1" optional="show" widget="monetary"/>
+                    <field name="historical_cost_price" readonly="1" optional="show" widget="monetary"
+                           sum="Total Cost"/>
+                    <field name="historical_sale_price" readonly="1" optional="show" widget="monetary"
+                           string="Sale Price (Excl)" sum="Total Sale Price"/>
+                    <field name="historical_sale_price_incl" readonly="1" optional="show" widget="monetary"
+                           sum="Total Sale Incl"/>
 
-                    <field name="historical_cgst_percent" readonly="1" optional="show" string="CGST %"/>
-                    <field name="historical_sgst_percent" readonly="1" optional="show" string="SGST %"/>
-                    <field name="historical_igst_percent" readonly="1" optional="show" string="IGST %"/>
-                    <field name="historical_other_percent" readonly="1" optional="hide" string="Other %"/>
+                    <field name="historical_cgst_amount" readonly="1" optional="show" string="CGST Amt"
+                           widget="monetary" sum="Total CGST"/>
+                    <field name="historical_sgst_amount" readonly="1" optional="show" string="SGST Amt"
+                           widget="monetary" sum="Total SGST"/>
+                    <field name="historical_igst_amount" readonly="1" optional="hide" string="IGST Amt"
+                           widget="monetary" sum="Total IGST"/>
+
+                    <field name="historical_total_sale_excl" readonly="1" optional="show" widget="monetary"
+                           sum="Grand Total (Excl)"/>
+                    <field name="historical_total_sale_incl" readonly="1" optional="show" widget="monetary"
+                           decoration-bf="1" sum="Grand Total (Incl)"/>
+
+                    <field name="company_currency_id" invisible="1"/>
                 </xpath>
             </field>
         </record>
@@ -38,6 +43,54 @@
                     <field name="location_id" string="From (Source)"/>
                     <field name="location_dest_id" string="To (Destination)"/>
                     <separator/>
+                </xpath>
+
+                <xpath expr="//filter[@name='filter_last_12_months']" position="after">
+                    <separator string="Financial Years"/>
+                    <filter string="Current Financial Year" name="financial_year"
+                            domain="[
+                        ('date', '&gt;=', (context_today() + relativedelta(years=-1 if context_today().month &lt; 4 else 0, month=4, day=1)).strftime('%Y-%m-%d')),
+                        ('date', '&lt;=', (context_today() + relativedelta(years=0 if context_today().month &lt; 4 else 1, month=3, day=31)).strftime('%Y-%m-%d'))
+                    ]"/>
+
+                    <filter string="Last Financial Year" name="last_financial_year"
+                            domain="[
+                        ('date', '&gt;=', (context_today() + relativedelta(years=-2 if context_today().month &lt; 4 else -1, month=4, day=1)).strftime('%Y-%m-%d')),
+                        ('date', '&lt;=', (context_today() + relativedelta(years=-1 if context_today().month &lt; 4 else 0, month=3, day=31)).strftime('%Y-%m-%d'))
+                    ]"/>
+
+                    <separator string="Months (Current FY)"/>
+                    <filter string="January" name="jan"
+                            domain="[('date', '&gt;=', (context_today() + relativedelta(month=1, day=1)).strftime('%Y-%m-%d')), ('date', '&lt;=', (context_today() + relativedelta(month=1, day=31)).strftime('%Y-%m-%d'))]"/>
+                    <filter string="February" name="feb"
+                            domain="[('date', '&gt;=', (context_today() + relativedelta(month=2, day=1)).strftime('%Y-%m-%d')), ('date', '&lt;=', (context_today() + relativedelta(month=2, day=29)).strftime('%Y-%m-%d'))]"/>
+                    <filter string="March" name="mar"
+                            domain="[('date', '&gt;=', (context_today() + relativedelta(month=3, day=1)).strftime('%Y-%m-%d')), ('date', '&lt;=', (context_today() + relativedelta(month=3, day=31)).strftime('%Y-%m-%d'))]"/>
+
+                    <filter string="April" name="apr"
+                            domain="[('date', '&gt;=', (context_today() + relativedelta(years=-1 if context_today().month &lt; 4 else 0, month=4, day=1)).strftime('%Y-%m-%d')), ('date', '&lt;=', (context_today() + relativedelta(years=-1 if context_today().month &lt; 4 else 0, month=4, day=30)).strftime('%Y-%m-%d'))]"/>
+                    <filter string="May" name="may"
+                            domain="[('date', '&gt;=', (context_today() + relativedelta(years=-1 if context_today().month &lt; 4 else 0, month=5, day=1)).strftime('%Y-%m-%d')), ('date', '&lt;=', (context_today() + relativedelta(years=-1 if context_today().month &lt; 4 else 0, month=5, day=31)).strftime('%Y-%m-%d'))]"/>
+                    <filter string="June" name="jun"
+                            domain="[('date', '&gt;=', (context_today() + relativedelta(years=-1 if context_today().month &lt; 4 else 0, month=6, day=1)).strftime('%Y-%m-%d')), ('date', '&lt;=', (context_today() + relativedelta(years=-1 if context_today().month &lt; 4 else 0, month=6, day=30)).strftime('%Y-%m-%d'))]"/>
+                    <filter string="July" name="jul"
+                            domain="[('date', '&gt;=', (context_today() + relativedelta(years=-1 if context_today().month &lt; 4 else 0, month=7, day=1)).strftime('%Y-%m-%d')), ('date', '&lt;=', (context_today() + relativedelta(years=-1 if context_today().month &lt; 4 else 0, month=7, day=31)).strftime('%Y-%m-%d'))]"/>
+                    <filter string="August" name="aug"
+                            domain="[('date', '&gt;=', (context_today() + relativedelta(years=-1 if context_today().month &lt; 4 else 0, month=8, day=1)).strftime('%Y-%m-%d')), ('date', '&lt;=', (context_today() + relativedelta(years=-1 if context_today().month &lt; 4 else 0, month=8, day=31)).strftime('%Y-%m-%d'))]"/>
+                    <filter string="September" name="sep"
+                            domain="[('date', '&gt;=', (context_today() + relativedelta(years=-1 if context_today().month &lt; 4 else 0, month=9, day=1)).strftime('%Y-%m-%d')), ('date', '&lt;=', (context_today() + relativedelta(years=-1 if context_today().month &lt; 4 else 0, month=9, day=30)).strftime('%Y-%m-%d'))]"/>
+                    <filter string="October" name="oct"
+                            domain="[('date', '&gt;=', (context_today() + relativedelta(years=-1 if context_today().month &lt; 4 else 0, month=10, day=1)).strftime('%Y-%m-%d')), ('date', '&lt;=', (context_today() + relativedelta(years=-1 if context_today().month &lt; 4 else 0, month=10, day=31)).strftime('%Y-%m-%d'))]"/>
+                    <filter string="November" name="nov"
+                            domain="[('date', '&gt;=', (context_today() + relativedelta(years=-1 if context_today().month &lt; 4 else 0, month=11, day=1)).strftime('%Y-%m-%d')), ('date', '&lt;=', (context_today() + relativedelta(years=-1 if context_today().month &lt; 4 else 0, month=11, day=30)).strftime('%Y-%m-%d'))]"/>
+                    <filter string="December" name="dec"
+                            domain="[('date', '&gt;=', (context_today() + relativedelta(years=-1 if context_today().month &lt; 4 else 0, month=12, day=1)).strftime('%Y-%m-%d')), ('date', '&lt;=', (context_today() + relativedelta(years=-1 if context_today().month &lt; 4 else 0, month=12, day=31)).strftime('%Y-%m-%d'))]"/>
+                </xpath>
+
+                <xpath expr="//filter[@name='by_state']" position="before">
+                    <filter string="From" name="groupby_location_id" domain="[]" context="{'group_by': 'location_id'}"/>
+                    <filter string="To" name="groupby_location_dest_id" domain="[]"
+                            context="{'group_by': 'location_dest_id'}"/>
                 </xpath>
             </field>
         </record>
