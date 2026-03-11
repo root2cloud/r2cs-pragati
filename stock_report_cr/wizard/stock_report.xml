@@ -18,6 +18,8 @@
                             <field name="products" widget="many2many_tags"
                                    attrs="{'invisible':[('filterby', '!=', 'product')]}"/>
                             <field name="group_by_category"/>
+                            <field name="include_sale_price"/>
+                            <field name="include_cost_price"/>
                         </group>
                     </group>
                     <footer>
