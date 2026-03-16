@@ -122,8 +122,8 @@ class KsDynamicFinancialXlsxTB(models.Model):
         sheet.write(row_pos, 4, "Debit", format_header)
         sheet.write(row_pos, 5, "Credit", format_header)
 
-        sheet.write(row_pos, 6, "Debit ( EB )", format_header)
-        sheet.write(row_pos, 7, "Credit ( EB )", format_header)
+        sheet.write(row_pos, 6, "Debit ( Closing )", format_header)
+        sheet.write(row_pos, 7, "Credit ( Closing )", format_header)
 
         # Groups (Sub Type merged across 10 and 11)
         sheet.write(row_pos, 8, "Main Group", format_header)
