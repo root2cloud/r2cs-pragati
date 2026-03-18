@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates id="template" xml:space="preserve">
+    <t t-name="pos_fixed_discount.FixedDiscountButton" owl="1">
+        <div class="control-button fixed-discount-button" t-att-disabled="isOrderEmpty" t-on-click="onClick">
+            <i class="fa fa-tag" style="color: #017E84;" role="img" aria-label="Amount Discount" title="Amount Discount"/>
+            <span style="color: #017E84; font-weight: 700;">Amount Discount</span>
+        </div>
+    </t>
+</templates>
