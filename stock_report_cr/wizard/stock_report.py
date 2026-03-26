@@ -139,6 +139,43 @@ class ReportWizard(models.TransientModel):
         loc_dict = {l.id: l.name for l in locations_obj}
         prod_dict = {p.id: p for p in products_obj}
 
+        # --- NATIVE ODOO STOCK VALUATION MATCHING LOGIC ---
+        # 1. Fetch exact total value natively to match the "Stock Valuation" screen.
+        val_domain = [
+            ('create_date', '<=', end_dt),
+            ('company_id', '=', self.company_id.id)
+        ]
+        if self.products:
+            val_domain.append(('product_id', 'in', self.products.ids))
+
+        valuation_data = self.env['stock.valuation.layer'].read_group(
+            val_domain, ['product_id', 'value:sum'], ['product_id']
+        )
+        valuation_lookup = {v['product_id'][0]: v['value'] or 0.0 for v in valuation_data}
+
+        # 2. Pre-calculate values to absolutely eliminate penny rounding errors.
+        product_net_balances = {}
+        locations_count = {}
+
+        for loc_id, prod_id in all_keys:
+            product = prod_dict[prod_id]
+
+            # CRITICAL FIX 1: Exclude 'consumables' from financial calculation like Odoo does
+            if product.type != 'product':
+                continue
+
+            initial = initial_stock_dict.get((loc_id, prod_id), 0)
+            in_qty = incoming_dict.get((loc_id, prod_id), 0)
+            out_qty = outgoing_dict.get((loc_id, prod_id), 0)
+            balance = initial + in_qty - out_qty
+
+            product_net_balances[prod_id] = product_net_balances.get(prod_id, 0.0) + balance
+            if balance != 0:
+                locations_count[prod_id] = locations_count.get(prod_id, 0) + 1
+
+        locations_processed = {}
+        distributed_val_tracker = {}
+
         record_list = []
         for loc_id, prod_id in all_keys:
             initial = initial_stock_dict.get((loc_id, prod_id), 0)
@@ -151,7 +188,33 @@ class ReportWizard(models.TransientModel):
 
             product = prod_dict[prod_id]
             sale_price = round(float(product.list_price or 0.0), 2)
-            cost_price = round(float(product.standard_price or 0.0), 2)
+
+            loc_cost_value = 0.0
+            cost_price = 0.0
+
+            if product.type == 'product':
+                total_val = valuation_lookup.get(prod_id, 0.0)
+                total_bal = product_net_balances.get(prod_id, 0.0)
+
+                if total_bal != 0 and balance != 0:
+                    locations_processed[prod_id] = locations_processed.get(prod_id, 0) + 1
+
+                    # CRITICAL FIX 2: Exact remainder algorithm for penny rounding elimination
+                    if locations_processed[prod_id] == locations_count[prod_id]:
+                        # The very last location gets the exact remainder to force perfect match
+                        already_dist = distributed_val_tracker.get(prod_id, 0.0)
+                        loc_cost_value = total_val - already_dist
+                        cost_price = total_val / total_bal
+                    else:
+                        loc_cost_value = round((total_val / total_bal) * balance, 2)
+                        cost_price = total_val / total_bal
+                        distributed_val_tracker[prod_id] = distributed_val_tracker.get(prod_id, 0.0) + loc_cost_value
+                elif total_bal == 0 and balance == 0:
+                    cost_price = product.standard_price
+            else:
+                # Consumables keep physical qty but get 0.00 financial cost to match Odoo Native
+                cost_price = 0.0
+                loc_cost_value = 0.0
 
             record_list.append({
                 'location_name': loc_dict[loc_id],
@@ -165,8 +228,8 @@ class ReportWizard(models.TransientModel):
                 'balance': balance,
                 'sale_price': sale_price,
                 'sale_value': round(sale_price * balance, 2),
-                'cost_price': cost_price,
-                'cost_value': round(cost_price * balance, 2),
+                'cost_price': round(cost_price, 2),
+                'cost_value': round(loc_cost_value, 2),  # Mathematically locked to Odoo Stock Valuation total
                 'rec_set': product,
             })
 
@@ -406,11 +469,7 @@ class ReportWizard(models.TransientModel):
             consolidated_dict[prod_key]['in'] += rec['in']
             consolidated_dict[prod_key]['out'] += rec['out']
             consolidated_dict[prod_key]['balance'] += rec['balance']
-
-        # Recalculate Total Values
-        for prod_key, vals in consolidated_dict.items():
-            vals['sale_value'] = round(vals['sale_price'] * vals['balance'], 2)
-            vals['cost_value'] = round(vals['cost_price'] * vals['balance'], 2)
+            consolidated_dict[prod_key]['cost_value'] += rec['cost_value']
 
         consolidated_list = sorted(list(consolidated_dict.values()), key=lambda k: k['product'])
 
