@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <template id="pragati_journal_entry_report">
+        <t t-foreach="docs" t-as="doc">
+            <t t-call="pragati_custom_module.pragati_journal_entry_report_document"/>
+        </t>
+    </template>
+
+    <template id="pragati_journal_entry_report_document">
+        <t t-call="web.external_layout">
+            <main>
+                <div class="page">
+
+                    <style>
+                        .je-report-page  { font-size: 11px; }
+                        .je-company-name { font-size: 15px; font-weight: bold; text-align: center; margin-bottom: 2px; }
+                        .je-title        { font-size: 13px; font-weight: bold; text-align: center; margin-bottom: 2px; }
+                        .je-entry-ref    { font-size: 12px; font-weight: 600; margin-bottom: 6px; }
+                        .je-table        { width: 100%; border-collapse: collapse; font-size: 10px; margin-top: 6px; }
+                        .je-table th     { background-color: #f0f0f0; padding: 4px 6px; border: 1px solid #ccc; font-weight: bold; }
+                        .je-table td     { padding: 3px 6px; border: 1px solid #ddd; }
+                        .je-table .num   { text-align: right; }
+                        .je-divider      { border: none; border-top: 1px solid #ccc; margin: 4px 0; }
+                        .je-table tfoot td { padding: 4px 6px; border: 1px solid #ccc; font-weight: bold; background-color: #f0f0f0; }
+                    </style>
+
+                    <div class="je-report-page">
+
+                        <!-- Company Name -->
+                        <div class="je-company-name">
+                            <span t-field="doc.company_id.name"/>
+                        </div>
+
+                        <hr class="je-divider"/>
+
+                        <!-- Report Title -->
+                        <div class="je-title">Journal Entry</div>
+
+                        <!-- Entry Reference -->
+                        <div class="je-entry-ref">
+                            <span t-field="doc.name"/>
+                        </div>
+
+                        <!-- Journal Lines Table -->
+                        <table class="je-table">
+                            <thead>
+                                <tr>
+                                    <th>Date</th>
+                                    <th>Journal Name</th>
+                                    <th>Display Name</th>
+                                    <th class="num">Debit</th>
+                                    <th class="num">Credit</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr t-foreach="doc.line_ids" t-as="table_line">
+                                    <td><span t-field="table_line.date"/></td>
+                                    <td><span t-field="table_line.account_id.name"/></td>
+                                    <td><span t-field="table_line.display_name"/></td>
+                                    <td class="num"><span t-field="table_line.debit"/></td>
+                                    <td class="num"><span t-field="table_line.credit"/></td>
+                                </tr>
+                            </tbody>
+                            <tfoot>
+                                <tr>
+                                    <td colspan="3">Total</td>
+                                    <td class="num">
+                                        <span t-esc="'%.2f' % sum(doc.line_ids.mapped('debit'))"/>
+                                    </td>
+                                    <td class="num">
+                                        <span t-esc="'%.2f' % sum(doc.line_ids.mapped('credit'))"/>
+                                    </td>
+                                </tr>
+                            </tfoot>
+                        </table>
+
+                    </div>
+                </div>
+            </main>
+        </t>
+    </template>
+
+</odoo>

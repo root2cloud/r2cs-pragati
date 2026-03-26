@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- Custom compact paper format -->
+    <record id="pragati_journal_entry_paperformat" model="report.paperformat">
+        <field name="name">Pragati Journal Entry Format</field>
+        <field name="default" eval="False"/>
+        <field name="format">A4</field>
+        <field name="orientation">Portrait</field>
+        <field name="margin_top">10</field>
+        <field name="margin_bottom">10</field>
+        <field name="margin_left">7</field>
+        <field name="margin_right">7</field>
+        <field name="header_line" eval="False"/>
+        <field name="header_spacing">3</field>
+        <field name="dpi">90</field>
+    </record>
+
+    <record id="pragati_journal_entry_report_action" model="ir.actions.report">
+        <field name="attachment" eval="False"/>
+        <field name="attachment_use" eval="False"/>
+        <field name="binding_model_id" ref="account.model_account_move"/>
+        <field name="binding_type">report</field>
+        <field name="binding_view_types">list,form</field>
+        <field name="groups_id" eval="[(6, 0, [])]"/>
+        <field name="model">account.move</field>
+        <field name="multi" eval="False"/>
+        <field name="name">Journal Entry Report</field>
+        <field name="paperformat_id" ref="pragati_journal_entry_paperformat"/>
+        <field name="report_name">pragati_custom_module.pragati_journal_entry_report</field>
+        <field name="report_type">qweb-pdf</field>
+    </record>
+
+</odoo>

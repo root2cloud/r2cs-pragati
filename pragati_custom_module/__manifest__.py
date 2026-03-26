@@ -71,6 +71,8 @@
         'wizard/product_pr_wizard_views.xml',
         # 'report/payment_advise_report.xml',
         'report/delivery_slip_report.xml',
+        'report/journal_entry_report_template.xml',
+        'report/journal_entry_report_action.xml',
         'report/sale_order_report.xml',
         'report/mrn_date_inhertited_report.xml',
         'report/advance_payments_hms.xml',
