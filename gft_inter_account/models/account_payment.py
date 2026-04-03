@@ -7,20 +7,32 @@ class AccountPayment(models.Model):
 
     def action_post(self):
         for record in self:
-            current_date = date.today()
-            # Get the next sequence
-            sequence = self.env['ir.sequence'].next_by_code('outbound.payment.sequence') or 'New'
+            # Use the date field from the payment, NOT today's date
+            # This ensures March 2026 entries get the 25-26 prefix
+            p_date = record.date or date.today()
 
-            if current_date:
-                current_year = current_date.year
-                next_year = str(current_year + 1)
-                year_range = f"{current_year}-{next_year}"
-                print(year_range, "$$$$$$$$$$$$$$$$$")
-                sequence_number = sequence
-                record.name = "RF26-27/{}".format(sequence_number.zfill(4))
+            # Logic: If month is Jan-Mar, it's the end of the previous fiscal year
+            if p_date.month < 4:
+                start_yr = p_date.year - 1
+                end_yr = p_date.year
+            else:
+                start_yr = p_date.year
+                end_yr = p_date.year + 1
 
-                # Ensure the Journal Entry's number matches the payment name
-                if record.move_id and record.move_id.name and record.move_id.name != record.name:
-                    record.move_id.name = record.name
+            # Format: 25-26
+            year_prefix = f"{str(start_yr)[2:]}-{str(end_yr)[2:]}"
+
+            # Get sequence number and pass the date so it resets to 1 every April
+            seq = self.env['ir.sequence'].next_by_code(
+                'outbound.payment.sequence',
+                sequence_date=p_date
+            ) or '1'
+
+            # Result: RF25-26/0001 or RF26-27/0001
+            record.name = f"RF{year_prefix}/{seq.zfill(4)}"
+
+            # Sync with the Journal Entry (Account Move)
+            if record.move_id:
+                record.move_id.name = record.name
 
         return super(AccountPayment, self).action_post()
