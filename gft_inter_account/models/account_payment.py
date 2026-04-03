@@ -8,9 +8,10 @@ class AccountPayment(models.Model):
     def action_post(self):
         for record in self:
             # Use the date field from the payment, NOT today's date
+            # This ensures March 2026 entries get the 25-26 prefix
             p_date = record.date or date.today()
 
-            # March (Month 3) belongs to the previous fiscal year
+            # Logic: If month is Jan-Mar, it's the end of the previous fiscal year
             if p_date.month < 4:
                 start_yr = p_date.year - 1
                 end_yr = p_date.year
@@ -21,16 +22,16 @@ class AccountPayment(models.Model):
             # Format: 25-26
             year_prefix = f"{str(start_yr)[2:]}-{str(end_yr)[2:]}"
 
-            # Get sequence number (and pass the date so the '1' resets correctly)
+            # Get sequence number and pass the date so it resets to 1 every April
             seq = self.env['ir.sequence'].next_by_code(
                 'outbound.payment.sequence',
                 sequence_date=p_date
             ) or '1'
 
-            # This will now correctly generate RF25-26/XXXX for March dates
+            # Result: RF25-26/0001 or RF26-27/0001
             record.name = f"RF{year_prefix}/{seq.zfill(4)}"
 
-            # Sync with the Journal Entry
+            # Sync with the Journal Entry (Account Move)
             if record.move_id:
                 record.move_id.name = record.name
 
